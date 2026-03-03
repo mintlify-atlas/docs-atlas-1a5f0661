@@ -1,0 +1,514 @@
+---
+title: styled() Function
+description: Create styled components with the styled() function
+---
+
+The `styled()` function is Tamagui's core API for creating reusable, styled components. It works with both Tamagui components and standard React components, supporting variants, media queries, pseudo states, and theming.
+
+## Basic Usage
+
+```tsx
+import { styled } from 'tamagui'
+
+const MyButton = styled(View, {
+  backgroundColor: '$blue10',
+  padding: '$4',
+  borderRadius: '$4',
+})
+```
+
+## Type Signature
+
+```typescript
+function styled<
+  ParentComponent extends StylableComponent,
+  StyledConfig extends StaticConfigPublic,
+  Variants extends VariantDefinitions<ParentComponent, StyledConfig>,
+>(
+  ComponentIn: ParentComponent,
+  options?: Partial<InferStyledProps<ParentComponent, StyledConfig>> & {
+    name?: string
+    variants?: Variants | undefined
+    defaultVariants?: GetVariantAcceptedValues<Variants>
+    context?: StyledContext
+    render?: string | React.ReactElement
+  },
+  config?: StyledConfig
+): TamaguiComponent
+```
+
+## Parameters
+
+<ParamField path="ComponentIn" type="StylableComponent" required>
+  The base component to style. Can be a Tamagui component, React component, or React Native component.
+</ParamField>
+
+<ParamField path="options" type="object">
+  Configuration object for styling and behavior.
+  
+  <ParamField path="name" type="string">
+    Component name for debugging and automatic theme application.
+  </ParamField>
+  
+  <ParamField path="variants" type="VariantDefinitions">
+    Variant definitions for creating prop-based style variations.
+  </ParamField>
+  
+  <ParamField path="defaultVariants" type="object">
+    Default values for variants when not specified.
+  </ParamField>
+  
+  <ParamField path="context" type="StyledContext">
+    React Context for accessing values in variant functions.
+  </ParamField>
+  
+  <ParamField path="render" type="string | React.ReactElement">
+    Override the rendered HTML element on web (e.g., `render="button"`).
+  </ParamField>
+</ParamField>
+
+<ParamField path="config" type="StaticConfigPublic">
+  Advanced configuration for compiler optimization and behavior.
+  
+  <ParamField path="isText" type="boolean">
+    Whether this component renders as text (enables text-specific styles).
+  </ParamField>
+  
+  <ParamField path="acceptsClassName" type="boolean">
+    Whether the component accepts className prop (default: auto-detected).
+  </ParamField>
+  
+  <ParamField path="accept" type="object">
+    Map prop names to token categories for custom token support.
+    
+    ```tsx
+    accept: {
+      shadowSize: 'size',  // Accepts size tokens
+      brand: 'color',      // Accepts color tokens
+    }
+    ```
+  </ParamField>
+</ParamField>
+
+## Styling Components
+
+### Base Styles
+
+```tsx
+const Card = styled(View, {
+  backgroundColor: '$background',
+  borderRadius: '$4',
+  padding: '$4',
+  shadowColor: '$shadowColor',
+  shadowRadius: 10,
+  shadowOffset: { width: 0, height: 4 },
+})
+```
+
+### Extending Components
+
+```tsx
+const PrimaryCard = styled(Card, {
+  backgroundColor: '$blue10',
+  borderColor: '$blue8',
+  borderWidth: 1,
+})
+```
+
+## Variants
+
+Variants let you create prop-based style variations:
+
+### Static Variants
+
+```tsx
+const Button = styled(View, {
+  padding: '$4',
+  borderRadius: '$4',
+  
+  variants: {
+    variant: {
+      primary: {
+        backgroundColor: '$blue10',
+        color: 'white',
+      },
+      secondary: {
+        backgroundColor: '$gray3',
+        color: '$gray12',
+      },
+    },
+    
+    size: {
+      small: {
+        padding: '$2',
+        fontSize: 14,
+      },
+      large: {
+        padding: '$6',
+        fontSize: 18,
+      },
+    },
+  },
+  
+  defaultVariants: {
+    variant: 'primary',
+    size: 'small',
+  },
+})
+
+// Usage
+<Button variant="secondary" size="large" />
+```
+
+### Dynamic Variants (Spread Functions)
+
+Use spread functions for token-based variants:
+
+```tsx
+import { getFontSized } from '@tamagui/get-font-sized'
+
+const SizableText = styled(Text, {
+  fontFamily: '$body',
+  
+  variants: {
+    size: getFontSized,  // Maps to font size tokens
+  },
+  
+  defaultVariants: {
+    size: '$true',
+  },
+})
+
+// Usage
+<SizableText size="$6" />
+```
+
+### Variant Spread Syntax
+
+The `...` syntax creates variants for all tokens in a category:
+
+```tsx
+const ColoredBox = styled(View, {
+  padding: '$4',
+  
+  variants: {
+    bg: {
+      '...color': (color) => ({
+        backgroundColor: color,
+      }),
+    },
+  },
+})
+
+// Usage - accepts any color token
+<ColoredBox bg="$red10" />
+<ColoredBox bg="$blue5" />
+```
+
+### Type-Based Variants
+
+Handle any value of a specific type:
+
+```tsx
+const Box = styled(View, {
+  variants: {
+    rotate: {
+      ':number': (value) => ({
+        transform: [{ rotate: `${value}deg` }],
+      }),
+    },
+    visible: {
+      ':boolean': (value) => ({
+        opacity: value ? 1 : 0,
+      }),
+    },
+  },
+})
+
+// Usage
+<Box rotate={45} visible={true} />
+```
+
+### Variant Functions with Extras
+
+Variant functions receive additional context:
+
+```tsx
+const ResponsiveText = styled(Text, {
+  variants: {
+    heading: {
+      true: (val, { tokens, theme, props }) => ({
+        fontSize: tokens.size[6],
+        color: theme.color,
+        fontWeight: props.bold ? '700' : '400',
+      }),
+    },
+  },
+})
+```
+
+## Pseudo States
+
+Tamagui provides built-in pseudo state support:
+
+```tsx
+const InteractiveButton = styled(View, {
+  backgroundColor: '$blue10',
+  cursor: 'pointer',
+  
+  hoverStyle: {
+    backgroundColor: '$blue9',
+    scale: 1.05,
+  },
+  
+  pressStyle: {
+    backgroundColor: '$blue11',
+    scale: 0.95,
+  },
+  
+  focusStyle: {
+    borderColor: '$blue8',
+    borderWidth: 2,
+  },
+  
+  focusVisibleStyle: {
+    outlineColor: '$blue8',
+    outlineWidth: 2,
+    outlineStyle: 'solid',
+  },
+  
+  disabledStyle: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+  },
+})
+```
+
+## Media Queries
+
+Responsive styles using media queries from your config:
+
+```tsx
+const ResponsiveCard = styled(View, {
+  padding: '$2',
+  
+  $gtSm: {
+    padding: '$4',
+  },
+  
+  $gtMd: {
+    padding: '$6',
+    flexDirection: 'row',
+  },
+  
+  $gtLg: {
+    padding: '$8',
+  },
+})
+```
+
+## Combining Features
+
+All features work together seamlessly:
+
+```tsx
+const AdvancedButton = styled(View, {
+  backgroundColor: '$background',
+  padding: '$3',
+  borderRadius: '$4',
+  cursor: 'pointer',
+  
+  variants: {
+    variant: {
+      primary: {
+        backgroundColor: '$blue10',
+        color: 'white',
+        
+        hoverStyle: {
+          backgroundColor: '$blue9',
+        },
+        
+        $gtMd: {
+          padding: '$4',
+        },
+      },
+      ghost: {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: '$borderColor',
+        
+        hoverStyle: {
+          borderColor: '$blue8',
+        },
+      },
+    },
+    
+    size: {
+      small: { padding: '$2' },
+      large: { padding: '$5' },
+    },
+  },
+  
+  defaultVariants: {
+    variant: 'primary',
+    size: 'small',
+  },
+})
+```
+
+## styledHtml() for HTML Elements
+
+For styling HTML elements directly with proper typing:
+
+```tsx
+import { styledHtml } from 'tamagui'
+
+const StyledAnchor = styledHtml('a', {
+  color: '$blue10',
+  textDecorationLine: 'underline',
+  
+  hoverStyle: {
+    color: '$blue9',
+  },
+})
+
+// TypeScript knows about href, target, etc.
+<StyledAnchor href="/path" target="_blank">Link</StyledAnchor>
+```
+
+### Convenience Methods
+
+Tamagui provides convenience methods for common HTML elements:
+
+```tsx
+import { styled } from 'tamagui'
+
+const StyledButton = styled.button({
+  backgroundColor: '$blue10',
+  color: 'white',
+  padding: '$4',
+  borderRadius: '$4',
+  border: 'none',
+  cursor: 'pointer',
+})
+
+const StyledLink = styled.a({
+  color: '$blue10',
+  textDecorationLine: 'none',
+})
+```
+
+## Component Naming
+
+The `name` option enables automatic theme application:
+
+```tsx
+const Button = styled(View, {
+  name: 'Button',  // Looks for Button theme
+  backgroundColor: '$background',
+})
+
+// In your themes config:
+themes: {
+  light: { background: '#fff' },
+  light_Button: { background: '#0066ff' },  // Applied automatically
+}
+```
+
+## Compiler Integration
+
+Tamagui's compiler optimizes `styled()` components:
+
+<Note>
+The compiler extracts static styles to CSS at build time, reducing runtime overhead and improving performance. Components with only static styles become zero-runtime.
+</Note>
+
+### Optimization-Friendly Patterns
+
+```tsx
+// ✅ Good - fully static, compiler can optimize
+const Card = styled(View, {
+  backgroundColor: '$background',
+  padding: '$4',
+  borderRadius: '$4',
+})
+
+// ✅ Good - static variants, compiler can optimize
+const Button = styled(View, {
+  variants: {
+    size: {
+      small: { padding: '$2' },
+      large: { padding: '$4' },
+    },
+  },
+})
+
+// ⚠️ Runtime - dynamic function
+const DynamicBox = styled(View, {
+  variants: {
+    size: {
+      ':number': (val) => ({ width: val }),
+    },
+  },
+})
+```
+
+## Best Practices
+
+<Tip>
+**Use variants over conditional styling**
+
+Instead of:
+```tsx
+<View style={{ backgroundColor: isPrimary ? '$blue10' : '$gray3' }} />
+```
+
+Use:
+```tsx
+const Button = styled(View, {
+  variants: {
+    variant: {
+      primary: { backgroundColor: '$blue10' },
+      secondary: { backgroundColor: '$gray3' },
+    },
+  },
+})
+
+<Button variant={isPrimary ? 'primary' : 'secondary'} />
+```
+</Tip>
+
+<Tip>
+**Leverage default variants**
+
+Provide sensible defaults to reduce prop clutter:
+
+```tsx
+const Button = styled(View, {
+  variants: { /* ... */ },
+  defaultVariants: {
+    variant: 'primary',
+    size: 'medium',
+  },
+})
+```
+</Tip>
+
+<Warning>
+**Avoid circular styled() chains**
+
+Don't create circular dependencies between styled components:
+
+```tsx
+// ❌ Bad
+const A = styled(B, { /* ... */ })
+const B = styled(A, { /* ... */ })  // Circular!
+```
+</Warning>
+
+## Related
+
+- [View and Text](/core/view-and-text) - Base components for styling
+- [Variants](/core/variants) - Deep dive into variants
+- [Theme](/core/theme) - Theming system
+- [Tokens](/core/tokens) - Design tokens

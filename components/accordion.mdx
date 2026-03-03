@@ -1,0 +1,195 @@
+---
+title: Accordion
+description: A vertically stacked set of interactive headings that each reveal an associated section of content.
+---
+
+# Accordion
+
+A vertically stacked set of interactive headings that each reveal an associated section of content.
+
+## Installation
+
+```bash
+npm install @tamagui/accordion
+```
+
+## Usage
+
+```tsx
+import { Accordion } from '@tamagui/accordion'
+
+export default function AccordionExample() {
+  return (
+    <Accordion type="single" collapsible>
+      <Accordion.Item value="item-1">
+        <Accordion.Header>
+          <Accordion.Trigger>What is Tamagui?</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content>
+          Tamagui is a universal UI kit for React Native and Web.
+        </Accordion.Content>
+      </Accordion.Item>
+      <Accordion.Item value="item-2">
+        <Accordion.Header>
+          <Accordion.Trigger>Is it accessible?</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content>
+          Yes. It adheres to the WAI-ARIA design pattern.
+        </Accordion.Content>
+      </Accordion.Item>
+    </Accordion>
+  )
+}
+```
+
+## Anatomy
+
+```tsx
+import { Accordion } from '@tamagui/accordion'
+
+export default () => (
+  <Accordion>
+    <Accordion.Item>
+      <Accordion.Header>
+        <Accordion.Trigger />
+      </Accordion.Header>
+      <Accordion.Content />
+    </Accordion.Item>
+  </Accordion>
+)
+```
+
+## API Reference
+
+### Accordion (Single)
+
+<ParamField path="type" type="'single'" required>
+  Determines whether one or multiple items can be opened at the same time.
+</ParamField>
+
+<ParamField path="value" type="string">
+  The controlled stateful value of the accordion item whose content is expanded.
+</ParamField>
+
+<ParamField path="defaultValue" type="string">
+  The value of the item whose content is expanded when the accordion is initially rendered. Use defaultValue if you do not need to control the state of an accordion.
+</ParamField>
+
+<ParamField path="onValueChange" type="(value: string) => void">
+  The callback that fires when the state of the accordion changes.
+</ParamField>
+
+<ParamField path="collapsible" type="boolean" default="false">
+  Whether an accordion item can be collapsed after it has been opened.
+</ParamField>
+
+<ParamField path="disabled" type="boolean" default="false">
+  Whether or not an accordion is disabled from user interaction.
+</ParamField>
+
+<ParamField path="orientation" type="'horizontal' | 'vertical'" default="vertical">
+  The layout in which the Accordion operates.
+</ParamField>
+
+<ParamField path="dir" type="'ltr' | 'rtl'">
+  The language read direction.
+</ParamField>
+
+### Accordion (Multiple)
+
+<ParamField path="type" type="'multiple'" required>
+  Determines whether one or multiple items can be opened at the same time.
+</ParamField>
+
+<ParamField path="value" type="string[]">
+  The controlled stateful value of the accordion items whose contents are expanded.
+</ParamField>
+
+<ParamField path="defaultValue" type="string[]">
+  The value of the items whose contents are expanded when the accordion is initially rendered. Use defaultValue if you do not need to control the state of an accordion.
+</ParamField>
+
+<ParamField path="onValueChange" type="(value: string[]) => void">
+  The callback that fires when the state of the accordion changes.
+</ParamField>
+
+### Accordion.Item
+
+<ParamField path="value" type="string" required>
+  A string value for the accordion item. All items within an accordion should use a unique value.
+</ParamField>
+
+<ParamField path="disabled" type="boolean" default="false">
+  Whether or not an accordion item is disabled from user interaction.
+</ParamField>
+
+### Accordion.Header
+
+Contains the content for the parts of an AccordionItem that will be visible whether or not its content is collapsed.
+
+### Accordion.Trigger
+
+The trigger that toggles the collapsed state of an AccordionItem. It should always be nested inside of an AccordionHeader.
+
+### Accordion.Content
+
+Contains the collapsible content for an AccordionItem.
+
+### Accordion.HeightAnimator
+
+A helper component for animating accordion content height on React Native.
+
+## Examples
+
+### Multiple Items
+
+```tsx
+import { Accordion } from '@tamagui/accordion'
+
+export default function MultipleAccordion() {
+  return (
+    <Accordion type="multiple" defaultValue={['item-1', 'item-2']}>
+      <Accordion.Item value="item-1">
+        <Accordion.Header>
+          <Accordion.Trigger>Item 1</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content>Content 1</Accordion.Content>
+      </Accordion.Item>
+      <Accordion.Item value="item-2">
+        <Accordion.Header>
+          <Accordion.Trigger>Item 2</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content>Content 2</Accordion.Content>
+      </Accordion.Item>
+    </Accordion>
+  )
+}
+```
+
+### Controlled Accordion
+
+```tsx
+import { useState } from 'react'
+import { Accordion } from '@tamagui/accordion'
+
+export default function ControlledAccordion() {
+  const [value, setValue] = useState('item-1')
+
+  return (
+    <Accordion type="single" value={value} onValueChange={setValue}>
+      <Accordion.Item value="item-1">
+        <Accordion.Header>
+          <Accordion.Trigger>Item 1</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content>Content 1</Accordion.Content>
+      </Accordion.Item>
+      <Accordion.Item value="item-2">
+        <Accordion.Header>
+          <Accordion.Trigger>Item 2</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content>Content 2</Accordion.Content>
+      </Accordion.Item>
+    </Accordion>
+  )
+}
+```

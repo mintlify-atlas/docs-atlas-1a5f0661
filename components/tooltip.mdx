@@ -1,0 +1,469 @@
+---
+title: Tooltip
+description: A popup that displays information related to an element when it receives keyboard focus or the mouse hovers over it.
+---
+
+# Tooltip
+
+A popup that displays brief, supplementary information related to an element when the user hovers over or focuses on that element.
+
+## Installation
+
+```bash
+npm install @tamagui/tooltip
+```
+
+## Anatomy
+
+```tsx
+import { Tooltip } from '@tamagui/tooltip'
+
+export default () => (
+  <Tooltip>
+    <Tooltip.Trigger />
+    <Tooltip.Content>
+      <Tooltip.Arrow />
+    </Tooltip.Content>
+  </Tooltip>
+)
+```
+
+## Basic Usage
+
+```tsx
+import { Tooltip, Button } from 'tamagui'
+
+export default function TooltipExample() {
+  return (
+    <Tooltip>
+      <Tooltip.Trigger asChild>
+        <Button>Hover me</Button>
+      </Tooltip.Trigger>
+
+      <Tooltip.Content
+        enterStyle={{ x: 0, y: -5, opacity: 0, scale: 0.9 }}
+        exitStyle={{ x: 0, y: -5, opacity: 0, scale: 0.9 }}
+        scale={1}
+        x={0}
+        y={0}
+        opacity={1}
+        animation={[
+          'quick',
+          {
+            opacity: {
+              overshootClamping: true,
+            },
+          },
+        ]}
+      >
+        <Tooltip.Arrow />
+        <Paragraph size="$2" lineHeight="$1">
+          This is a helpful tooltip
+        </Paragraph>
+      </Tooltip.Content>
+    </Tooltip>
+  )
+}
+```
+
+## API Reference
+
+### Tooltip
+
+Contains all the parts of a tooltip.
+
+<ParamField path="open" type="boolean">
+  The controlled open state of the tooltip.
+</ParamField>
+
+<ParamField path="defaultOpen" type="boolean" default="false">
+  The open state when initially rendered.
+</ParamField>
+
+<ParamField path="onOpenChange" type="(open: boolean) => void">
+  Event handler called when the open state changes.
+</ParamField>
+
+<ParamField path="delay" type="number | { open?: number; close?: number }" default="400">
+  The duration in milliseconds before the tooltip opens/closes. Can be a single number or separate values for open and close.
+</ParamField>
+
+<ParamField path="restMs" type="number">
+  The duration to wait after the mouse stops moving before opening. Defaults to the delay value.
+</ParamField>
+
+<ParamField path="disableAutoCloseOnScroll" type="boolean" default="false">
+  Prevent the tooltip from automatically closing when the user scrolls.
+</ParamField>
+
+<ParamField path="placement" type="Placement">
+  The preferred placement of the tooltip. Can be 'top', 'right', 'bottom', 'left' and their variants.
+</ParamField>
+
+<ParamField path="offset" type="number | { mainAxis?: number; crossAxis?: number }">
+  The distance from the trigger element.
+</ParamField>
+
+<ParamField path="allowFlip" type="boolean" default="true">
+  Whether to flip the tooltip to the opposite side if it doesn't fit.
+</ParamField>
+
+<ParamField path="groupId" type="string">
+  Used to group tooltips together for coordinated behavior with TooltipGroup.
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  z-index for the tooltip portal. Use when tooltips need to appear above other portaled content.
+</ParamField>
+
+<ParamField path="focus" type="{ enabled?: boolean; visibleOnly?: boolean }">
+  Configure focus behavior.
+</ParamField>
+
+### Tooltip.Trigger
+
+The element that triggers the tooltip.
+
+<ParamField path="asChild" type="boolean">
+  Change the component to a different HTML tag or custom component.
+</ParamField>
+
+### Tooltip.Anchor
+
+An optional element to position the tooltip against. If not provided, the trigger is used.
+
+### Tooltip.Content
+
+The component that pops out when the tooltip is open.
+
+<ParamField path="pointerEvents" type="string" default="none">
+  By default, tooltips don't capture pointer events to allow hovering over them.
+</ParamField>
+
+### Tooltip.Arrow
+
+An optional arrow element to point towards the trigger.
+
+<ParamField path="size" type="SizeTokens">
+  The size of the arrow.
+</ParamField>
+
+## Controlled vs Uncontrolled
+
+### Uncontrolled
+
+```tsx
+<Tooltip delay={200}>
+  {/* ... */}
+</Tooltip>
+```
+
+### Controlled
+
+```tsx
+const [open, setOpen] = useState(false)
+
+return (
+  <Tooltip open={open} onOpenChange={setOpen}>
+    {/* ... */}
+  </Tooltip>
+)
+```
+
+## Delay Configuration
+
+### Single Delay
+
+```tsx
+<Tooltip delay={300}>
+  {/* Opens after 300ms */}
+</Tooltip>
+```
+
+### Separate Open/Close Delays
+
+```tsx
+<Tooltip
+  delay={{
+    open: 500,
+    close: 100,
+  }}
+>
+  {/* Opens after 500ms, closes after 100ms */}
+</Tooltip>
+```
+
+## Tooltip Groups
+
+Coordinate multiple tooltips so that moving between them doesn't require waiting for the delay again:
+
+```tsx
+import { TooltipGroup, Tooltip, Button, XStack } from 'tamagui'
+
+export default function TooltipGroupExample() {
+  return (
+    <TooltipGroup delay={{ open: 500, close: 100 }}>
+      <XStack gap="$4">
+        <Tooltip>
+          <Tooltip.Trigger asChild>
+            <Button>Button 1</Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content>
+            <Tooltip.Arrow />
+            <Paragraph>Tooltip 1</Paragraph>
+          </Tooltip.Content>
+        </Tooltip>
+
+        <Tooltip>
+          <Tooltip.Trigger asChild>
+            <Button>Button 2</Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content>
+            <Tooltip.Arrow />
+            <Paragraph>Tooltip 2</Paragraph>
+          </Tooltip.Content>
+        </Tooltip>
+      </XStack>
+    </TooltipGroup>
+  )
+}
+```
+
+When one tooltip is open, moving to another in the group opens it instantly.
+
+### TooltipGroup Props
+
+<ParamField path="delay" type="number | { open?: number; close?: number }">
+  The delay applied to all tooltips in the group.
+</ParamField>
+
+<ParamField path="preventAnimation" type="boolean">
+  Disable animations for tooltips in the group (improves performance when showing many tooltips).
+</ParamField>
+
+<ParamField path="timeoutMs" type="number">
+  How long to wait before considering the user has left the group.
+</ParamField>
+
+## Animation
+
+Tooltips support subtle animations:
+
+```tsx
+<Tooltip.Content
+  animation="quick"
+  enterStyle={{ opacity: 0, scale: 0.9, y: -5 }}
+  exitStyle={{ opacity: 0, scale: 0.9, y: -5 }}
+>
+  {/* content */}
+</Tooltip.Content>
+```
+
+## Positioning
+
+### Basic Placement
+
+```tsx
+<Tooltip placement="top">
+  {/* Tooltip appears above the trigger */}
+</Tooltip>
+```
+
+### All Placements
+
+- `top`, `top-start`, `top-end`
+- `right`, `right-start`, `right-end`
+- `bottom`, `bottom-start`, `bottom-end`
+- `left`, `left-start`, `left-end`
+
+### With Offset
+
+```tsx
+<Tooltip
+  offset={{
+    mainAxis: 10, // Distance from trigger
+    crossAxis: 5, // Offset along the side
+  }}
+>
+  {/* content */}
+</Tooltip>
+```
+
+## Accessibility
+
+### ARIA Attributes
+
+- `Tooltip.Content` has `role="tooltip"`
+- `Tooltip.Trigger` has `aria-describedby` pointing to the tooltip content
+- Automatically manages `aria-hidden` states
+
+### Keyboard Navigation
+
+- <kbd>Tab</kbd> - Focusing the trigger shows the tooltip (if focus enabled)
+- <kbd>Escape</kbd> - Closes the tooltip
+- <kbd>Space</kbd> or <kbd>Enter</kbd> - Activates the trigger (doesn't affect tooltip)
+
+### Focus Behavior
+
+```tsx
+// Enable showing tooltip on focus
+<Tooltip focus={{ enabled: true }}>
+  {/* Shows on hover AND focus */}
+</Tooltip>
+
+// Only show on focus if element is visible
+<Tooltip focus={{ enabled: true, visibleOnly: true }}>
+  {/* Only shows when trigger is visible on screen */}
+</Tooltip>
+```
+
+### Screen Readers
+
+- Content is announced to screen readers via `aria-describedby`
+- Keep tooltip content concise (avoid interactive elements)
+- For complex content, use a Popover instead
+
+## Composition Pattern
+
+```tsx
+import { Tooltip, styled } from 'tamagui'
+
+const StyledTooltipContent = styled(Tooltip.Content, {
+  backgroundColor: '$background',
+  borderRadius: '$2',
+  padding: '$2',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+  maxWidth: 250,
+})
+
+export function HelpTooltip({ content, children }) {
+  return (
+    <Tooltip>
+      <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
+      <StyledTooltipContent>
+        <Tooltip.Arrow />
+        <Paragraph size="$2">{content}</Paragraph>
+      </StyledTooltipContent>
+    </Tooltip>
+  )
+}
+
+// Usage
+<HelpTooltip content="Click to submit the form">
+  <Button>Submit</Button>
+</HelpTooltip>
+```
+
+## Advanced Usage
+
+### Custom Anchor
+
+```tsx
+<Tooltip>
+  <YStack>
+    <Tooltip.Trigger>
+      <Button>Trigger</Button>
+    </Tooltip.Trigger>
+    
+    <Tooltip.Anchor>
+      <View>Tooltip anchors to this element instead</View>
+    </Tooltip.Anchor>
+  </YStack>
+  
+  <Tooltip.Content>
+    <Paragraph>Positioned relative to anchor</Paragraph>
+  </Tooltip.Content>
+</Tooltip>
+```
+
+### Close All Tooltips Programmatically
+
+```tsx
+import { closeOpenTooltips } from '@tamagui/tooltip'
+
+function MyComponent() {
+  const handleAction = () => {
+    closeOpenTooltips()
+    // Perform action
+  }
+
+  return <Button onPress={handleAction}>Do Action</Button>
+}
+```
+
+### Disable on Touch Devices
+
+```tsx
+import { useMedia } from 'tamagui'
+
+function ResponsiveTooltip({ children }) {
+  const media = useMedia()
+  const isTouchDevice = media.sm || media.xs
+
+  if (isTouchDevice) {
+    // On mobile, just render the trigger
+    return children
+  }
+
+  return (
+    <Tooltip>
+      <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
+      <Tooltip.Content>
+        <Paragraph>Desktop-only tooltip</Paragraph>
+      </Tooltip.Content>
+    </Tooltip>
+  )
+}
+```
+
+## Best Practices
+
+### Content Guidelines
+
+- Keep content brief (1-2 lines max)
+- Don't repeat trigger text
+- Avoid interactive elements inside tooltips
+- Don't include critical information (users might miss it)
+
+### When to Use
+
+**Use Tooltip for:**
+- Icon-only buttons
+- Truncated text
+- Brief supplementary information
+- Keyboard shortcuts
+
+**Use Popover instead for:**
+- Interactive content (buttons, forms, links)
+- Long-form content
+- Content that needs to be clickable
+- Critical information
+
+### Performance
+
+```tsx
+// Use TooltipGroup for many tooltips
+<TooltipGroup delay={300} preventAnimation>
+  {items.map(item => (
+    <Tooltip key={item.id}>
+      <Tooltip.Trigger>{item.label}</Tooltip.Trigger>
+      <Tooltip.Content>{item.tooltip}</Tooltip.Content>
+    </Tooltip>
+  ))}
+</TooltipGroup>
+```
+
+## Platform Differences
+
+### Web
+
+- Shows on hover and focus
+- Uses pointer events for hover detection
+- Automatically closes on scroll (unless disabled)
+
+### React Native
+
+- Shows on long press by default
+- Hover requires special setup (React Native Web)
+- Consider using Popover on mobile for better UX

@@ -1,0 +1,566 @@
+---
+title: Static Extraction
+description: Understanding what the compiler can extract, optimization patterns, and how to write extraction-friendly code
+---
+
+# Static Extraction
+
+The Tamagui compiler performs "static extraction" - analyzing your code at build time to convert runtime JavaScript into optimized CSS classes. This guide explains what can be extracted and how to maximize optimization.
+
+## What Can Be Extracted?
+
+The compiler can extract props that can be evaluated at build time.
+
+### ✅ Fully Extractable
+
+#### String Literals
+
+```tsx
+<YStack bg="red" />
+<Text color="blue" />
+```
+
+#### Number Literals  
+
+```tsx
+<YStack padding={10} borderRadius={8} />
+```
+
+#### Boolean Values
+
+```tsx
+<YStack flex={1} />
+<Button disabled={true} />
+```
+
+#### Theme Variables
+
+```tsx
+<YStack bg="$background" />
+<Text color="$color" />
+<Button bc="$borderColor" />
+```
+
+#### Simple Ternaries
+
+```tsx
+<YStack bg={isActive ? "blue" : "gray"} />
+<Text color={error ? "$red10" : "$green10"} />
+```
+
+#### Object Spreads with Static Values
+
+```tsx
+<YStack {...{ padding: 10, bg: "red" }} />
+```
+
+#### Conditional Spreads
+
+```tsx
+<YStack {...(isSmall && { padding: 10 })} />
+<YStack {...(isLarge ? { p: 20 } : { p: 10 })} />
+```
+
+#### Media Query Props
+
+```tsx
+<YStack padding="$4" $sm={{ padding: "$2" }} />
+<Text fontSize={16} $gtSm={{ fontSize: 20 }} />
+```
+
+#### Pseudo-State Styles
+
+```tsx
+<Button 
+  bg="blue"
+  hoverStyle={{ bg: "darkblue" }}
+  pressStyle={{ scale: 0.95 }}
+  focusStyle={{ borderColor: "$blue10" }}
+/>
+```
+
+#### Platform-Specific Styles
+
+```tsx
+<YStack 
+  $platform-web={{ cursor: "pointer" }}
+  $platform-native={{ elevation: 2 }}
+/>
+```
+
+### ⚠️ Partially Extractable
+
+These patterns can be partially optimized:
+
+#### Variables from Module Scope
+
+```tsx
+const PADDING = 10
+const COLORS = { primary: 'blue' }
+
+<YStack padding={PADDING} /> // ✅ Extracted
+<Button bg={COLORS.primary} /> // ✅ Extracted
+```
+
+The compiler evaluates constants from the same file.
+
+#### Imported Constants
+
+```tsx
+// constants.ts
+export const SPACING = { sm: 8, md: 16 }
+
+// Component.tsx  
+import { SPACING } from './constants'
+<YStack padding={SPACING.md} /> // ✅ Extracted (if whitelisted)
+```
+
+Add to `importsWhitelist`:
+
+```ts
+// tamagui.build.ts
+export default {
+  importsWhitelist: ['./constants', './theme'],
+}
+```
+
+#### Ternaries with Evaluation
+
+```tsx
+const padding = size === 'small' ? 10 : 20
+<YStack padding={padding} />
+
+// Compiled to:
+<div className={size === 'small' ? '_p-10' : '_p-20'} />
+```
+
+### ❌ Not Extractable
+
+These patterns require runtime and can't be fully optimized:
+
+#### Function Calls
+
+```tsx
+// Can't evaluate at build time
+<YStack padding={calculatePadding()} />
+<Text color={getThemeColor('primary')} />
+```
+
+#### Props from Component Props
+
+```tsx
+function MyComponent({ spacing, color }) {
+  // These are runtime values
+  return <YStack padding={spacing} bg={color} />
+}
+```
+
+#### Complex Expressions
+
+```tsx
+<YStack padding={size * 2 + offset} />
+<Text opacity={isVisible ? (isActive ? 1 : 0.5) : 0} />
+```
+
+#### Dynamic Spreads
+
+```tsx
+// Dynamic object - can't extract
+<YStack {...props} />
+<Button {...getButtonStyles()} />
+```
+
+#### State & Hooks
+
+```tsx
+const [color, setColor] = useState('red')
+const theme = useTheme()
+
+<YStack bg={color} /> // Runtime
+<Text color={theme.primary} /> // Runtime
+```
+
+## Extraction Rules
+
+The compiler follows these rules when extracting:
+
+### Rule 1: Static Values Only
+
+Values must be determinable at build time:
+
+```tsx
+// ✅ Good - static
+const SIZE = 10
+<YStack padding={SIZE} />
+
+// ❌ Bad - runtime  
+const getSize = () => 10
+<YStack padding={getSize()} />
+```
+
+### Rule 2: Whitelisted Imports
+
+Imported values need explicit whitelisting:
+
+```tsx
+// constants.ts
+export const SPACING = 16
+
+// Component.tsx
+import { SPACING } from './constants'
+<YStack padding={SPACING} /> // Only works if whitelisted
+```
+
+```ts
+// tamagui.build.ts
+export default {
+  importsWhitelist: ['./constants'],
+}
+```
+
+### Rule 3: No External Functions
+
+Function calls bail out:
+
+```tsx
+// ❌ Won't extract
+<YStack padding={Math.max(10, 20)} />
+<Text fontSize={parseInt('16')} />
+
+// ✅ Extract instead
+const PADDING = Math.max(10, 20)
+<YStack padding={PADDING} />
+```
+
+### Rule 4: Ternaries Must Be Normalized
+
+Complex ternaries get simplified:
+
+```tsx
+// Input
+<YStack bg={a ? (b ? 'red' : 'blue') : 'green'} />
+
+// Compiler normalizes to multiple conditions
+<div className={
+  a && b ? '_bg-red' :
+  a && !b ? '_bg-blue' :
+  '_bg-green'
+} />
+```
+
+### Rule 5: Spreads Merge Forward
+
+Later props override earlier ones:
+
+```tsx
+<YStack bg="red" {...{ bg: "blue" }} />
+// Final: bg="blue"
+
+<YStack {...{ padding: 10 }} padding={20} />
+// Final: padding={20}
+```
+
+## Optimization Patterns
+
+### Pattern 1: Use Static Variants
+
+Define variants in styled() for best extraction:
+
+```tsx
+const Button = styled(Pressable, {
+  variants: {
+    size: {
+      small: { padding: 8, fontSize: 14 },
+      large: { padding: 16, fontSize: 18 },
+    },
+  } as const,
+})
+
+// Fully optimized
+<Button size="small" />
+```
+
+### Pattern 2: Hoist Constants
+
+Move calculations outside components:
+
+```tsx
+// ❌ Bad - recalculated every render
+function MyComponent() {
+  const PADDING = isLarge ? 20 : 10
+  return <YStack padding={PADDING} />
+}
+
+// ✅ Good - static
+const LARGE_PADDING = 20
+const SMALL_PADDING = 10
+
+function MyComponent() {
+  return <YStack padding={isLarge ? LARGE_PADDING : SMALL_PADDING} />
+}
+```
+
+### Pattern 3: Use Theme Tokens
+
+Theme variables extract perfectly:
+
+```tsx
+// ❌ Bad - hardcoded
+<YStack bg="#3b82f6" />
+
+// ✅ Good - extracts to CSS variable
+<YStack bg="$blue10" />
+```
+
+### Pattern 4: Leverage Media Queries
+
+Use shorthand media props:
+
+```tsx
+// ❌ Bad - requires runtime
+const isSmall = useMedia().sm
+<YStack padding={isSmall ? 10 : 20} />
+
+// ✅ Good - extracted to CSS @media
+<YStack padding={20} $sm={{ padding: 10 }} />
+```
+
+### Pattern 5: Conditional Spreads
+
+Replace dynamic props with conditionals:
+
+```tsx
+// ❌ Bad - dynamic spread
+<YStack {...(isActive && dynamicStyles)} />
+
+// ✅ Good - static conditionals  
+<YStack {...(isActive && { bg: '$blue10', scale: 1.05 })} />
+```
+
+### Pattern 6: Split Dynamic and Static
+
+Separate extracted and runtime props:
+
+```tsx
+function Card({ onPress, customPadding }) {
+  return (
+    <YStack
+      // Static props - extracted
+      bg="$background"
+      borderRadius="$4"
+      $sm={{ padding: "$2" }}
+      
+      // Dynamic props - runtime
+      padding={customPadding}
+      onPress={onPress}
+    />
+  )
+}
+```
+
+## styled() Component Extraction
+
+The compiler can extract styles from `styled()` definitions:
+
+```tsx
+const Card = styled(YStack, {
+  backgroundColor: '$background',
+  padding: '$4',
+  borderRadius: '$2',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+})
+
+// Compiler generates CSS:
+/*
+._bg-var-background { background-color: var(--background); }
+._p-4 { padding: var(--space-4); }
+._br-2 { border-radius: var(--radius-2); }
+._bw-1 { border-width: 1px; }
+._bc-var-borderColor { border-color: var(--borderColor); }
+*/
+```
+
+### What Gets Extracted from styled()
+
+✅ Base styles (shown above)  
+✅ Media queries  
+✅ Pseudo states (hover, press, focus)  
+❌ Variants (kept for runtime flexibility)  
+❌ Dynamic context (group styles, animations)
+
+```tsx
+const Button = styled(Pressable, {
+  // ✅ Extracted
+  bg: '$blue10',
+  padding: '$3',
+  
+  // ✅ Extracted
+  hoverStyle: {
+    bg: '$blue11',
+  },
+  
+  // ❌ Not extracted - needs runtime
+  variants: {
+    size: {
+      small: { padding: '$2' },
+      large: { padding: '$4' },
+    },
+  },
+})
+```
+
+## Dynamic Component Discovery
+
+The compiler can find styled() components across files:
+
+```tsx
+// ui/Button.tsx
+export const Button = styled(Pressable, {
+  bg: '$blue10',
+})
+
+// app/page.tsx
+import { Button } from '../ui/Button'
+<Button /> // ✅ Compiler optimizes this!
+```
+
+Enable with:
+
+```ts
+// tamagui.build.ts  
+export default {
+  enableDynamicEvaluation: true,
+  extractStyledDefinitions: true,
+}
+```
+
+## Debugging Extraction
+
+### Enable Debug Mode
+
+Add `debug` prop to see what's extracted:
+
+```tsx
+<YStack debug bg="red" padding={dynamicPadding} />
+```
+
+Console output:
+```
+✅ Extracted: bg="red" → ._bg-red
+❌ Runtime: padding={dynamicPadding}
+```
+
+### Check Generated Code
+
+Inspect the compiled output:
+
+```tsx
+// Before
+<YStack bg="$background" padding="$4" />
+
+// After (in browser DevTools)
+<div 
+  data-is="YStack"
+  data-at="Card.tsx:12"
+  className="_bg-var-background _p-4"
+/>
+```
+
+### Use Verbose Logging
+
+```ts
+// tamagui.build.ts
+export default {
+  shouldPrintDebug: 'verbose',
+}
+```
+
+Or set environment variable:
+
+```bash
+DEBUG=tamagui npm run dev
+```
+
+## Extraction Statistics
+
+After compilation, you can see stats:
+
+```ts
+// Returned from extractor
+{
+  styled: 5,      // styled() definitions processed
+  flattened: 12,  // Components flattened to HTML
+  optimized: 23,  // Props extracted to CSS
+  found: 28,      // Total Tamagui components found
+}
+```
+
+## Common Issues
+
+### Issue: Props Not Extracting
+
+**Symptom**: Styles appear in `style={}` instead of `className`
+
+**Causes**:
+- Props are dynamic (from component props)
+- Using function calls
+- Complex expressions
+
+**Solution**: Check extraction rules above and simplify props.
+
+### Issue: Import Not Recognized  
+
+**Symptom**: Components not optimized despite importing from 'tamagui'
+
+**Cause**: Package not in `components` array
+
+**Solution**:
+```ts
+// tamagui.build.ts
+export default {
+  components: ['tamagui', '@my-org/ui'],
+}
+```
+
+### Issue: Constants Not Evaluating
+
+**Symptom**: Imported constants treated as dynamic
+
+**Cause**: Import not whitelisted
+
+**Solution**:
+```ts
+export default {
+  importsWhitelist: ['./constants', './theme'],
+}
+```
+
+### Issue: styled() Not Extracting
+
+**Symptom**: styled() components not generating CSS
+
+**Cause**: Dynamic evaluation disabled
+
+**Solution**:
+```ts
+export default {
+  enableDynamicEvaluation: true,
+  extractStyledDefinitions: true,
+}
+```
+
+## Best Practices
+
+1. **Prefer static values**: Use literals and theme tokens
+2. **Hoist constants**: Move calculations outside renders  
+3. **Use variants**: Define variations in styled() definitions
+4. **Whitelist carefully**: Only whitelist truly static imports
+5. **Leverage media queries**: Use `$sm`, `$md` props instead of hooks
+6. **Split concerns**: Separate static and dynamic props
+7. **Test extraction**: Use debug mode to verify optimization
+
+## Next Steps
+
+- [How It Works](/compiler/how-it-works) - Understand the compilation process
+- [Installation](/compiler/installation) - Configure the compiler for your bundler

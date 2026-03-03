@@ -1,0 +1,262 @@
+---
+title: CSS Animations Driver
+description: Native CSS transitions and animations for web
+---
+
+The CSS animations driver provides native CSS transitions for web platforms, offering the best performance for simple animations without JavaScript overhead.
+
+## Installation
+
+```bash
+npm install @tamagui/animations-css
+```
+
+## Usage
+
+```tsx
+import { createAnimations } from '@tamagui/animations-css'
+import { createTamagui } from '@tamagui/core'
+
+const animations = createAnimations({
+  fast: 'ease-in 150ms',
+  medium: 'ease-in 300ms',
+  slow: 'ease-in 450ms',
+  bouncy: 'cubic-bezier(0.175, 0.885, 0.32, 1.275) 400ms',
+  lazy: 'ease-out 600ms',
+})
+
+const config = createTamagui({
+  animations,
+  // ... other config
+})
+```
+
+## Animation Format
+
+Animations are defined as CSS transition strings:
+
+```tsx
+const animations = createAnimations({
+  // Format: <timing-function> <duration>
+  quick: 'ease-in-out 200ms',
+  
+  // With cubic-bezier
+  bounce: 'cubic-bezier(0.68, -0.55, 0.265, 1.55) 500ms',
+  
+  // Using seconds
+  slow: 'ease-out 1.5s',
+})
+```
+
+## Configuration Options
+
+The CSS driver accepts animation definitions as strings. Each animation is a standard CSS transition value.
+
+### Animation String Format
+
+<ParamField path="animation" type="string">
+  CSS transition timing function and duration
+  
+  **Format:** `<timing-function> <duration>`
+  
+  **Examples:**
+  - `'ease-in 200ms'`
+  - `'ease-out 0.5s'`
+  - `'cubic-bezier(0.215, 0.610, 0.355, 1.000) 400ms'`
+  - `'linear 150ms'`
+</ParamField>
+
+## Supported Timing Functions
+
+- `ease` - Default easing
+- `ease-in` - Slow start
+- `ease-out` - Slow end
+- `ease-in-out` - Slow start and end
+- `linear` - Constant speed
+- `cubic-bezier(x1, y1, x2, y2)` - Custom cubic bezier curve
+
+## Duration Formats
+
+- Milliseconds: `200ms`, `1500ms`
+- Seconds: `0.2s`, `1.5s`
+
+## Features
+
+### Transform Handling
+
+The CSS driver handles CSS transforms specially, converting Tamagui's transform properties to CSS transform strings:
+
+```tsx
+// Tamagui props
+<View 
+  animation="fast"
+  x={100}           // → translateX(100px)
+  y={50}            // → translateY(50px)
+  scale={1.5}       // → scale(1.5)
+  rotate="45deg"    // → rotate(45deg)
+/>
+```
+
+### Animatable Properties
+
+Supports all CSS-animatable properties:
+
+- **Transform:** `x`, `y`, `scale`, `scaleX`, `scaleY`, `rotate`, `rotateX`, `rotateY`, `rotateZ`, `skewX`, `skewY`
+- **Opacity:** `opacity`
+- **Colors:** `backgroundColor`, `color`, `borderColor`
+- **Layout:** Any numeric CSS property
+
+### Enter/Exit Animations
+
+Full support for enter and exit animations with AnimatePresence:
+
+```tsx
+<AnimatePresence>
+  {show && (
+    <View
+      animation="medium"
+      enterStyle={{ opacity: 0, scale: 0.9 }}
+      exitStyle={{ opacity: 0, scale: 0.9 }}
+    >
+      Content
+    </View>
+  )}
+</AnimatePresence>
+```
+
+### Duration Override
+
+Override animation duration globally:
+
+```tsx
+<View 
+  animation={[
+    'fast',
+    { duration: 500 }  // Override to 500ms
+  ]}
+  scale={1.2}
+/>
+```
+
+### Per-Property Animations
+
+Different animations for different properties:
+
+```tsx
+<View
+  animation={{
+    opacity: 'fast',        // 150ms for opacity
+    scale: 'bouncy',        // 400ms bounce for scale
+  }}
+  opacity={0.5}
+  scale={1.1}
+/>
+```
+
+## Implementation Details
+
+### Driver Configuration
+
+The CSS driver returns:
+
+```typescript
+{
+  animations,              // Your animation definitions
+  inputStyle: 'css',       // Expects CSS values
+  outputStyle: 'css',      // Outputs CSS
+  usePresence,             // For AnimatePresence support
+  ResetPresence,           // Presence reset component
+}
+```
+
+### Exit Animation Completion
+
+The driver automatically:
+
+1. Detects which properties are animating
+2. Calculates the maximum duration across all properties
+3. Waits for all `transitionend` events
+4. Calls `sendExitComplete` when all animations finish
+5. Falls back to a timeout if events don't fire
+
+## Examples
+
+### Basic Animation
+
+```tsx
+import { createAnimations } from '@tamagui/animations-css'
+
+const animations = createAnimations({
+  quick: 'ease-in-out 200ms',
+})
+
+// In your component
+<Button 
+  animation="quick"
+  pressStyle={{ scale: 0.95 }}
+>
+  Press Me
+</Button>
+```
+
+### Custom Cubic Bezier
+
+```tsx
+const animations = createAnimations({
+  // Material Design standard curve
+  standard: 'cubic-bezier(0.4, 0.0, 0.2, 1) 300ms',
+  
+  // Material Design deceleration
+  decelerate: 'cubic-bezier(0.0, 0.0, 0.2, 1) 250ms',
+  
+  // Material Design acceleration  
+  accelerate: 'cubic-bezier(0.4, 0.0, 1, 1) 200ms',
+  
+  // Bounce effect
+  bounce: 'cubic-bezier(0.68, -0.55, 0.265, 1.55) 400ms',
+})
+```
+
+### Complex Animation
+
+```tsx
+<View
+  animation={[
+    'standard',
+    {
+      delay: 100,
+      duration: 400,
+    }
+  ]}
+  enterStyle={{
+    opacity: 0,
+    y: -20,
+    scale: 0.9,
+  }}
+  exitStyle={{
+    opacity: 0,
+    y: 20,
+  }}
+>
+  Animated Content
+</View>
+```
+
+## Performance
+
+- **Zero JavaScript overhead** - Uses native CSS transitions
+- **GPU acceleration** - Transform and opacity animations run on GPU
+- **Efficient** - No requestAnimationFrame loops
+- **SSR friendly** - Works with server-side rendering
+
+## Limitations
+
+- **Web only** - Does not work on React Native
+- **Simple timing** - No spring physics (use `@tamagui/animations-motion` for springs)
+- **CSS limitations** - Can only animate CSS-animatable properties
+
+## See Also
+
+- [Animations](/core/animations) - Animation system overview
+- [Motion Driver](/api/animations-motion) - For spring physics and advanced animations
+- [React Native Driver](/api/animations-react-native) - For native mobile

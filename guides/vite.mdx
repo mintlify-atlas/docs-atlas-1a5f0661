@@ -1,0 +1,354 @@
+---
+title: 'Vite Integration'
+description: 'Configure Tamagui with Vite for blazing-fast development and optimized builds'
+---
+
+<Info>
+  **Prerequisites**:
+  - Vite 4 or higher
+  - Node.js 18 or higher
+  - A Vite project initialized
+</Info>
+
+Tamagui provides a high-performance Vite plugin with multi-environment support, shared caching, and automatic React Native web aliasing.
+
+## Installation
+
+<Steps>
+<Step title="Install dependencies">
+
+<CodeGroup>
+```bash npm
+npm install tamagui @tamagui/vite-plugin
+```
+
+```bash yarn
+yarn add tamagui @tamagui/vite-plugin
+```
+
+```bash pnpm
+pnpm add tamagui @tamagui/vite-plugin
+```
+</CodeGroup>
+
+</Step>
+
+<Step title="Configure Vite">
+
+Update your `vite.config.ts`:
+
+```ts vite.config.ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { tamaguiPlugin } from '@tamagui/vite-plugin'
+
+export default defineConfig({
+  plugins: [
+    react(),
+    tamaguiPlugin({
+      config: './src/tamagui.config.ts',
+      components: ['tamagui'],
+    }),
+  ],
+})
+```
+
+</Step>
+
+<Step title="Create Tamagui config">
+
+Create `src/tamagui.config.ts`:
+
+```ts src/tamagui.config.ts
+import { config } from '@tamagui/config/v3'
+import { createTamagui } from 'tamagui'
+
+const tamaguiConfig = createTamagui(config)
+
+export default tamaguiConfig
+
+export type Conf = typeof tamaguiConfig
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+```
+
+</Step>
+
+<Step title="Add TamaguiProvider">
+
+Wrap your app:
+
+```tsx src/main.tsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { TamaguiProvider } from 'tamagui'
+import config from './tamagui.config'
+import App from './App'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <TamaguiProvider config={config}>
+      <App />
+    </TamaguiProvider>
+  </React.StrictMode>
+)
+```
+
+</Step>
+</Steps>
+
+## Configuration Options
+
+The `tamaguiPlugin` accepts these options:
+
+```ts
+type TamaguiOptions = {
+  // Path to your Tamagui config
+  config?: string
+  
+  // Component packages to process
+  components?: string[]
+  
+  // Disable style extraction (useful for debugging)
+  disableExtraction?: boolean
+  
+  // Disable config file watching
+  disableWatchTamaguiConfig?: boolean
+  
+  // Platform target
+  platform?: 'web' | 'native'
+  
+  // Use React Native Web Lite (smaller bundle)
+  useReactNativeWebLite?: boolean | 'without-animated'
+  
+  // Disable the plugin entirely
+  disable?: boolean
+  
+  // Disable auto resolve config
+  disableResolveConfig?: boolean
+}
+```
+
+## React Native Web Aliasing
+
+The plugin provides flexible aliasing for React Native packages:
+
+### Using React Native Web Lite
+
+For smaller bundles, use the lite version:
+
+```ts vite.config.ts
+tamaguiPlugin({
+  config: './src/tamagui.config.ts',
+  components: ['tamagui'],
+  useReactNativeWebLite: true, // or 'without-animated'
+})
+```
+
+### Manual Alias Control
+
+For precise control, use the `tamaguiAliases` helper:
+
+```ts vite.config.ts
+import { tamaguiAliases } from '@tamagui/vite-plugin'
+
+export default defineConfig({
+  resolve: {
+    alias: [
+      ...tamaguiAliases({ 
+        rnwLite: 'without-animated',
+        svg: true,
+      }),
+      // Your other aliases
+    ],
+  },
+})
+```
+
+Alias options:
+- `rnwLite`: `boolean | 'without-animated'` - Use lightweight React Native Web
+- `svg`: `boolean` - Alias `react-native-svg` to `@tamagui/react-native-svg`
+
+## Build Configuration
+
+Create `tamagui.build.ts` for build-time options:
+
+```ts tamagui.build.ts
+import type { TamaguiBuildOptions } from 'tamagui'
+
+export default {
+  components: ['tamagui'],
+  config: './src/tamagui.config.ts',
+  outputCSS: './src/tamagui.generated.css',
+  disableExtraction: process.env.NODE_ENV === 'development',
+} satisfies TamaguiBuildOptions
+```
+
+The plugin automatically loads this config if it exists.
+
+## Project Structure
+
+```
+my-vite-app/
+├── src/
+│   ├── main.tsx              # Add TamaguiProvider here
+│   ├── App.tsx               # Your components
+│   ├── tamagui.config.ts     # Tamagui configuration
+│   └── tamagui.generated.css # Generated styles (optional)
+├── tamagui.build.ts          # Build options (optional)
+├── vite.config.ts            # Vite config with plugin
+└── package.json
+```
+
+## Performance Features
+
+### Shared Cache Across Environments
+
+The plugin uses a global cache shared across SSR and client builds:
+
+```ts
+// Cached automatically - no configuration needed
+// Cache size limit: 64MB
+// Automatic cleanup when exceeded
+```
+
+### Concurrent Request Deduplication
+
+Multiple transforms of the same file are deduplicated:
+
+```ts
+// Enable debug logging to see cache hits
+DEBUG_TAMAGUI_CACHE=1 vite dev
+```
+
+### Environment-Specific Behavior
+
+The plugin detects environment and adjusts behavior:
+
+```ts
+// SSR environment - no CSS imports
+// Client environment - includes CSS imports
+// Native environments (iOS/Android) - skips extraction
+```
+
+## SSR Support
+
+The plugin has full SSR support with environment detection:
+
+```ts vite.config.ts
+export default defineConfig({
+  environments: {
+    client: {
+      // CSS imports enabled automatically
+    },
+    ssr: {
+      // CSS imports disabled automatically
+    },
+  },
+  plugins: [tamaguiPlugin()],
+})
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Error: No tamagui options loaded">
+    Ensure your `tamagui.config.ts` is in the correct location and the path in your Vite config is accurate:
+    
+    ```ts
+    tamaguiPlugin({
+      config: './src/tamagui.config.ts', // Check this path
+    })
+    ```
+  </Accordion>
+
+  <Accordion title="Module not found: react-native">
+    The plugin auto-aliases React Native. If disabled, manually add aliases:
+    
+    ```ts
+    import { tamaguiAliases } from '@tamagui/vite-plugin'
+    
+    export default defineConfig({
+      resolve: {
+        alias: tamaguiAliases({ rnwLite: true, svg: true }),
+      },
+    })
+    ```
+  </Accordion>
+
+  <Accordion title="Styles not updating in dev mode">
+    The plugin watches your config file by default. To debug:
+    
+    1. Check console for watch errors
+    2. Try disabling extraction in development:
+    
+    ```ts tamagui.build.ts
+    export default {
+      disableExtraction: true,
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Build errors with expo-linear-gradient">
+    The plugin auto-transforms this package. If issues persist:
+    
+    ```ts vite.config.ts
+    export default defineConfig({
+      optimizeDeps: {
+        include: ['expo-linear-gradient'],
+      },
+    })
+    ```
+  </Accordion>
+
+  <Accordion title="Cache too large warnings">
+    The plugin auto-clears cache when it exceeds 64MB. To disable caching:
+    
+    ```ts
+    tamaguiPlugin({
+      disableExtraction: true, // Disables caching
+    })
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Configuration
+
+### Custom Environment Variables
+
+The plugin sets environment-specific variables:
+
+```ts
+// Automatically defined:
+process.env.TAMAGUI_IS_CLIENT = 'true' // in client env
+process.env.TAMAGUI_ENVIRONMENT = 'client' // or 'ssr'
+process.env.TAMAGUI_OPTIMIZE_THEMES = 'true' // in production
+```
+
+### File-Level Extraction Control
+
+Use pragmas in your files to control extraction:
+
+```tsx MyComponent.tsx
+// @tamagui-disable
+// This file will skip extraction
+
+export function MyComponent() {
+  return <View>...</View>
+}
+```
+
+### Debug Mode
+
+Enable detailed logging:
+
+```tsx
+// @tamagui-debug
+// Logs extraction process for this file
+
+export function DebugComponent() {
+  return <View>...</View>
+}
+```

@@ -1,0 +1,306 @@
+---
+title: useControllableState
+description: Manage state that can be controlled or uncontrolled
+---
+
+# useControllableState
+
+The `useControllableState` hook helps you create components that can work in both controlled and uncontrolled modes. It manages the synchronization between an external prop value and internal state, making it easy to build flexible components.
+
+## Import
+
+```tsx
+import { useControllableState } from 'tamagui'
+// or
+import { useControllableState } from '@tamagui/use-controllable-state'
+```
+
+## Function Signature
+
+```typescript
+function useControllableState<T>({
+  prop,
+  defaultProp,
+  onChange,
+  strategy = 'prop-wins',
+  preventUpdate,
+  transition,
+}: {
+  prop?: T | undefined
+  defaultProp: T
+  onChange?: (next: T) => void
+  strategy?: 'prop-wins' | 'most-recent-wins'
+  preventUpdate?: boolean
+  transition?: boolean
+}): [T, React.Dispatch<React.SetStateAction<T>>]
+```
+
+## Parameters
+
+<ParamField path="prop" type="T" optional>
+  The controlled value from props. When provided, the component operates in controlled mode.
+</ParamField>
+
+<ParamField path="defaultProp" type="T" required>
+  The default/initial value used when the component is uncontrolled (when `prop` is undefined).
+</ParamField>
+
+<ParamField path="onChange" type="(next: T) => void" optional>
+  Callback function called when the value changes. In controlled mode, you should update the `prop` value in this callback.
+</ParamField>
+
+<ParamField path="strategy" type="'prop-wins' | 'most-recent-wins'" default="'prop-wins'">
+  Determines behavior when both prop and internal state change:
+  - `'prop-wins'`: External prop always takes precedence (default, recommended)
+  - `'most-recent-wins'`: Most recent change wins (prop or state)
+</ParamField>
+
+<ParamField path="preventUpdate" type="boolean" optional>
+  When true, prevents state updates. Useful for temporary read-only states.
+</ParamField>
+
+<ParamField path="transition" type="boolean" optional>
+  When true, wraps state updates in React's `startTransition` for lower priority updates.
+</ParamField>
+
+## Return Value
+
+Returns a tuple similar to `useState`:
+
+<ResponseField name="[0]" type="T">
+  The current value. Either the controlled `prop` value (if provided) or the internal state.
+</ResponseField>
+
+<ResponseField name="[1]" type="React.Dispatch<React.SetStateAction<T>>">
+  Setter function to update the value. Works like `setState` - accepts either a new value or an updater function.
+</ResponseField>
+
+## Usage
+
+### Basic Controlled/Uncontrolled Component
+
+```tsx
+import { useControllableState } from '@tamagui/use-controllable-state'
+import { Input, YStack } from 'tamagui'
+
+interface TextFieldProps {
+  value?: string
+  defaultValue?: string
+  onValueChange?: (value: string) => void
+}
+
+function TextField({ 
+  value: valueProp, 
+  defaultValue = '', 
+  onValueChange 
+}: TextFieldProps) {
+  const [value, setValue] = useControllableState({
+    prop: valueProp,
+    defaultProp: defaultValue,
+    onChange: onValueChange,
+  })
+
+  return (
+    <Input
+      value={value}
+      onChangeText={setValue}
+    />
+  )
+}
+
+// Uncontrolled usage
+<TextField defaultValue="hello" />
+
+// Controlled usage
+function Parent() {
+  const [value, setValue] = useState('hello')
+  return <TextField value={value} onValueChange={setValue} />
+}
+```
+
+### Accordion with Controlled State
+
+```tsx
+import { useControllableState } from '@tamagui/use-controllable-state'
+import { YStack } from 'tamagui'
+
+interface AccordionProps {
+  value?: string[]
+  defaultValue?: string[]
+  onValueChange?: (value: string[]) => void
+}
+
+function Accordion({ 
+  value: valueProp, 
+  defaultValue = [], 
+  onValueChange 
+}: AccordionProps) {
+  const [value, setValue] = useControllableState({
+    prop: valueProp,
+    defaultProp: defaultValue,
+    onChange: onValueChange,
+  })
+
+  const toggleItem = (item: string) => {
+    setValue((current) => {
+      const isOpen = current.includes(item)
+      return isOpen
+        ? current.filter((i) => i !== item)
+        : [...current, item]
+    })
+  }
+
+  return (
+    <YStack>
+      {/* Accordion items that call toggleItem */}
+    </YStack>
+  )
+}
+```
+
+### Most Recent Wins Strategy
+
+```tsx
+import { useControllableState } from '@tamagui/use-controllable-state'
+
+function SyncedSlider({ value, defaultValue = 0, onValueChange }) {
+  const [sliderValue, setSliderValue] = useControllableState({
+    prop: value,
+    defaultProp: defaultValue,
+    onChange: onValueChange,
+    strategy: 'most-recent-wins',
+  })
+
+  // Useful when you want local changes to take precedence
+  // even when prop updates come in
+  return (
+    <Slider
+      value={sliderValue}
+      onValueChange={setSliderValue}
+    />
+  )
+}
+```
+
+### With Transition for Performance
+
+```tsx
+import { useControllableState } from '@tamagui/use-controllable-state'
+
+function SearchInput({ value, defaultValue = '', onValueChange }) {
+  const [searchValue, setSearchValue] = useControllableState({
+    prop: value,
+    defaultProp: defaultValue,
+    onChange: onValueChange,
+    transition: true, // Lower priority updates
+  })
+
+  return (
+    <Input
+      value={searchValue}
+      onChangeText={setSearchValue}
+      placeholder="Search..."
+    />
+  )
+}
+```
+
+### Preventing Updates Conditionally
+
+```tsx
+import { useControllableState } from '@tamagui/use-controllable-state'
+import { useState } from 'react'
+
+function EditableField({ value, defaultValue = '', onValueChange }) {
+  const [isLocked, setIsLocked] = useState(false)
+  
+  const [fieldValue, setFieldValue] = useControllableState({
+    prop: value,
+    defaultProp: defaultValue,
+    onChange: onValueChange,
+    preventUpdate: isLocked,
+  })
+
+  return (
+    <YStack>
+      <Input
+        value={fieldValue}
+        onChangeText={setFieldValue}
+        editable={!isLocked}
+      />
+      <Button onPress={() => setIsLocked(!isLocked)}>
+        {isLocked ? 'Unlock' : 'Lock'}
+      </Button>
+    </YStack>
+  )
+}
+```
+
+## How It Works
+
+1. **Controlled Mode**: When `prop` is defined, the hook returns `prop` as the value and calls `onChange` when the setter is used
+2. **Uncontrolled Mode**: When `prop` is undefined, the hook manages internal state starting from `defaultProp`
+3. **Synchronization**: Effects keep internal state synchronized with prop changes
+4. **Strategy Modes**:
+   - `prop-wins`: Prop value always used when defined (recommended for most cases)
+   - `most-recent-wins`: Allows internal state to temporarily override props
+
+## Common Patterns
+
+### Form Field Pattern
+
+```tsx
+interface FormFieldProps<T> {
+  value?: T
+  defaultValue: T
+  onValueChange?: (value: T) => void
+}
+
+function useFormField<T>({
+  value,
+  defaultValue,
+  onValueChange,
+}: FormFieldProps<T>) {
+  return useControllableState({
+    prop: value,
+    defaultProp: defaultValue,
+    onChange: onValueChange,
+  })
+}
+```
+
+### Toggle Pattern
+
+```tsx
+function Toggle({ 
+  pressed: pressedProp, 
+  defaultPressed = false, 
+  onPressedChange 
+}) {
+  const [pressed, setPressed] = useControllableState({
+    prop: pressedProp,
+    defaultProp: defaultPressed,
+    onChange: onPressedChange,
+  })
+
+  return (
+    <Pressable onPress={() => setPressed(!pressed)}>
+      {pressed ? 'ON' : 'OFF'}
+    </Pressable>
+  )
+}
+```
+
+## Best Practices
+
+1. **Always Provide defaultProp**: Even if it's undefined, be explicit about the initial state
+2. **Use 'prop-wins' Strategy**: The default strategy works best for most cases
+3. **Type Safety**: Use TypeScript generics to ensure type safety across prop/state/onChange
+4. **Naming Convention**: Follow the `value`/`defaultValue`/`onValueChange` naming pattern
+5. **Updater Functions**: Support both direct values and updater functions in your API
+
+## Related
+
+- [Accordion Component](/components/accordion) - Uses this hook internally
+- [Form Components](/components/form) - Common use case for controlled state
+- [React Controlled Components](https://react.dev/learn/sharing-state-between-components) - React's controlled component pattern

@@ -1,0 +1,578 @@
+---
+title: Server Rendering
+description: SSR and SSG support with Tamagui
+---
+
+Tamagui provides excellent server-side rendering (SSR) and static site generation (SSG) support with automatic CSS extraction and hydration. It works seamlessly with Next.js, Remix, Vite, and other frameworks.
+
+## How SSR Works
+
+Tamagui's SSR process:
+
+1. **Server**: Components render to HTML with inline styles
+2. **CSS Extraction**: Generated CSS is collected via `getCSS()`
+3. **HTML Output**: CSS is included in `<head>` as `<style>` tags
+4. **Client Hydration**: React hydrates without style flickering
+5. **Runtime**: Only dynamic styles are calculated client-side
+
+## Next.js Setup
+
+### App Router (Next.js 13+)
+
+```tsx app/layout.tsx
+import { TamaguiProvider } from 'tamagui'
+import config from '../tamagui.config'
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <TamaguiProvider config={config} defaultTheme="light">
+          {children}
+        </TamaguiProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+```tsx app/head.tsx
+import config from '../tamagui.config'
+
+export default function Head() {
+  return (
+    <>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: config.getCSS(),
+        }}
+      />
+    </>
+  )
+}
+```
+
+### Pages Router (Next.js 12)
+
+```tsx pages/_document.tsx
+import NextDocument, { Html, Head, Main, NextScript } from 'next/document'
+import { Children } from 'react'
+import config from '../tamagui.config'
+
+export default class Document extends NextDocument {
+  static async getInitialProps({ renderPage }: any) {
+    const page = await renderPage()
+    
+    // Get styles from components that rendered
+    const styles = config.getNewCSS()
+    
+    return { ...page, styles }
+  }
+  
+  render() {
+    return (
+      <Html>
+        <Head>
+          <style
+            dangerouslySetInnerHTML={{
+              __html: config.getCSS(),
+            }}
+          />
+        </Head>
+        <body>
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    )
+  }
+}
+```
+
+```tsx pages/_app.tsx
+import type { AppProps } from 'next/app'
+import { TamaguiProvider } from 'tamagui'
+import config from '../tamagui.config'
+
+function MyApp({ Component, pageProps }: AppProps) {
+  return (
+    <TamaguiProvider config={config} defaultTheme="light">
+      <Component {...pageProps} />
+    </TamaguiProvider>
+  )
+}
+
+export default MyApp
+```
+
+## Vite SSR
+
+```tsx entry-server.tsx
+import { renderToString } from 'react-dom/server'
+import { TamaguiProvider } from 'tamagui'
+import config from './tamagui.config'
+import App from './App'
+
+export function render() {
+  // Render app
+  const html = renderToString(
+    <TamaguiProvider config={config} defaultTheme="light">
+      <App />
+    </TamaguiProvider>
+  )
+  
+  // Get generated CSS
+  const css = config.getCSS()
+  
+  return { html, css }
+}
+```
+
+```tsx entry-client.tsx
+import { hydrateRoot } from 'react-dom/client'
+import { TamaguiProvider } from 'tamagui'
+import config from './tamagui.config'
+import App from './App'
+
+hydrateRoot(
+  document.getElementById('root')!,
+  <TamaguiProvider config={config} defaultTheme="light">
+    <App />
+  </TamaguiProvider>
+)
+```
+
+## CSS Extraction
+
+### getCSS()
+
+Get all generated CSS:
+
+```tsx
+const css = config.getCSS()
+```
+
+**Options:**
+
+```tsx
+const css = config.getCSS({
+  // Exclude design system CSS (tokens, themes, fonts)
+  exclude: 'design-system',
+  
+  // Exclude specific groups
+  exclude: ['themes', 'tokens'],
+})
+```
+
+### getNewCSS()
+
+Get only CSS generated since last call:
+
+```tsx
+// First call: returns all CSS
+const initialCSS = config.getNewCSS()
+
+// Render some components...
+
+// Second call: only new CSS
+const additionalCSS = config.getNewCSS()
+```
+
+Useful for streaming SSR or code-splitting.
+
+## Media Queries
+
+Set default active media queries for SSR:
+
+```tsx tamagui.config.ts
+const config = createTamagui({
+  media,
+  settings: {
+    // Default to mobile on server
+    mediaQueryDefaultActive: {
+      xs: true,
+      sm: true,
+      md: true,
+      lg: false,
+      xl: false,
+    },
+  },
+})
+```
+
+This prevents layout shifts on hydration.
+
+## Theme on Server
+
+### Default Theme
+
+Set via TamaguiProvider:
+
+```tsx
+<TamaguiProvider config={config} defaultTheme="light">
+  {children}
+</TamaguiProvider>
+```
+
+### System Color Scheme
+
+Respect user's system preference:
+
+```tsx tamagui.config.ts
+const config = createTamagui({
+  themes,
+  settings: {
+    shouldAddPrefersColorThemes: true,
+  },
+})
+```
+
+Generates CSS with `@media (prefers-color-scheme: dark)`.
+
+### Theme Class on Root
+
+Apply theme class to `<html>` instead of wrapper div:
+
+```tsx tamagui.config.ts
+const config = createTamagui({
+  themes,
+  settings: {
+    themeClassNameOnRoot: true,
+  },
+})
+```
+
+```tsx
+<html className="t_light">
+  <body>
+    <TamaguiProvider config={config} defaultTheme="light">
+      {children}
+    </TamaguiProvider>
+  </body>
+</html>
+```
+
+## Preventing Flash of Unstyled Content
+
+### Include CSS in Head
+
+Always include CSS before body:
+
+```tsx
+<html>
+  <head>
+    <style dangerouslySetInnerHTML={{ __html: config.getCSS() }} />
+  </head>
+  <body>
+    {/* ... */}
+  </body>
+</html>
+```
+
+### Theme Script
+
+For theme persistence, inject a script before render:
+
+```tsx
+<html>
+  <head>
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
+          (function() {
+            var theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.classList.add('t_' + theme);
+          })()
+        `,
+      }}
+    />
+  </head>
+  <body>
+    {/* ... */}
+  </body>
+</html>
+```
+
+## Compiler and SSR
+
+The Tamagui compiler optimizes SSR:
+
+### Static Extraction
+
+Static styles are extracted at build time:
+
+```tsx
+// This is extracted to CSS at build time
+const Card = styled(View, {
+  backgroundColor: '$background',
+  padding: '$4',
+  borderRadius: '$4',
+})
+
+// SSR only outputs class names, not inline styles
+<Card />  // <div class="_bg-background _p-4 _br-4" />
+```
+
+### Tree Shaking
+
+Unused variants are removed:
+
+```tsx
+const Button = styled(View, {
+  variants: {
+    size: {
+      small: { padding: '$2' },
+      large: { padding: '$4' },  // Never used
+    },
+  },
+})
+
+// Only 'small' variant CSS is included
+<Button size="small" />
+```
+
+## Static Site Generation
+
+### Next.js Static Export
+
+```tsx next.config.js
+module.exports = {
+  output: 'export',
+}
+```
+
+Tamagui works seamlessly with `next export`.
+
+### Pre-rendering CSS
+
+For fully static sites, pre-generate all CSS:
+
+```tsx scripts/generate-css.ts
+import config from './tamagui.config'
+import fs from 'fs'
+
+// Generate all CSS
+const css = config.getCSS()
+
+// Write to file
+fs.writeFileSync('dist/tamagui.css', css)
+```
+
+Then include the static CSS file:
+
+```html
+<link rel="stylesheet" href="/tamagui.css" />
+```
+
+## Performance Tips
+
+<Tip>
+**Use the compiler**
+
+The compiler dramatically improves SSR performance by extracting static styles at build time.
+</Tip>
+
+<Tip>
+**Minimize dynamic styles**
+
+Dynamic styles require runtime evaluation:
+
+```tsx
+// ✅ Static - optimized
+<View backgroundColor="$background" padding="$4" />
+
+// ❌ Dynamic - runtime cost
+<View style={{ backgroundColor: dynamicColor }} />
+```
+</Tip>
+
+<Tip>
+**Extract CSS once**
+
+Call `getCSS()` once and reuse:
+
+```tsx
+// ✅ Good
+const css = config.getCSS()
+
+<style dangerouslySetInnerHTML={{ __html: css }} />
+
+// ❌ Avoid
+<style dangerouslySetInnerHTML={{ __html: config.getCSS() }} />
+<style dangerouslySetInnerHTML={{ __html: config.getCSS() }} />
+```
+</Tip>
+
+## Hydration
+
+### Automatic Hydration
+
+Tamagui handles hydration automatically:
+
+```tsx
+// Server renders with inline styles
+<div style="background-color: var(--background)">
+
+// Client hydrates without re-render
+// Styles match exactly
+```
+
+### Hydration Mismatches
+
+Avoid hydration errors:
+
+```tsx
+// ❌ Bad - different on server/client
+function Component() {
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => setMounted(true), [])
+  
+  return (
+    <View backgroundColor={mounted ? '$blue10' : '$red10'}>
+      {/* Hydration mismatch! */}
+    </View>
+  )
+}
+
+// ✅ Good - consistent
+function Component() {
+  return (
+    <View backgroundColor="$blue10">
+      {/* Same on server and client */}
+    </View>
+  )
+}
+```
+
+## Environment Detection
+
+Tamagui detects SSR automatically:
+
+```tsx
+import { isServer, isClient } from 'tamagui'
+
+if (isServer) {
+  // Server-only code
+}
+
+if (isClient) {
+  // Client-only code
+}
+```
+
+## Streaming SSR
+
+For React 18 streaming SSR:
+
+```tsx
+import { renderToPipeableStream } from 'react-dom/server'
+import { TamaguiProvider } from 'tamagui'
+import config from './tamagui.config'
+
+const { pipe } = renderToPipeableStream(
+  <TamaguiProvider config={config} defaultTheme="light">
+    <App />
+  </TamaguiProvider>,
+  {
+    onShellReady() {
+      // Include initial CSS
+      const css = config.getCSS()
+      res.write(`<style>${css}</style>`)
+      pipe(res)
+    },
+  }
+)
+```
+
+## Best Practices
+
+<Tip>
+**Always include CSS in head**
+
+Ensure CSS loads before content:
+
+```tsx
+<html>
+  <head>
+    <style dangerouslySetInnerHTML={{ __html: config.getCSS() }} />
+  </head>
+  <body>{children}</body>
+</html>
+```
+</Tip>
+
+<Tip>
+**Set media query defaults**
+
+Prevent layout shifts:
+
+```tsx
+settings: {
+  mediaQueryDefaultActive: {
+    xs: true,
+    lg: false,
+  },
+}
+```
+</Tip>
+
+<Warning>
+**Avoid client-only logic in render**
+
+Code that differs between server and client causes hydration errors:
+
+```tsx
+// ❌ Bad
+<View backgroundColor={typeof window !== 'undefined' ? '$blue' : '$red'}>
+
+// ✅ Good - use useEffect
+function Component() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  
+  if (!mounted) return <View backgroundColor="$blue" />
+  return <View backgroundColor="$red" />
+}
+```
+</Warning>
+
+## Troubleshooting
+
+### Styles Not Appearing
+
+Ensure CSS is included:
+
+```tsx
+// Check if CSS is being generated
+console.log(config.getCSS().length) // Should be > 0
+```
+
+### Hydration Errors
+
+Check for server/client differences:
+
+```tsx
+// Enable React strict mode
+<React.StrictMode>
+  <App />
+</React.StrictMode>
+```
+
+### Theme Flickering
+
+Add theme script before body:
+
+```tsx
+<script dangerouslySetInnerHTML={{ __html: themeScript }} />
+```
+
+## Related
+
+- [Configuration](/core/configuration) - Setting up Tamagui
+- [Theme](/core/theme) - Server-side theming
+- [styled()](/core/styled) - Creating optimized components

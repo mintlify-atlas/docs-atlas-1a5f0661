@@ -1,0 +1,729 @@
+---
+title: Component Variants
+description: Create flexible component APIs with variants
+---
+
+Variants enable prop-based style variations in your components. They're a powerful way to create reusable components with different visual styles controlled by props.
+
+## Basic Variants
+
+```tsx
+import { styled, View } from 'tamagui'
+
+const Button = styled(View, {
+  padding: '$4',
+  borderRadius: '$4',
+  
+  variants: {
+    variant: {
+      primary: {
+        backgroundColor: '$blue10',
+        color: 'white',
+      },
+      secondary: {
+        backgroundColor: '$gray3',
+        color: '$gray12',
+      },
+      ghost: {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: '$borderColor',
+      },
+    },
+  },
+})
+
+// Usage
+<Button variant="primary" />
+<Button variant="secondary" />
+<Button variant="ghost" />
+```
+
+## Type Definition
+
+```typescript
+export type VariantDefinitions<
+  Parent extends StylableComponent,
+  StaticConfig extends StaticConfigPublic,
+> = {
+  [variantName: string]:
+    | VariantSpreadFunction<Props, Val>
+    | {
+        [variantValue: string | number]:
+          | StyleObject
+          | VariantSpreadFunction<Props, Val>
+      }
+}
+
+export type VariantSpreadFunction<Props, Val = any> = (
+  val: Val,
+  config: VariantSpreadExtras<Props>
+) => StyleObject | null | undefined
+
+export type VariantSpreadExtras<Props> = {
+  fonts: TamaguiConfig['fonts']
+  tokens: TokensParsed
+  theme: Theme
+  props: Props
+  fontFamily?: FontFamilyTokens
+  font?: Font
+}
+```
+
+## Variant Types
+
+### Static Variants
+
+Fixed style objects for each variant value:
+
+```tsx
+const Button = styled(View, {
+  variants: {
+    size: {
+      small: {
+        padding: '$2',
+        fontSize: 14,
+      },
+      medium: {
+        padding: '$3',
+        fontSize: 16,
+      },
+      large: {
+        padding: '$4',
+        fontSize: 18,
+      },
+    },
+  },
+})
+```
+
+### Dynamic Variants (Functions)
+
+Compute styles based on the variant value:
+
+```tsx
+const Box = styled(View, {
+  variants: {
+    width: {
+      ':number': (value) => ({
+        width: value,
+      }),
+    },
+    visible: {
+      ':boolean': (value) => ({
+        opacity: value ? 1 : 0,
+      }),
+    },
+    message: {
+      ':string': (value) => ({
+        // Can return null to skip styles
+        borderColor: value.includes('error') ? 'red' : 'gray',
+      }),
+    },
+  },
+})
+
+<Box width={200} visible={true} message="error occurred" />
+```
+
+### Token Spread Variants
+
+Create variants for all tokens in a category:
+
+```tsx
+const ColoredBox = styled(View, {
+  variants: {
+    bg: {
+      '...color': (color) => ({
+        backgroundColor: color,
+      }),
+    },
+    padding: {
+      '...space': (space) => ({
+        padding: space,
+      }),
+    },
+    size: {
+      '...size': (size) => ({
+        width: size,
+        height: size,
+      }),
+    },
+  },
+})
+
+// Accepts any token from the category
+<ColoredBox bg="$blue10" padding="$4" size="$10" />
+```
+
+## Spread Keys
+
+Tamagui provides spread keys for all token categories:
+
+- `'...color'` - All color tokens
+- `'...space'` - All space tokens
+- `'...size'` - All size tokens
+- `'...radius'` - All radius tokens
+- `'...zIndex'` - All zIndex tokens
+- `'...fontSize'` - All font size tokens
+- `'...lineHeight'` - All line height tokens
+- `'...letterSpacing'` - All letter spacing tokens
+- `'...fontStyle'` - Font style values
+- `'...fontTransform'` - Text transform values
+- `'...theme'` - All theme names
+
+```tsx
+const ThemedBox = styled(View, {
+  variants: {
+    theme: {
+      '...theme': (themeName, { props }) => ({
+        // Access theme by name
+      }),
+    },
+  },
+})
+```
+
+## Variant Functions
+
+### Basic Function Variant
+
+```tsx
+const RotatingBox = styled(View, {
+  variants: {
+    degrees: {
+      ':number': (degrees) => ({
+        transform: [{ rotate: `${degrees}deg` }],
+      }),
+    },
+  },
+})
+
+<RotatingBox degrees={45} />
+```
+
+### Function with Context
+
+Variant functions receive additional context:
+
+```tsx
+const SmartButton = styled(View, {
+  variants: {
+    level: {
+      ':number': (level, { tokens, theme, props, fonts }) => ({
+        // Access tokens
+        padding: tokens.space[level].val,
+        
+        // Access theme
+        backgroundColor: theme.background.val,
+        
+        // Access props
+        borderWidth: props.outlined ? 1 : 0,
+        
+        // Access fonts
+        fontSize: fonts.body.size[level],
+      }),
+    },
+  },
+})
+```
+
+### Conditional Returns
+
+Return `null` to skip applying styles:
+
+```tsx
+const ConditionalBox = styled(View, {
+  variants: {
+    special: {
+      ':boolean': (value) => {
+        if (!value) return null
+        
+        return {
+          backgroundColor: '$special',
+          borderWidth: 2,
+        }
+      },
+    },
+  },
+})
+```
+
+## Built-in Variant Helpers
+
+### getFontSized
+
+Maps size tokens to font properties:
+
+```tsx
+import { getFontSized } from '@tamagui/get-font-sized'
+import { styled, Text } from 'tamagui'
+
+const SizableText = styled(Text, {
+  name: 'SizableText',
+  fontFamily: '$body',
+  
+  variants: {
+    size: getFontSized,
+  },
+  
+  defaultVariants: {
+    size: '$true',
+  },
+})
+
+<SizableText size="$6" />
+```
+
+The `getFontSized` function returns:
+- `fontSize`
+- `lineHeight`
+- `fontWeight`
+- `letterSpacing`
+- `fontTransform`
+
+### getButtonSized
+
+For button-like components:
+
+```tsx
+import { getButtonSized } from '@tamagui/get-button-sized'
+
+const Button = styled(View, {
+  variants: {
+    size: getButtonSized,
+  },
+})
+```
+
+Returns padding, border radius, and gap based on size.
+
+## Default Variants
+
+Set default values for variants:
+
+```tsx
+const Button = styled(View, {
+  variants: {
+    variant: {
+      primary: { /* ... */ },
+      secondary: { /* ... */ },
+    },
+    size: {
+      small: { /* ... */ },
+      medium: { /* ... */ },
+      large: { /* ... */ },
+    },
+  },
+  
+  defaultVariants: {
+    variant: 'primary',
+    size: 'medium',
+  },
+})
+
+// Uses default values
+<Button />
+
+// Override defaults
+<Button variant="secondary" size="large" />
+```
+
+## Variant Merging
+
+When extending components, variants are merged:
+
+```tsx
+const BaseButton = styled(View, {
+  variants: {
+    size: {
+      small: { padding: '$2' },
+      large: { padding: '$4' },
+    },
+  },
+})
+
+const ExtendedButton = styled(BaseButton, {
+  variants: {
+    // Adds new variant
+    variant: {
+      primary: { backgroundColor: '$blue10' },
+    },
+    // Extends existing variant
+    size: {
+      xlarge: { padding: '$6' },
+    },
+  },
+})
+
+// Has both variants
+<ExtendedButton size="xlarge" variant="primary" />
+```
+
+### Variant Override
+
+Functions override parent variants:
+
+```tsx
+const Parent = styled(View, {
+  variants: {
+    width: {
+      small: { width: 100 },
+      large: { width: 200 },
+    },
+  },
+})
+
+const Child = styled(Parent, {
+  variants: {
+    width: {
+      // Function completely replaces parent variant
+      ':number': (val) => ({ width: val }),
+    },
+  },
+})
+```
+
+## Pseudo States in Variants
+
+Variants can include pseudo states:
+
+```tsx
+const Button = styled(View, {
+  variants: {
+    variant: {
+      primary: {
+        backgroundColor: '$blue10',
+        
+        hoverStyle: {
+          backgroundColor: '$blue9',
+        },
+        
+        pressStyle: {
+          backgroundColor: '$blue11',
+        },
+      },
+      ghost: {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        
+        hoverStyle: {
+          borderColor: '$blue8',
+        },
+      },
+    },
+  },
+})
+```
+
+## Media Queries in Variants
+
+Variants support responsive styles:
+
+```tsx
+const Card = styled(View, {
+  variants: {
+    layout: {
+      stack: {
+        flexDirection: 'column',
+        
+        $gtMd: {
+          flexDirection: 'row',
+        },
+      },
+    },
+  },
+})
+```
+
+## Boolean Variants
+
+Use `true`/`false` for boolean props:
+
+```tsx
+const Box = styled(View, {
+  variants: {
+    outlined: {
+      true: {
+        borderWidth: 1,
+        borderColor: '$borderColor',
+      },
+      false: {
+        borderWidth: 0,
+      },
+    },
+  },
+})
+
+<Box outlined />
+<Box outlined={false} />
+```
+
+Or use the `:boolean` type:
+
+```tsx
+const Box = styled(View, {
+  variants: {
+    outlined: {
+      ':boolean': (value) => ({
+        borderWidth: value ? 1 : 0,
+      }),
+    },
+  },
+})
+```
+
+## Combining Variants
+
+Multiple variants work together:
+
+```tsx
+const Button = styled(View, {
+  variants: {
+    variant: {
+      primary: { backgroundColor: '$blue10' },
+      secondary: { backgroundColor: '$gray3' },
+    },
+    size: {
+      small: { padding: '$2', fontSize: 14 },
+      large: { padding: '$4', fontSize: 18 },
+    },
+    outlined: {
+      true: { 
+        borderWidth: 1,
+        backgroundColor: 'transparent',
+      },
+    },
+  },
+})
+
+<Button variant="primary" size="large" outlined />
+```
+
+## Variant Specificity
+
+Later variants override earlier ones:
+
+```tsx
+const Box = styled(View, {
+  backgroundColor: '$gray3',  // Base
+  
+  variants: {
+    colored: {
+      true: { backgroundColor: '$blue10' },  // Overrides base
+    },
+  },
+})
+
+// If both applied, variant wins
+<Box colored backgroundColor="$red10" />
+// Result: blue (variant takes precedence)
+```
+
+## TypeScript
+
+### Typed Variants
+
+Variants are fully typed:
+
+```tsx
+const Button = styled(View, {
+  variants: {
+    variant: {
+      primary: { /* ... */ },
+      secondary: { /* ... */ },
+    } as const,  // Type inference
+  },
+})
+
+// TypeScript knows valid values
+<Button variant="primary" />   // ✅
+<Button variant="invalid" />   // ❌ Type error
+```
+
+### Extracting Variant Props
+
+```tsx
+import type { GetProps } from 'tamagui'
+
+const Button = styled(View, {
+  variants: { /* ... */ },
+})
+
+type ButtonProps = GetProps<typeof Button>
+// { variant?: 'primary' | 'secondary', ... }
+```
+
+## Best Practices
+
+<Tip>
+**Use semantic variant names**
+
+Choose descriptive names that convey purpose:
+
+```tsx
+// ✅ Good
+variants: {
+  variant: { primary, secondary, ghost },
+  size: { small, medium, large },
+  state: { loading, error, success },
+}
+
+// ❌ Avoid
+variants: {
+  type: { 1, 2, 3 },
+  mode: { a, b, c },
+}
+```
+</Tip>
+
+<Tip>
+**Provide default variants**
+
+Always set sensible defaults:
+
+```tsx
+const Button = styled(View, {
+  variants: { /* ... */ },
+  defaultVariants: {
+    variant: 'primary',
+    size: 'medium',
+  },
+})
+```
+</Tip>
+
+<Tip>
+**Prefer static variants**
+
+Static variants optimize better than functions:
+
+```tsx
+// ✅ Better (compiler can optimize)
+variants: {
+  size: {
+    small: { padding: '$2' },
+    large: { padding: '$4' },
+  },
+}
+
+// ⚠️ Runtime evaluation
+variants: {
+  size: {
+    ':number': (val) => ({ padding: val }),
+  },
+}
+```
+</Tip>
+
+<Warning>
+**Avoid excessive variants**
+
+Too many variant combinations can lead to:
+- Large component APIs
+- Difficult maintenance
+- TypeScript performance issues
+
+Prefer composition over complex variants.
+</Warning>
+
+## Performance
+
+### Static Variants
+
+Static variants are extracted to CSS at build time:
+
+```tsx
+// Optimized to CSS classes
+const Button = styled(View, {
+  variants: {
+    size: {
+      small: { padding: '$2' },
+      large: { padding: '$4' },
+    },
+  },
+})
+```
+
+### Dynamic Variants
+
+Function variants run at runtime:
+
+```tsx
+// Evaluated on every render when value changes
+const Box = styled(View, {
+  variants: {
+    width: {
+      ':number': (val) => ({ width: val }),
+    },
+  },
+})
+```
+
+### Memoization
+
+Variant functions are memoized by Tamagui:
+
+```tsx
+// Function only runs when 'size' prop changes
+<Button size={10} />
+```
+
+## Advanced Patterns
+
+### Compound Variants
+
+Different styles when variants are combined:
+
+```tsx
+const Button = styled(View, {
+  variants: {
+    variant: {
+      primary: { backgroundColor: '$blue10' },
+      secondary: { backgroundColor: '$gray3' },
+    },
+    size: {
+      small: { padding: '$2' },
+      large: { padding: '$4' },
+    },
+  },
+})
+
+// When both primary AND large, apply special styles
+const EnhancedButton = styled(Button, {
+  // Handled through conditional logic in parent component
+})
+```
+
+### Context-Based Variants
+
+Use React Context in variant functions:
+
+```tsx
+import { createStyledContext } from 'tamagui'
+
+const ButtonContext = createStyledContext({
+  size: 'medium' as 'small' | 'medium' | 'large',
+})
+
+const Button = styled(View, {
+  context: ButtonContext,
+  
+  variants: {
+    size: {
+      ':string': (val, { props }) => {
+        // Access context through props
+        const contextSize = props.size
+        return { padding: contextSize === 'large' ? '$4' : '$2' }
+      },
+    },
+  },
+})
+```
+
+## Related
+
+- [styled()](/core/styled) - Creating styled components
+- [Tokens](/core/tokens) - Using tokens in variants
+- [Theme](/core/theme) - Theme-based variants
+- [View and Text](/core/view-and-text) - Base components

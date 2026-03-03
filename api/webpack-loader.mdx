@@ -1,0 +1,406 @@
+---
+title: Webpack Loader
+description: Tamagui webpack loader for style extraction
+---
+
+The Webpack loader (`@tamagui/loader`) enables Tamagui's optimizing compiler in webpack-based projects, extracting styles to CSS at build time.
+
+## Installation
+
+```bash
+npm install tamagui-loader
+```
+
+## Usage
+
+The loader is typically used via `TamaguiPlugin`:
+
+```js
+// webpack.config.js
+const { TamaguiPlugin } = require('tamagui-loader')
+
+module.exports = {
+  plugins: [
+    new TamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+    }),
+  ],
+}
+```
+
+## Configuration Options
+
+<ParamField path="config" type="string" required>
+  Path to your Tamagui config file.
+  
+  ```js
+  config: './src/tamagui.config.ts'
+  ```
+</ParamField>
+
+<ParamField path="components" type="string[]" required>
+  Array of component packages to optimize.
+  
+  ```js
+  components: ['tamagui', '@my-org/ui']
+  ```
+</ParamField>
+
+<ParamField path="platform" type="'web' | 'native'" default="'web'">
+  Target platform.
+  
+  ```js
+  platform: 'web'
+  ```
+</ParamField>
+
+<ParamField path="disableExtraction" type="boolean" default="false">
+  Disable the optimizing compiler.
+  
+  ```js
+  disableExtraction: process.env.NODE_ENV === 'development'
+  ```
+</ParamField>
+
+<ParamField path="logTimings" type="boolean" default="false">
+  Log compilation timings for debugging.
+  
+  ```js
+  logTimings: true
+  ```
+</ParamField>
+
+<ParamField path="exclude" type="RegExp">
+  Files to exclude from processing.
+  
+  ```js
+  exclude: /node_modules/
+  ```
+</ParamField>
+
+## TamaguiPlugin
+
+The `TamaguiPlugin` class wraps the loader with additional webpack configuration:
+
+```js
+const { TamaguiPlugin } = require('tamagui-loader')
+
+module.exports = {
+  plugins: [
+    new TamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+      // Plugin-specific options
+      exclude: /node_modules/,
+    }),
+  ],
+}
+```
+
+### Plugin Methods
+
+<ParamField path="isInComponentModule(fullPath)" type="(fullPath: string) => boolean">
+  Check if a file path is in a configured component module.
+  
+  Used internally to determine which files to process.
+</ParamField>
+
+## Examples
+
+### Basic Configuration
+
+```js
+// webpack.config.js
+const { TamaguiPlugin } = require('tamagui-loader')
+
+module.exports = {
+  plugins: [
+    new TamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+    }),
+  ],
+}
+```
+
+### Multiple Component Libraries
+
+```js
+module.exports = {
+  plugins: [
+    new TamaguiPlugin({
+      components: [
+        'tamagui',
+        '@my-org/ui',
+        '@my-org/design-system',
+      ],
+      config: './src/tamagui.config.ts',
+    }),
+  ],
+}
+```
+
+### Development Mode (No Extraction)
+
+```js
+const isDev = process.env.NODE_ENV === 'development'
+
+module.exports = {
+  plugins: [
+    new TamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+      disableExtraction: isDev,
+    }),
+  ],
+}
+```
+
+### With Custom Exclusions
+
+```js
+module.exports = {
+  plugins: [
+    new TamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+      exclude: /node_modules|dist|build/,
+    }),
+  ],
+}
+```
+
+### Performance Debugging
+
+```js
+module.exports = {
+  plugins: [
+    new TamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+      logTimings: true,  // See which files are slow
+    }),
+  ],
+}
+```
+
+## How It Works
+
+### Loader Pipeline
+
+1. **File Detection** - Checks if file is in node_modules or lucide-icons (skip)
+2. **Pragma Check** - Looks for `// tamagui-disable` pragma
+3. **Extraction** - Calls `extractToClassNames` from `@tamagui/static-worker`
+4. **CSS Generation** - Creates `.tamagui.css` files
+5. **Import Injection** - Adds CSS imports to transformed code
+
+### CSS Handling
+
+The loader generates CSS imports:
+
+```js
+// Original
+import { View } from 'tamagui'
+export const MyView = () => <View bg="$blue10" />
+
+// Transformed
+import { View } from 'tamagui'
+require('./MyView.tsx.0.tamagui.css!=!./css.js?cssData=...')
+export const MyView = () => <div className="_bg_blue10" />
+```
+
+### CSS Loader
+
+The loader uses a specialized CSS loader (`./css.js`) that:
+
+- Decodes base64 CSS data from query string
+- Injects CSS into webpack's style system
+- Handles HMR updates
+
+## Integration Examples
+
+### With Next.js
+
+Use `@tamagui/next-plugin` instead (includes the loader):
+
+```js
+// next.config.js
+const { withTamagui } = require('@tamagui/next-plugin')
+module.exports = withTamagui({ /* options */ })
+```
+
+### With React App (CRA)
+
+Requires ejecting or using CRACO:
+
+```js
+// craco.config.js
+const { TamaguiPlugin } = require('tamagui-loader')
+
+module.exports = {
+  webpack: {
+    plugins: [
+      new TamaguiPlugin({
+        components: ['tamagui'],
+        config: './src/tamagui.config.ts',
+      }),
+    ],
+  },
+}
+```
+
+### With Electron
+
+```js
+// webpack.config.js
+const { TamaguiPlugin } = require('tamagui-loader')
+
+module.exports = {
+  target: 'electron-renderer',
+  plugins: [
+    new TamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+    }),
+  ],
+}
+```
+
+## Advanced Usage
+
+### Manual Loader Configuration
+
+For advanced use cases, configure the loader directly:
+
+```js
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.(tsx|ts|jsx|js)$/,
+        exclude: /node_modules/,
+        use: [
+          'babel-loader',
+          {
+            loader: 'tamagui-loader',
+            options: {
+              components: ['tamagui'],
+              config: './src/tamagui.config.ts',
+              platform: 'web',
+            },
+          },
+        ],
+      },
+    ],
+  },
+}
+```
+
+### With TypeScript
+
+No special configuration needed:
+
+```js
+module.exports = {
+  plugins: [
+    new TamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',  // .ts file works
+    }),
+  ],
+}
+```
+
+## Performance
+
+### Caching
+
+The loader respects webpack's cache:
+
+```js
+module.exports = {
+  cache: {
+    type: 'filesystem',  // Enables persistent cache
+  },
+  plugins: [
+    new TamaguiPlugin({ /* ... */ }),
+  ],
+}
+```
+
+### Optimization Tips
+
+1. **Disable in dev:**
+   ```js
+   disableExtraction: process.env.NODE_ENV === 'development'
+   ```
+
+2. **Exclude node_modules:**
+   ```js
+   exclude: /node_modules/
+   ```
+
+3. **Enable webpack cache:**
+   ```js
+   cache: { type: 'filesystem' }
+   ```
+
+## Troubleshooting
+
+### "Cannot create proxy" errors
+
+This usually means components failed to load at build-time. Check:
+
+1. Config path is correct
+2. Config exports valid Tamagui config
+3. All dependencies are installed
+
+### Styles not extracting
+
+Enable debug mode:
+
+```tsx
+// At top of file
+// tamagui-debug
+
+<View backgroundColor="$red10" />
+```
+
+### Slow builds
+
+Check timings:
+
+```js
+new TamaguiPlugin({
+  logTimings: true,
+  // ...
+})
+```
+
+Consider disabling extraction in development.
+
+### CSS not loading
+
+Ensure webpack is configured to handle CSS:
+
+```js
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+    ],
+  },
+}
+```
+
+## See Also
+
+- [Configuration](/core/configuration)
+- [Compiler](/compiler/introduction)
+- [Next.js Plugin](/api/next-plugin)
+- [Vite Plugin](/api/vite-plugin)
+- [Babel Plugin](/api/babel-plugin)

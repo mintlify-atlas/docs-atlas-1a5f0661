@@ -1,0 +1,183 @@
+---
+title: 'Component Library Overview'
+description: 'An introduction to Tamagui component library and design system'
+icon: 'grid-2'
+---
+
+## What is Tamagui?
+
+Tamagui is a universal UI component library that works across web and native platforms. It provides a comprehensive set of accessible, customizable components built on top of React Native primitives with a powerful styling system.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Universal" icon="mobile">
+    Write once, run everywhere. Components work on web, iOS, and Android with the same API.
+  </Card>
+  <Card title="Type-Safe" icon="shield-check">
+    Built with TypeScript for complete type safety and autocompletion.
+  </Card>
+  <Card title="Themeable" icon="palette">
+    Powerful theming system with automatic dark mode support and customizable design tokens.
+  </Card>
+  <Card title="Performant" icon="bolt">
+    Optimized compiler extracts styles at build time for maximum performance.
+  </Card>
+</CardGroup>
+
+## Component Categories
+
+### Layout Components
+
+Foundational components for structuring your UI:
+
+- **[Stacks](/components/stacks)** - XStack, YStack, ZStack for flexbox layouts
+- **[Group](/components/group)** - Composite components with connected borders
+- **[ScrollView](/components/scroll-view)** - Scrollable containers
+- **[Separator](/components/separator)** - Visual dividers between content
+- **[Spacer](/components/spacer)** - Flexible spacing utility
+
+### Form Components
+
+Interactive input components:
+
+- Button, Input, Checkbox, Radio Group, Switch, Slider, Label, Form
+
+### Overlays
+
+Modal and floating UI components:
+
+- Dialog, Alert Dialog, Popover, Sheet, Tooltip, Toast
+
+### Navigation
+
+Components for navigation patterns:
+
+- Tabs, Accordion, Menu, Context Menu
+
+### Data Display
+
+Components for presenting information:
+
+- Card, Avatar, Image, Text, List Item, Progress, Spinner
+
+## Installation
+
+Install the core package and any component packages you need:
+
+```bash
+npm install tamagui @tamagui/config
+```
+
+Or install individual component packages:
+
+```bash
+npm install @tamagui/stacks @tamagui/group @tamagui/button
+```
+
+## Basic Usage
+
+All Tamagui components follow consistent patterns:
+
+```tsx
+import { YStack, XStack, Text, Button } from 'tamagui'
+
+export function MyComponent() {
+  return (
+    <YStack padding="$4" gap="$3" backgroundColor="$background">
+      <Text fontSize="$6" fontWeight="bold">Welcome to Tamagui</Text>
+      <XStack gap="$2">
+        <Button>Click me</Button>
+        <Button variant="outlined">Or me</Button>
+      </XStack>
+    </YStack>
+  )
+}
+```
+
+## Styling System
+
+### Design Tokens
+
+Tamagui uses design tokens prefixed with `$` for consistent spacing, sizing, and colors:
+
+```tsx
+<YStack
+  padding="$4"        // Uses token from theme
+  margin="$2"
+  backgroundColor="$background"
+  borderRadius="$3"
+/>
+```
+
+### Responsive Props
+
+Media query props use the `$` prefix:
+
+```tsx
+<YStack
+  width="100%"
+  $gtSm={{ width: 500 }}  // Apply when screen > small
+  $gtMd={{ width: 800 }}  // Apply when screen > medium
+/>
+```
+
+### Variants
+
+Many components support variant props for pre-configured styles:
+
+```tsx
+<Button size="$4" variant="outlined" theme="blue">
+  Styled Button
+</Button>
+```
+
+## Theming
+
+Components automatically adapt to theme context:
+
+```tsx
+import { Theme, YStack, Text } from 'tamagui'
+
+<Theme name="dark">
+  <YStack backgroundColor="$background">
+    <Text color="$color">Themed content</Text>
+  </YStack>
+</Theme>
+```
+
+## Accessibility
+
+All Tamagui components are built with accessibility in mind:
+
+- Semantic HTML on web
+- Proper ARIA attributes
+- Keyboard navigation support
+- Screen reader optimizations
+- Focus management
+
+## Performance
+
+Tamagui optimizes performance through:
+
+- **Static extraction** - Styles extracted at build time
+- **Tree shaking** - Only bundle what you use
+- **Optimized rendering** - Minimal re-renders
+- **Native performance** - Direct to native on mobile
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Layout Components" icon="table-layout" href="/components/stacks">
+    Learn about Stack components for building layouts
+  </Card>
+  <Card title="Theming Guide" icon="palette" href="/core/theme">
+    Customize the look and feel of your components
+  </Card>
+  <Card title="Configuration" icon="gear" href="/core/configuration">
+    Set up your Tamagui configuration
+  </Card>
+  <Card title="Compiler Setup" icon="bolt" href="/compiler/installation">
+    Enable the compiler for optimal performance
+  </Card>
+</CardGroup>

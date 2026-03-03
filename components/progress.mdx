@@ -1,0 +1,196 @@
+---
+title: Progress
+description: Displays an indicator showing the completion progress of a task.
+---
+
+# Progress
+
+Displays an indicator showing the completion progress of a task.
+
+## Installation
+
+```bash
+npm install @tamagui/progress
+```
+
+## Usage
+
+```tsx
+import { Progress } from '@tamagui/progress'
+
+export default function ProgressExample() {
+  return (
+    <Progress value={60} max={100} size="$4">
+      <Progress.Indicator animation="bouncy" />
+    </Progress>
+  )
+}
+```
+
+## Anatomy
+
+```tsx
+import { Progress } from '@tamagui/progress'
+
+export default () => (
+  <Progress>
+    <Progress.Indicator />
+  </Progress>
+)
+```
+
+## API Reference
+
+### Progress
+
+<ParamField path="value" type="number">
+  The current progress value.
+</ParamField>
+
+<ParamField path="max" type="number" default="100">
+  The maximum progress value.
+</ParamField>
+
+<ParamField path="size" type="SizeTokens" default="$true">
+  The size of the progress bar.
+</ParamField>
+
+<ParamField path="getValueLabel" type="(value: number, max: number) => string">
+  A function to get the accessible label text representing the current value.
+</ParamField>
+
+### Progress.Indicator
+
+The filled portion of the progress bar that represents the current value.
+
+<ParamField path="animation" type="string">
+  Animation preset to use when the value changes.
+</ParamField>
+
+## Examples
+
+### Basic Progress
+
+```tsx
+import { Progress } from '@tamagui/progress'
+import { YStack } from '@tamagui/stacks'
+
+export default function BasicProgress() {
+  return (
+    <YStack gap="$4" width={300}>
+      <Progress value={25} size="$2">
+        <Progress.Indicator animation="bouncy" />
+      </Progress>
+      <Progress value={50} size="$2">
+        <Progress.Indicator animation="bouncy" />
+      </Progress>
+      <Progress value={75} size="$2">
+        <Progress.Indicator animation="bouncy" />
+      </Progress>
+      <Progress value={100} size="$2">
+        <Progress.Indicator animation="bouncy" />
+      </Progress>
+    </YStack>
+  )
+}
+```
+
+### Animated Progress
+
+```tsx
+import { useState, useEffect } from 'react'
+import { Progress } from '@tamagui/progress'
+
+export default function AnimatedProgress() {
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          return 0
+        }
+        return prev + 10
+      })
+    }, 500)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <Progress value={progress} size="$4" width={300}>
+      <Progress.Indicator animation="bouncy" backgroundColor="$blue10" />
+    </Progress>
+  )
+}
+```
+
+### With Label
+
+```tsx
+import { Progress } from '@tamagui/progress'
+import { YStack, XStack } from '@tamagui/stacks'
+import { SizableText } from '@tamagui/text'
+
+export default function ProgressWithLabel() {
+  const value = 65
+
+  return (
+    <YStack gap="$2" width={300}>
+      <XStack justifyContent="space-between">
+        <SizableText>Loading...</SizableText>
+        <SizableText>{value}%</SizableText>
+      </XStack>
+      <Progress value={value} size="$3">
+        <Progress.Indicator animation="bouncy" />
+      </Progress>
+    </YStack>
+  )
+}
+```
+
+### Different Sizes
+
+```tsx
+import { Progress } from '@tamagui/progress'
+import { YStack } from '@tamagui/stacks'
+
+export default function ProgressSizes() {
+  return (
+    <YStack gap="$4" width={300}>
+      <Progress value={60} size="$2">
+        <Progress.Indicator animation="bouncy" />
+      </Progress>
+      <Progress value={60} size="$4">
+        <Progress.Indicator animation="bouncy" />
+      </Progress>
+      <Progress value={60} size="$6">
+        <Progress.Indicator animation="bouncy" />
+      </Progress>
+    </YStack>
+  )
+}
+```
+
+### Custom Colors
+
+```tsx
+import { Progress } from '@tamagui/progress'
+import { YStack } from '@tamagui/stacks'
+
+export default function ColoredProgress() {
+  return (
+    <YStack gap="$4" width={300}>
+      <Progress value={60} size="$3" backgroundColor="$gray5">
+        <Progress.Indicator animation="bouncy" backgroundColor="$green10" />
+      </Progress>
+      <Progress value={60} size="$3" backgroundColor="$gray5">
+        <Progress.Indicator animation="bouncy" backgroundColor="$red10" />
+      </Progress>
+      <Progress value={60} size="$3" backgroundColor="$gray5">
+        <Progress.Indicator animation="bouncy" backgroundColor="$purple10" />
+      </Progress>
+    </YStack>
+  )
+}
+```

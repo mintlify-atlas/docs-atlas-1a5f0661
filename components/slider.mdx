@@ -1,0 +1,428 @@
+---
+title: Slider
+description: A slider component for selecting numeric values from a range
+---
+
+## Installation
+
+```bash
+npm install @tamagui/slider
+```
+
+## Import
+
+```tsx
+import { Slider } from '@tamagui/slider'
+```
+
+## Usage
+
+### Basic Example
+
+```tsx
+import { Slider } from '@tamagui/slider'
+
+function Demo() {
+  return (
+    <Slider defaultValue={[50]} max={100} step={1}>
+      <Slider.Track>
+        <Slider.TrackActive />
+      </Slider.Track>
+      <Slider.Thumb index={0} />
+    </Slider>
+  )
+}
+```
+
+### Controlled Slider
+
+```tsx
+import { useState } from 'react'
+import { Slider } from '@tamagui/slider'
+import { YStack, Text } from '@tamagui/core'
+
+function Demo() {
+  const [value, setValue] = useState([50])
+
+  return (
+    <YStack space>
+      <Slider value={value} onValueChange={setValue} max={100} step={1}>
+        <Slider.Track>
+          <Slider.TrackActive />
+        </Slider.Track>
+        <Slider.Thumb index={0} />
+      </Slider>
+      <Text>Value: {value[0]}</Text>
+    </YStack>
+  )
+}
+```
+
+### Range Slider (Multiple Thumbs)
+
+```tsx
+import { useState } from 'react'
+import { Slider } from '@tamagui/slider'
+import { YStack, Text } from '@tamagui/core'
+
+function Demo() {
+  const [value, setValue] = useState([25, 75])
+
+  return (
+    <YStack space>
+      <Slider value={value} onValueChange={setValue} max={100} step={1}>
+        <Slider.Track>
+          <Slider.TrackActive />
+        </Slider.Track>
+        <Slider.Thumb index={0} />
+        <Slider.Thumb index={1} />
+      </Slider>
+      <Text>Range: {value[0]} - {value[1]}</Text>
+    </YStack>
+  )
+}
+```
+
+### With Min and Max
+
+```tsx
+import { Slider } from '@tamagui/slider'
+
+function Demo() {
+  return (
+    <Slider defaultValue={[0]} min={-100} max={100} step={10}>
+      <Slider.Track>
+        <Slider.TrackActive />
+      </Slider.Track>
+      <Slider.Thumb index={0} />
+    </Slider>
+  )
+}
+```
+
+### Custom Step Size
+
+```tsx
+import { Slider } from '@tamagui/slider'
+
+function Demo() {
+  return (
+    <Slider defaultValue={[0.5]} min={0} max={1} step={0.1}>
+      <Slider.Track>
+        <Slider.TrackActive />
+      </Slider.Track>
+      <Slider.Thumb index={0} />
+    </Slider>
+  )
+}
+```
+
+### Vertical Orientation
+
+```tsx
+import { Slider } from '@tamagui/slider'
+
+function Demo() {
+  return (
+    <Slider
+      orientation="vertical"
+      defaultValue={[50]}
+      max={100}
+      step={1}
+      height={200}
+    >
+      <Slider.Track>
+        <Slider.TrackActive />
+      </Slider.Track>
+      <Slider.Thumb index={0} />
+    </Slider>
+  )
+}
+```
+
+### Sizes
+
+```tsx
+import { Slider } from '@tamagui/slider'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <YStack space>
+      <Slider size="$2" defaultValue={[50]} max={100}>
+        <Slider.Track>
+          <Slider.TrackActive />
+        </Slider.Track>
+        <Slider.Thumb index={0} />
+      </Slider>
+      
+      <Slider size="$4" defaultValue={[50]} max={100}>
+        <Slider.Track>
+          <Slider.TrackActive />
+        </Slider.Track>
+        <Slider.Thumb index={0} />
+      </Slider>
+      
+      <Slider size="$6" defaultValue={[50]} max={100}>
+        <Slider.Track>
+          <Slider.TrackActive />
+        </Slider.Track>
+        <Slider.Thumb index={0} />
+      </Slider>
+    </YStack>
+  )
+}
+```
+
+### Disabled State
+
+```tsx
+import { Slider } from '@tamagui/slider'
+
+function Demo() {
+  return (
+    <Slider disabled defaultValue={[50]} max={100}>
+      <Slider.Track>
+        <Slider.TrackActive />
+      </Slider.Track>
+      <Slider.Thumb index={0} />
+    </Slider>
+  )
+}
+```
+
+### Minimum Steps Between Thumbs
+
+```tsx
+import { Slider } from '@tamagui/slider'
+
+function Demo() {
+  return (
+    <Slider
+      defaultValue={[20, 80]}
+      max={100}
+      step={1}
+      minStepsBetweenThumbs={10}
+    >
+      <Slider.Track>
+        <Slider.TrackActive />
+      </Slider.Track>
+      <Slider.Thumb index={0} />
+      <Slider.Thumb index={1} />
+    </Slider>
+  )
+}
+```
+
+### Volume Control Example
+
+```tsx
+import { useState } from 'react'
+import { Slider } from '@tamagui/slider'
+import { XStack, Text } from '@tamagui/core'
+import { Volume2, VolumeX } from '@tamagui/lucide-icons'
+
+function Demo() {
+  const [volume, setVolume] = useState([70])
+
+  return (
+    <XStack space alignItems="center" padding="$4">
+      {volume[0] === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
+      <Slider
+        flex={1}
+        value={volume}
+        onValueChange={setVolume}
+        max={100}
+        step={1}
+      >
+        <Slider.Track>
+          <Slider.TrackActive />
+        </Slider.Track>
+        <Slider.Thumb index={0} circular />
+      </Slider>
+      <Text width={40}>{volume[0]}%</Text>
+    </XStack>
+  )
+}
+```
+
+### Price Range Filter
+
+```tsx
+import { useState } from 'react'
+import { Slider } from '@tamagui/slider'
+import { YStack, XStack, Text } from '@tamagui/core'
+
+function Demo() {
+  const [priceRange, setPriceRange] = useState([0, 1000])
+
+  return (
+    <YStack space padding="$4">
+      <Text>Price Range</Text>
+      <Slider
+        value={priceRange}
+        onValueChange={setPriceRange}
+        min={0}
+        max={1000}
+        step={10}
+        minStepsBetweenThumbs={5}
+      >
+        <Slider.Track>
+          <Slider.TrackActive />
+        </Slider.Track>
+        <Slider.Thumb index={0} />
+        <Slider.Thumb index={1} />
+      </Slider>
+      <XStack justifyContent="space-between">
+        <Text>${priceRange[0]}</Text>
+        <Text>${priceRange[1]}</Text>
+      </XStack>
+    </YStack>
+  )
+}
+```
+
+## API Reference
+
+### Slider Props
+
+<ParamField path="value" type="number[]">
+  Controlled value array. Each number represents a thumb position.
+</ParamField>
+
+<ParamField path="defaultValue" type="number[]" default="[0]">
+  Default uncontrolled value.
+</ParamField>
+
+<ParamField path="onValueChange" type="(value: number[]) => void">
+  Callback when value changes.
+</ParamField>
+
+<ParamField path="min" type="number" default="0">
+  Minimum value of the slider range.
+</ParamField>
+
+<ParamField path="max" type="number" default="100">
+  Maximum value of the slider range.
+</ParamField>
+
+<ParamField path="step" type="number" default="1">
+  Step increment for value changes.
+</ParamField>
+
+<ParamField path="orientation" type="'horizontal' | 'vertical'" default="'horizontal'">
+  Layout orientation of the slider.
+</ParamField>
+
+<ParamField path="disabled" type="boolean" default="false">
+  Disable the slider and prevent interactions.
+</ParamField>
+
+<ParamField path="minStepsBetweenThumbs" type="number" default="0">
+  Minimum number of steps between thumbs in a range slider.
+</ParamField>
+
+<ParamField path="size" type="SizeTokens">
+  Size of the slider components.
+</ParamField>
+
+<ParamField path="name" type="string">
+  Name for form submission (multiple values will use array syntax).
+</ParamField>
+
+<ParamField path="dir" type="'ltr' | 'rtl'">
+  Reading direction for horizontal sliders.
+</ParamField>
+
+<ParamField path="onSlideStart" type="(event, value, target) => void">
+  Callback when slide starts (mouse down or touch).
+</ParamField>
+
+<ParamField path="onSlideMove" type="(event, value) => void">
+  Callback during sliding (mouse move or touch move).
+</ParamField>
+
+<ParamField path="onSlideEnd" type="(event, value) => void">
+  Callback when slide ends (mouse up or touch end).
+</ParamField>
+
+### Slider.Track Props
+
+Extends all View props. Renders the background track.
+
+### Slider.TrackActive Props
+
+Extends all View props. Renders the filled/active portion of the track.
+
+### Slider.Thumb Props
+
+<ParamField path="index" type="number" required>
+  Index of the thumb, corresponding to the value array position.
+</ParamField>
+
+<ParamField path="size" type="SizeTokens">
+  Override the thumb size.
+</ParamField>
+
+<ParamField path="circular" type="boolean">
+  Make the thumb circular.
+</ParamField>
+
+## Theming
+
+Slider responds to the following theme tokens:
+
+**Slider.Track:**
+- `$background` - Track background color
+
+**Slider.TrackActive:**
+- `$background` - Active track/fill color
+
+**Slider.Thumb:**
+- `$background` - Thumb background
+- `$backgroundHover` - Thumb background on hover
+- `$backgroundPress` - Thumb background when dragging
+- `$borderColor` - Thumb border color
+- `$borderColorHover` - Thumb border on hover
+- `$borderColorPress` - Thumb border when dragging
+- `$outlineColor` - Focus outline color
+
+```tsx
+import { Slider } from '@tamagui/slider'
+
+function Demo() {
+  return (
+    <Slider theme="blue" defaultValue={[50]} max={100}>
+      <Slider.Track>
+        <Slider.TrackActive />
+      </Slider.Track>
+      <Slider.Thumb index={0} />
+    </Slider>
+  )
+}
+```
+
+## Accessibility
+
+- Each thumb renders with `role="slider"`
+- Sets `aria-valuemin`, `aria-valuemax`, `aria-valuenow`
+- Sets `aria-orientation` to match slider orientation
+- Supports keyboard navigation:
+  - **Arrow Keys** - Increment/decrement by step
+  - **Shift + Arrow Keys** - Increment/decrement by 10x step
+  - **Page Up/Down** - Increment/decrement by 10x step
+  - **Home** - Jump to minimum value
+  - **End** - Jump to maximum value
+- Focus visible styles on thumbs
+- Supports `aria-label` on thumbs
+- Disabled state prevents interaction
+
+## Notes
+
+- Values are always an array, even for single-thumb sliders
+- Thumb positions are calculated as percentages
+- Supports both mouse and touch interactions
+- RTL support for horizontal sliders
+- Track can be clicked to jump thumb to that position
+- Multiple thumbs cannot overlap (enforced by `minStepsBetweenThumbs`)
+- Vertical sliders require explicit height

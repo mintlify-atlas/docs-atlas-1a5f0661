@@ -1,0 +1,373 @@
+---
+title: Advanced Animations
+description: Deep dive into animation drivers and advanced animation techniques in Tamagui
+---
+
+# Advanced Animations
+
+Tamagui's animation system uses a driver-based architecture that supports multiple animation backends. This guide covers advanced animation techniques and driver integration.
+
+## Animation Drivers
+
+Tamagui provides several animation drivers, each optimized for different platforms:
+
+### React Native Driver
+
+The React Native driver (`@tamagui/animations-react-native`) uses `Animated.Value` for native performance.
+
+```tsx
+import { createAnimations } from '@tamagui/animations-react-native'
+
+export const animations = createAnimations({
+  fast: {
+    type: 'spring',
+    damping: 20,
+    mass: 1.2,
+    stiffness: 250,
+  },
+  smooth: {
+    type: 'spring',
+    damping: 10,
+    mass: 0.9,
+    stiffness: 100,
+  },
+  slow: {
+    type: 'timing',
+    duration: 400,
+  },
+})
+```
+
+### CSS Driver
+
+The CSS driver (`@tamagui/animations-css`) generates CSS transitions for web.
+
+```tsx
+import { createAnimations } from '@tamagui/animations-css'
+
+export const animations = createAnimations({
+  bouncy: 'ease-in 200ms',
+  lazy: 'ease-in 600ms',
+  quick: 'ease-in 100ms',
+  slow: 'ease-in 500ms',
+  tooltip: 'ease-in 400ms',
+})
+```
+
+### Motion Driver (Recommended for Web)
+
+The Motion driver (`@tamagui/animations-motion`) uses [motion](https://motion.dev) for high-performance web animations.
+
+```tsx
+import { createAnimations } from '@tamagui/animations-motion'
+
+export const animations = createAnimations({
+  quick: {
+    type: 'spring',
+    damping: 20,
+    mass: 1.2,
+    stiffness: 250,
+  },
+  bouncy: {
+    type: 'spring',
+    damping: 9,
+    mass: 0.9,
+    stiffness: 150,
+  },
+  lazy: {
+    type: 'spring',
+    damping: 18,
+    stiffness: 50,
+  },
+})
+```
+
+## Advanced Animation Configurations
+
+### Spring Animations (React Native)
+
+From `code/core/animations-react-native/src/createAnimations.tsx:25-41`:
+
+```tsx
+type SpringConfig = {
+  type?: 'spring'
+  delay?: number
+  bounciness?: number
+  damping?: number
+  friction?: number
+  mass?: number
+  overshootClamping?: boolean
+  speed?: number
+  stiffness?: number
+  tension?: number
+  velocity?: number
+}
+```
+
+### Timing Animations
+
+```tsx
+type TimingConfig = {
+  type: 'timing'
+  delay?: number
+  duration?: number
+  easing?: (value: number) => number
+}
+```
+
+## Enter/Exit Animations
+
+Tamagui supports specialized enter and exit animations using the presence system.
+
+### State-Based Animation Selection
+
+From `code/core/animations-react-native/src/createAnimations.tsx:519-561`:
+
+```tsx
+function getAnimationConfig(
+  key: string,
+  animations: AnimationsConfig,
+  transition?: TransitionProp,
+  animationState: 'enter' | 'exit' | 'default' = 'default'
+): AnimationConfig {
+  const normalized = normalizeTransition(transition)
+  const shortKey = transformShorthands[key]
+
+  // Check for property-specific animation
+  const propAnimation = normalized.properties[key] ?? normalized.properties[shortKey]
+
+  let animationType: string | null = null
+  let extraConf: any = {}
+
+  if (typeof propAnimation === 'string') {
+    animationType = propAnimation
+  } else if (propAnimation && typeof propAnimation === 'object') {
+    animationType = propAnimation.type || getEffectiveAnimation(normalized, animationState)
+    extraConf = propAnimation
+  } else {
+    animationType = getEffectiveAnimation(normalized, animationState)
+  }
+
+  // Apply global delay
+  if (normalized.delay && !extraConf.delay) {
+    extraConf = { ...extraConf, delay: normalized.delay }
+  }
+
+  const found = animationType ? animations[animationType] : {}
+  return {
+    ...found,
+    ...normalized.config,
+    ...extraConf,
+  }
+}
+```
+
+### Using AnimatePresence
+
+```tsx
+import { AnimatePresence } from '@tamagui/animate-presence'
+
+function MyComponent() {
+  const [show, setShow] = useState(false)
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <YStack
+          animation="quick"
+          enterStyle={{ opacity: 0, scale: 0.9 }}
+          exitStyle={{ opacity: 0, scale: 0.95 }}
+        >
+          Content
+        </YStack>
+      )}
+    </AnimatePresence>
+  )
+}
+```
+
+## Transform Animations
+
+### Transform Shorthands
+
+From `code/core/animations-react-native/src/createAnimations.tsx:563-569`:
+
+```tsx
+const transformShorthands = {
+  x: 'translateX',
+  y: 'translateY',
+  translateX: 'x',
+  translateY: 'y',
+}
+```
+
+This allows you to use both short and long forms:
+
+```tsx
+<YStack
+  animation="quick"
+  x={100}  // Animates translateX
+  y={50}   // Animates translateY
+/>
+```
+
+## Color Animations
+
+Tamagui handles color interpolation automatically for these properties:
+
+From `code/core/animations-react-native/src/createAnimations.tsx:52-60`:
+
+```tsx
+const colorStyleKey = {
+  backgroundColor: true,
+  color: true,
+  borderColor: true,
+  borderLeftColor: true,
+  borderRightColor: true,
+  borderTopColor: true,
+  borderBottomColor: true,
+}
+```
+
+## useNativeDriver Optimization
+
+Tamagui automatically determines when to use native driver based on properties:
+
+From `code/core/animations-react-native/src/createAnimations.tsx:46-50`:
+
+```tsx
+const animatedStyleKey = {
+  transform: true,
+  opacity: true,
+}
+```
+
+Properties in this list use native driver for maximum performance.
+
+## Dynamic Theme Values
+
+Tamagui resolves dynamic theme values during animation:
+
+From `code/core/animations-react-native/src/createAnimations.tsx:16-23`:
+
+```tsx
+const resolveDynamicValue = (value: any, isDark: boolean): any => {
+  if (value && typeof value === 'object' && 'dynamic' in value) {
+    const dynamicValue = isDark ? value.dynamic.dark : value.dynamic.light
+    return dynamicValue
+  }
+  return value
+}
+```
+
+This enables theme-aware animations:
+
+```tsx
+<YStack
+  animation="quick"
+  backgroundColor={isDark ? '$background' : '$backgroundLight'}
+/>
+```
+
+## Performance Optimization
+
+### Costly Animation Properties
+
+From `code/core/animations-react-native/src/createAnimations.tsx:63-76`:
+
+These properties don't support native driver and are costly to animate:
+
+```tsx
+const costlyToAnimateStyleKey = {
+  borderRadius: true,
+  borderTopLeftRadius: true,
+  borderTopRightRadius: true,
+  borderBottomLeftRadius: true,
+  borderBottomRightRadius: true,
+  borderWidth: true,
+  borderLeftWidth: true,
+  borderRightWidth: true,
+  borderTopWidth: true,
+  borderBottomWidth: true,
+  ...colorStyleKey,
+}
+```
+
+### Animation Control
+
+Use `animateOnly` to limit which properties animate:
+
+```tsx
+<YStack
+  animation="quick"
+  animateOnly={['transform', 'opacity']}
+  x={100}
+  backgroundColor="red"  // Won't animate
+/>
+```
+
+## Custom Animation Hooks
+
+### useAnimatedNumber
+
+Create custom animated values:
+
+```tsx
+import { useAnimatedNumber } from '@tamagui/core'
+
+function MyComponent() {
+  const rotation = useAnimatedNumber(0)
+
+  return (
+    <YStack
+      onPress={() => {
+        rotation.setValue(360, { type: 'spring', damping: 20 })
+      }}
+    />
+  )
+}
+```
+
+### useAnimatedNumberReaction
+
+React to animated value changes:
+
+```tsx
+import { useAnimatedNumberReaction } from '@tamagui/core'
+
+function MyComponent() {
+  const value = useAnimatedNumber(0)
+
+  useAnimatedNumberReaction({ value }, (current) => {
+    console.log('Current value:', current)
+  })
+}
+```
+
+## Debugging Animations
+
+Enable animation debugging:
+
+```tsx
+<YStack
+  animation="quick"
+  debug="verbose"  // Logs animation details
+  x={100}
+/>
+```
+
+From `code/core/animations-react-native/src/createAnimations.tsx:416-431`, this logs:
+- Animation key
+- From/to values
+- Interpolation arguments
+- Animation type
+
+## Best Practices
+
+1. **Use native-compatible properties** (`transform`, `opacity`) for best performance
+2. **Avoid animating layout properties** like `width`, `height` when possible
+3. **Use spring animations** for natural, physical motion
+4. **Batch animations** by animating multiple properties with one `animation` prop
+5. **Test on device** - animations may perform differently on real hardware
+6. **Use AnimatePresence** for enter/exit animations
+7. **Prefer the Motion driver** for web applications

@@ -1,0 +1,407 @@
+---
+title: useDebounce
+description: Debounce function calls and values with React hooks
+---
+
+# useDebounce
+
+The `useDebounce` hook creates a debounced version of a function that delays execution until after a specified wait time has elapsed since the last invocation. It also provides `useDebounceValue` for debouncing value changes.
+
+## Import
+
+```tsx
+import { useDebounce, useDebounceValue } from 'tamagui'
+// or
+import { useDebounce, useDebounceValue } from '@tamagui/use-debounce'
+```
+
+## Function Signatures
+
+### useDebounce
+
+```typescript
+function useDebounce<A extends (...args: any) => any>(
+  fn: A,
+  wait: number,
+  options?: { leading?: boolean },
+  mountArgs?: any[]
+): A & { cancel: () => void }
+```
+
+### useDebounceValue
+
+```typescript
+function useDebounceValue<A>(val: A, amt?: number): A
+```
+
+## useDebounce Parameters
+
+<ParamField path="fn" type="Function" required>
+  The function to debounce. Can be any function with any signature.
+</ParamField>
+
+<ParamField path="wait" type="number" required>
+  The number of milliseconds to delay execution after the last call.
+</ParamField>
+
+<ParamField path="options" type="{ leading?: boolean }" optional>
+  Configuration options:
+  - `leading`: If true, invokes the function on the leading edge instead of trailing (default: false)
+</ParamField>
+
+<ParamField path="mountArgs" type="any[]" optional>
+  Array of dependencies for the debounced function. The debounced function is recreated when these change. Defaults to `[fn]`.
+</ParamField>
+
+## useDebounce Return Value
+
+<ResponseField name="debouncedFn" type="A & { cancel: () => void }">
+  The debounced function with the same signature as the input function, plus a `cancel()` method:
+  - Calling the function will debounce execution
+  - `cancel()`: Cancels any pending execution
+</ResponseField>
+
+## useDebounceValue Parameters
+
+<ParamField path="val" type="A" required>
+  The value to debounce. Returns the value only after it stops changing for the specified time.
+</ParamField>
+
+<ParamField path="amt" type="number" default={0}>
+  The number of milliseconds to wait before updating to the new value.
+</ParamField>
+
+## useDebounceValue Return Value
+
+<ResponseField name="debouncedValue" type="A">
+  The debounced value. Updates only after `amt` milliseconds have passed without the input value changing.
+</ResponseField>
+
+## Usage
+
+### Debounced Search Input
+
+```tsx
+import { useDebounceValue, Input, YStack } from 'tamagui'
+import { useState } from 'react'
+
+function SearchInput() {
+  const [searchRaw, setSearch] = useState('')
+  const search = useDebounceValue(searchRaw, 400)
+
+  // search only updates 400ms after user stops typing
+  useEffect(() => {
+    if (search) {
+      // Perform search API call
+      fetchResults(search)
+    }
+  }, [search])
+
+  return (
+    <Input
+      value={searchRaw}
+      onChangeText={setSearch}
+      placeholder="Search..."
+    />
+  )
+}
+```
+
+### Debounced Icon Filter
+
+```tsx
+import { useDebounceValue, Input, ScrollView } from 'tamagui'
+import React from 'react'
+import * as LucideIcons from '@tamagui/lucide-icons'
+
+function LucideIconsDemo() {
+  const [searchRaw, setSearch] = React.useState('')
+  const search = useDebounceValue(searchRaw, 400)
+
+  const filteredIcons = React.useMemo(
+    () =>
+      Object.keys(LucideIcons)
+        .filter((name) => 
+          name.toLowerCase().includes(search.toLowerCase())
+        )
+        .map((name) => ({
+          name,
+          Icon: LucideIcons[name],
+        })),
+    [search]
+  )
+
+  return (
+    <YStack>
+      <Input 
+        value={searchRaw} 
+        onChangeText={setSearch} 
+        placeholder="Search icons..." 
+      />
+      <ScrollView>
+        {filteredIcons.map(({ Icon, name }) => (
+          <YStack key={name}>
+            <Icon size={24} />
+            <Text>{name}</Text>
+          </YStack>
+        ))}
+      </ScrollView>
+    </YStack>
+  )
+}
+```
+
+### Debounced Function Call
+
+```tsx
+import { useDebounce } from '@tamagui/use-debounce'
+import { Input } from 'tamagui'
+
+function AutoSaveForm() {
+  const [formData, setFormData] = useState({ title: '', content: '' })
+
+  const saveToServer = async (data) => {
+    await fetch('/api/save', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // Debounce saves - only save 1 second after user stops typing
+  const debouncedSave = useDebounce(saveToServer, 1000)
+
+  const handleChange = (field, value) => {
+    const newData = { ...formData, [field]: value }
+    setFormData(newData)
+    debouncedSave(newData)
+  }
+
+  return (
+    <YStack>
+      <Input
+        value={formData.title}
+        onChangeText={(val) => handleChange('title', val)}
+        placeholder="Title"
+      />
+      <Input
+        value={formData.content}
+        onChangeText={(val) => handleChange('content', val)}
+        placeholder="Content"
+      />
+    </YStack>
+  )
+}
+```
+
+### Leading Edge Execution
+
+```tsx
+import { useDebounce } from '@tamagui/use-debounce'
+import { Button } from 'tamagui'
+
+function RateLimitedButton() {
+  const handleClick = () => {
+    console.log('Button clicked')
+    // Perform action
+  }
+
+  // Execute immediately on first click, then ignore subsequent clicks
+  // for 1 second
+  const debouncedClick = useDebounce(
+    handleClick,
+    1000,
+    { leading: true }
+  )
+
+  return (
+    <Button onPress={debouncedClick}>
+      Click Me (Rate Limited)
+    </Button>
+  )
+}
+```
+
+### Canceling Pending Execution
+
+```tsx
+import { useDebounce } from '@tamagui/use-debounce'
+import { Button, YStack } from 'tamagui'
+
+function DebouncedAction() {
+  const performAction = () => {
+    console.log('Action executed')
+  }
+
+  const debouncedAction = useDebounce(performAction, 2000)
+
+  return (
+    <YStack gap="$2">
+      <Button onPress={debouncedAction}>
+        Trigger Action (2s delay)
+      </Button>
+      <Button onPress={() => debouncedAction.cancel()}>
+        Cancel Pending Action
+      </Button>
+    </YStack>
+  )
+}
+```
+
+### Window Resize Handler
+
+```tsx
+import { useDebounce } from '@tamagui/use-debounce'
+import { useEffect, useState } from 'react'
+
+function ResponsiveComponent() {
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  })
+
+  const handleResize = () => {
+    setWindowSize({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    })
+  }
+
+  const debouncedResize = useDebounce(handleResize, 150)
+
+  useEffect(() => {
+    window.addEventListener('resize', debouncedResize)
+    return () => {
+      window.removeEventListener('resize', debouncedResize)
+      debouncedResize.cancel()
+    }
+  }, [debouncedResize])
+
+  return (
+    <View>
+      <Text>Width: {windowSize.width}</Text>
+      <Text>Height: {windowSize.height}</Text>
+    </View>
+  )
+}
+```
+
+### With Custom Dependencies
+
+```tsx
+import { useDebounce } from '@tamagui/use-debounce'
+
+function SearchWithFilters({ apiKey }) {
+  const performSearch = (query: string) => {
+    // Uses current apiKey in closure
+    fetch(`/api/search?q=${query}&key=${apiKey}`)
+  }
+
+  // Recreate debounced function when apiKey changes
+  const debouncedSearch = useDebounce(
+    performSearch,
+    300,
+    { leading: false },
+    [apiKey, performSearch] // Dependencies
+  )
+
+  return (
+    <Input
+      onChangeText={(text) => debouncedSearch(text)}
+      placeholder="Search..."
+    />
+  )
+}
+```
+
+## How It Works
+
+### useDebounce
+1. Creates a debounced version of the function using `useMemo`
+2. Sets up cleanup on unmount to cancel pending executions
+3. Tracks timeout internally and clears it on subsequent calls
+4. Returns the same function reference until dependencies change
+
+### useDebounceValue
+1. Maintains internal state for the debounced value
+2. Sets up a timeout whenever the input value changes
+3. Only updates the returned value after the timeout completes
+4. Cleans up timeout on unmount or value change
+
+## Performance Considerations
+
+1. **useDebounceValue and Memoization**: The docs note you may need to memoize the input value to prevent excessive re-renders
+2. **Cleanup**: Both hooks automatically clean up on unmount
+3. **Function Identity**: `useDebounce` preserves function identity until dependencies change
+4. **Memory**: Minimal memory overhead - only stores timeout reference
+
+## Best Practices
+
+1. **Choose Appropriate Wait Times**:
+   - Search/filter: 300-500ms
+   - Auto-save: 1000-2000ms
+   - Window resize: 150-250ms
+   - API calls: 300-500ms
+
+2. **Cancel on Unmount**: The hooks handle this automatically, but be aware when manually managing cleanup
+
+3. **Leading vs Trailing**: Use `leading: true` for actions that should happen immediately but then be rate-limited
+
+4. **Memoize Input Values**: When using `useDebounceValue`, wrap complex objects in `useMemo`
+
+5. **Dependencies**: Only include actual dependencies in `mountArgs` to avoid unnecessary recreations
+
+## Common Patterns
+
+### Search with Loading State
+
+```tsx
+function Search() {
+  const [query, setQuery] = useState('')
+  const [loading, setLoading] = useState(false)
+  const debouncedQuery = useDebounceValue(query, 400)
+
+  useEffect(() => {
+    if (debouncedQuery) {
+      setLoading(true)
+      fetchResults(debouncedQuery).finally(() => setLoading(false))
+    }
+  }, [debouncedQuery])
+
+  return (
+    <>
+      <Input value={query} onChangeText={setQuery} />
+      {loading && <Spinner />}
+    </>
+  )
+}
+```
+
+### Validation Feedback
+
+```tsx
+function ValidatedInput() {
+  const [value, setValue] = useState('')
+  const [error, setError] = useState('')
+  const debouncedValue = useDebounceValue(value, 500)
+
+  useEffect(() => {
+    // Validate only after user stops typing
+    if (debouncedValue.length < 3) {
+      setError('Too short')
+    } else {
+      setError('')
+    }
+  }, [debouncedValue])
+
+  return (
+    <YStack>
+      <Input value={value} onChangeText={setValue} />
+      {error && <Text color="$red10">{error}</Text>}
+    </YStack>
+  )
+}
+```
+
+## Related
+
+- [Input Component](/components/inputs) - Common use case for debouncing

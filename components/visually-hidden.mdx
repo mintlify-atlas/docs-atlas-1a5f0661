@@ -1,0 +1,236 @@
+---
+title: VisuallyHidden
+description: Hide content visually while keeping it accessible to screen readers
+---
+
+VisuallyHidden is a utility component that hides content from the screen while ensuring it remains visible to assistive technologies like screen readers. This is essential for creating accessible interfaces that provide context to all users.
+
+## Installation
+
+VisuallyHidden is already included in `tamagui`, or you can install it independently:
+
+```bash
+npm install @tamagui/visually-hidden
+```
+
+## Usage
+
+Simply wrap the content you want hidden in VisuallyHidden:
+
+```tsx
+import { Button, VisuallyHidden } from 'tamagui'
+
+export default () => (
+  <Button>
+    <VisuallyHidden>
+      <Text>Settings menu</Text>
+    </VisuallyHidden>
+    <Settings />
+  </Button>
+)
+```
+
+## Props
+
+<ParamField path="visible" type="boolean" default="false">
+  When true, makes the content visible on screen. Useful for toggling visibility dynamically.
+</ParamField>
+
+<ParamField path="preserveDimensions" type="boolean" default="false">
+  When true, the element maintains its dimensions in the layout (uses `position: relative` instead of `position: absolute`). This prevents layout shifts when hiding content.
+</ParamField>
+
+## Real-World Examples
+
+### Icon Buttons with Screen Reader Labels
+
+Provide descriptive text for icon-only buttons:
+
+```tsx
+import { Button, VisuallyHidden } from 'tamagui'
+import { X, Settings, Bell } from '@tamagui/lucide-icons'
+
+export default () => (
+  <XStack space="$2">
+    <Button icon={X} circular>
+      <VisuallyHidden>
+        <Text>Close dialog</Text>
+      </VisuallyHidden>
+    </Button>
+
+    <Button icon={Settings} circular>
+      <VisuallyHidden>
+        <Text>Open settings</Text>
+      </VisuallyHidden>
+    </Button>
+
+    <Button icon={Bell} circular>
+      <VisuallyHidden>
+        <Text>View notifications</Text>
+      </VisuallyHidden>
+    </Button>
+  </XStack>
+)
+```
+
+### Form Field Instructions
+
+Add helpful context for screen reader users:
+
+```tsx
+import { Input, Label, VisuallyHidden, YStack } from 'tamagui'
+
+export default () => (
+  <YStack space="$2">
+    <Label htmlFor="password">Password</Label>
+    <VisuallyHidden>
+      <Text id="password-hint">
+        Must be at least 8 characters with one number and one special character
+      </Text>
+    </VisuallyHidden>
+    <Input
+      id="password"
+      type="password"
+      aria-describedby="password-hint"
+    />
+  </YStack>
+)
+```
+
+### Skip Navigation Links
+
+Allow keyboard users to skip repetitive navigation:
+
+```tsx
+import { VisuallyHidden, YStack } from 'tamagui'
+import { useState } from 'react'
+
+export default () => {
+  const [focused, setFocused] = useState(false)
+
+  return (
+    <YStack>
+      <VisuallyHidden visible={focused}>
+        <a 
+          href="#main-content"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+        >
+          Skip to main content
+        </a>
+      </VisuallyHidden>
+
+      <Navigation />
+
+      <main id="main-content">
+        {/* Main content */}
+      </main>
+    </YStack>
+  )
+}
+```
+
+### Data Table Column Headers
+
+Provide context for screen readers in complex tables:
+
+```tsx
+import { Text, VisuallyHidden, XStack, YStack } from 'tamagui'
+
+export default () => (
+  <YStack>
+    <XStack borderBottomWidth={1} borderColor="$borderColor" padding="$2">
+      <Text flex={1} fontWeight="bold">Name</Text>
+      <Text flex={1} fontWeight="bold">Email</Text>
+      <Text width={100} fontWeight="bold">
+        <VisuallyHidden>Actions</VisuallyHidden>
+      </Text>
+    </XStack>
+
+    {users.map(user => (
+      <XStack key={user.id} padding="$2">
+        <Text flex={1}>{user.name}</Text>
+        <Text flex={1}>{user.email}</Text>
+        <XStack width={100} space="$2">
+          <Button size="$2">
+            <VisuallyHidden>
+              <Text>Edit {user.name}</Text>
+            </VisuallyHidden>
+            <Edit size={16} />
+          </Button>
+          <Button size="$2">
+            <VisuallyHidden>
+              <Text>Delete {user.name}</Text>
+            </VisuallyHidden>
+            <Trash size={16} />
+          </Button>
+        </XStack>
+      </XStack>
+    ))}
+  </YStack>
+)
+```
+
+### Loading States
+
+Announce loading states to screen reader users:
+
+```tsx
+import { Spinner, VisuallyHidden, YStack } from 'tamagui'
+
+export default ({ isLoading }: { isLoading: boolean }) => (
+  <YStack>
+    {isLoading && (
+      <>
+        <Spinner />
+        <VisuallyHidden>
+          <Text role="status" aria-live="polite">
+            Loading content, please wait...
+          </Text>
+        </VisuallyHidden>
+      </>
+    )}
+  </YStack>
+)
+```
+
+## Accessibility Benefits
+
+- **Screen Reader Support**: Content remains accessible to assistive technologies while being invisible on screen
+- **Semantic Markup**: Provides additional context that visual users can infer but screen reader users need explicitly
+- **Keyboard Navigation**: Works with focus indicators - use `visible` prop to show skip links on focus
+- **ARIA Compliance**: Perfect for implementing ARIA patterns that require hidden descriptive text
+- **Layout Preservation**: The `preserveDimensions` prop prevents layout shifts when used with spacing utilities
+
+## Spacing Behavior
+
+When using with Tamagui's `space` property, VisuallyHidden automatically avoids double-spacing:
+
+```tsx
+import { H1, Text, VisuallyHidden, YStack } from 'tamagui'
+
+export default () => (
+  <YStack space="$4">
+    <H1>Welcome</H1>
+
+    {/* This won't create extra spacing */}
+    <VisuallyHidden>
+      <Text>Additional context for screen readers</Text>
+    </VisuallyHidden>
+
+    <Text>Visible content follows without extra gap</Text>
+  </YStack>
+)
+```
+
+This works because VisuallyHidden sets an internal flag that Tamagui's spacing system recognizes.
+
+## Best Practices
+
+- Use VisuallyHidden for icon-only buttons to provide text alternatives
+- Add hidden instructions for complex form fields
+- Implement skip navigation links for keyboard users
+- Announce dynamic content changes to screen readers
+- Provide context in tables and data grids
+- Don't overuse - only hide content when visual users can infer the information
+- Test with actual screen readers (NVDA, JAWS, VoiceOver) to ensure content is announced properly

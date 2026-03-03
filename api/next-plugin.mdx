@@ -1,0 +1,377 @@
+---
+title: Next.js Plugin
+description: Tamagui compiler plugin for Next.js
+---
+
+The Next.js plugin enables Tamagui's optimizing compiler in Next.js projects, extracting styles to CSS at build time for better performance.
+
+## Installation
+
+```bash
+npm install @tamagui/next-plugin
+```
+
+## Usage
+
+```js
+// next.config.js
+const { withTamagui } = require('@tamagui/next-plugin')
+
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+}, {
+  // Next.js config
+  reactStrictMode: true,
+})
+```
+
+## Configuration Options
+
+### Tamagui Options
+
+<ParamField path="config" type="string" required>
+  Path to your Tamagui config file.
+  
+  ```js
+  config: './tamagui.config.ts'
+  ```
+</ParamField>
+
+<ParamField path="components" type="string[]" required>
+  Array of component packages to optimize.
+  
+  ```js
+  components: ['tamagui', '@my-org/ui']
+  ```
+</ParamField>
+
+<ParamField path="disableExtraction" type="boolean" default="false">
+  Disable the optimizing compiler.
+  
+  ```js
+  disableExtraction: process.env.NODE_ENV === 'development'
+  ```
+</ParamField>
+
+<ParamField path="appDir" type="boolean" default="false">
+  Enable support for Next.js App Router.
+  
+  ```js
+  appDir: true
+  ```
+</ParamField>
+
+<ParamField path="shouldExtract" type="(path: string, projectRoot: string) => boolean | undefined">
+  Custom logic to determine which files should be processed.
+  
+  ```js
+  shouldExtract: (path, root) => {
+    // Extract from your packages
+    if (path.includes('packages/ui')) return true
+    // Skip node_modules by default
+    if (path.includes('node_modules')) return false
+  }
+  ```
+</ParamField>
+
+<ParamField path="shouldExcludeFromServer" type="(props: { context: string, request: string, fullPath: string }) => boolean | string | undefined">
+  Control which modules are externalized on the server.
+  
+  ```js
+  shouldExcludeFromServer: ({ fullPath }) => {
+    // Inline this package
+    if (fullPath.includes('@my-org/ui')) return false
+    // Externalize this package
+    if (fullPath.includes('heavy-package')) return true
+  }
+  ```
+</ParamField>
+
+<ParamField path="enableLegacyFontSupport" type="boolean" default="false">
+  Enable webpack font loading for legacy browsers.
+  
+  ```js
+  enableLegacyFontSupport: true
+  ```
+</ParamField>
+
+<ParamField path="includeCSSTest" type="RegExp | ((path: string) => boolean)">
+  Custom test for CSS file inclusion.
+  
+  ```js
+  includeCSSTest: /\.tamagui\.css$/
+  ```
+</ParamField>
+
+<ParamField path="disableThemesBundleOptimize" type="boolean" default="false">
+  Disable automatic theme bundle optimization.
+  
+  ```js
+  disableThemesBundleOptimize: false
+  ```
+</ParamField>
+
+<ParamField path="disableOptimizeLucideIcons" type="boolean" default="false">
+  Disable automatic tree-shaking for @tamagui/lucide-icons.
+  
+  ```js
+  disableOptimizeLucideIcons: false
+  ```
+</ParamField>
+
+## Examples
+
+### Basic Configuration
+
+```js
+// next.config.js
+const { withTamagui } = require('@tamagui/next-plugin')
+
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+}, {
+  reactStrictMode: true,
+  swcMinify: true,
+})
+```
+
+### App Router Support
+
+```js
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  appDir: true,
+}, {
+  experimental: {
+    appDir: true,
+  },
+})
+```
+
+### Multiple Component Libraries
+
+```js
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: [
+    'tamagui',
+    '@my-org/ui',
+    '@my-org/design-system',
+  ],
+})
+```
+
+### Custom Extraction Logic
+
+```js
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  shouldExtract: (path, projectRoot) => {
+    // Extract from your monorepo packages
+    if (path.includes('packages/')) return true
+    // Skip everything else
+    return false
+  },
+})
+```
+
+### Server Externalization
+
+```js
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  shouldExcludeFromServer: ({ fullPath, request }) => {
+    // Always inline Tamagui
+    if (fullPath.includes('@tamagui')) return false
+    // Externalize large deps
+    if (request === 'lodash') return 'commonjs lodash'
+    return undefined
+  },
+})
+```
+
+### Development Mode (No Extraction)
+
+```js
+const isDev = process.env.NODE_ENV === 'development'
+
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  disableExtraction: isDev,
+})
+```
+
+### With Font Support
+
+```js
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  enableLegacyFontSupport: true,
+}, {
+  // Increase inline limit for fonts
+  inlineFontLimit: 2048,
+})
+```
+
+## How It Works
+
+### Webpack Configuration
+
+The plugin automatically configures webpack with:
+
+1. **TamaguiPlugin** - Processes and extracts component styles
+2. **CSS Loader** - Handles generated `.tamagui.css` files
+3. **DefinePlugin** - Sets environment variables
+4. **Externals** - Manages server-side module bundling
+
+### Build-Time Optimization
+
+The plugin:
+
+1. **Analyzes** TSX files for Tamagui components
+2. **Extracts** styles to static CSS classes
+3. **Generates** `.tamagui.css` files
+4. **Replaces** dynamic styles with className attributes
+5. **Removes** unused style props from bundle
+
+### SSR Support
+
+The plugin handles SSR by:
+
+- Running extraction on both server and client builds
+- Externalizing React Native dependencies properly
+- Aliasing `react-native` to `react-native-web`
+- Setting appropriate `TAMAGUI_IS_SERVER` flag
+
+## Environment Variables
+
+The plugin sets these automatically:
+
+<ParamField path="process.env.TAMAGUI_TARGET" type="'web'">
+  Always set to `'web'` for Next.js.
+</ParamField>
+
+<ParamField path="process.env.TAMAGUI_IS_SERVER" type="'true' | ''">
+  Set to `'true'` in server build, empty string in client build.
+</ParamField>
+
+<ParamField path="process.env.TAMAGUI_ENVIRONMENT" type="'ssr' | 'client'">
+  Identifies the current build environment.
+</ParamField>
+
+<ParamField path="__DEV__" type="boolean">
+  Set to `true` in development, `false` in production.
+</ParamField>
+
+## Automatic Optimizations
+
+### Lucide Icons Tree-Shaking
+
+The plugin automatically configures Next.js experimental `optimizePackageImports`:
+
+```js
+// Automatically optimized
+import { ArrowRight, Check } from '@tamagui/lucide-icons'
+// Only imports the specific icons, not the entire package
+```
+
+Disable if needed:
+
+```js
+withTamagui({
+  disableOptimizeLucideIcons: true,
+})
+```
+
+### Theme Bundle Optimization
+
+In production, unused theme values are automatically removed:
+
+```js
+// Disable if needed
+withTamagui({
+  disableThemesBundleOptimize: true,
+})
+```
+
+## Troubleshooting
+
+### "Module not found" errors
+
+Make sure `transpilePackages` includes required dependencies:
+
+```js
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+}, {
+  transpilePackages: [
+    'expo-linear-gradient',
+    // Add other packages as needed
+  ],
+})
+```
+
+### Styles not extracting
+
+Enable debug mode:
+
+```tsx
+// At top of file
+// tamagui-debug
+
+<View backgroundColor="$red10" />
+```
+
+### SSR hydration mismatches
+
+Ensure your config is the same for client and server:
+
+```js
+withTamagui({
+  config: './tamagui.config.ts',  // Use same file for both
+  components: ['tamagui'],
+})
+```
+
+### Slow builds
+
+Try disabling extraction in development:
+
+```js
+withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  disableExtraction: process.env.NODE_ENV === 'development',
+})
+```
+
+## Migration from v1
+
+If upgrading from Tamagui v1:
+
+```diff
+- const { withTamagui } = require('@tamagui/next-plugin')
++ const { withTamagui } = require('@tamagui/next-plugin')
+
+  module.exports = withTamagui({
+    config: './tamagui.config.ts',
+    components: ['tamagui'],
+-   outputCSS: './public/tamagui.css',  // Removed
+  })
+```
+
+## See Also
+
+- [Configuration](/core/configuration)
+- [Compiler](/compiler/introduction)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Vite Plugin](/api/vite-plugin)
+- [Webpack Loader](/api/webpack-loader)

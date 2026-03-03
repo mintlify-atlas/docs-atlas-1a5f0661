@@ -1,0 +1,150 @@
+---
+title: Image
+description: Display images with built-in optimization and styling.
+---
+
+# Image
+
+Display images with built-in optimization and styling.
+
+## Installation
+
+```bash
+npm install @tamagui/image
+```
+
+## Usage
+
+```tsx
+import { Image } from '@tamagui/image'
+
+export default function ImageExample() {
+  return (
+    <Image
+      src="https://picsum.photos/200/300"
+      width={200}
+      height={300}
+      borderRadius="$4"
+    />
+  )
+}
+```
+
+## API Reference
+
+### Image
+
+<ParamField path="src" type="string">
+  The source URL of the image (web).
+</ParamField>
+
+<ParamField path="source" type="ImageSource">
+  The source of the image (React Native).
+</ParamField>
+
+<ParamField path="width" type="number | string">
+  The width of the image.
+</ParamField>
+
+<ParamField path="height" type="number | string">
+  The height of the image.
+</ParamField>
+
+<ParamField path="objectFit" type="'cover' | 'contain' | 'fill' | 'none' | 'scale-down'">
+  How the image should be resized to fit its container.
+</ParamField>
+
+<ParamField path="onLoad" type="() => void">
+  Callback when the image loads successfully.
+</ParamField>
+
+<ParamField path="onError" type="() => void">
+  Callback when the image fails to load.
+</ParamField>
+
+## Examples
+
+### Responsive Image
+
+```tsx
+import { Image } from '@tamagui/image'
+
+export default function ResponsiveImage() {
+  return (
+    <Image
+      src="https://picsum.photos/800/600"
+      width="100%"
+      height="auto"
+      aspectRatio={4 / 3}
+      objectFit="cover"
+    />
+  )
+}
+```
+
+### Rounded Image
+
+```tsx
+import { Image } from '@tamagui/image'
+
+export default function RoundedImage() {
+  return (
+    <Image
+      src="https://picsum.photos/200"
+      width={200}
+      height={200}
+      borderRadius={100}
+    />
+  )
+}
+```
+
+### Image with Loading State
+
+```tsx
+import { useState } from 'react'
+import { Image } from '@tamagui/image'
+import { YStack } from '@tamagui/stacks'
+import { Spinner } from '@tamagui/spinner'
+
+export default function ImageWithLoading() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+
+  return (
+    <YStack width={300} height={300} position="relative">
+      {isLoading && (
+        <YStack
+          position="absolute"
+          fullscreen
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Spinner />
+        </YStack>
+      )}
+      {hasError && (
+        <YStack
+          position="absolute"
+          fullscreen
+          alignItems="center"
+          justifyContent="center"
+          backgroundColor="$gray5"
+        >
+          Failed to load
+        </YStack>
+      )}
+      <Image
+        src="https://picsum.photos/300"
+        width={300}
+        height={300}
+        onLoad={() => setIsLoading(false)}
+        onError={() => {
+          setIsLoading(false)
+          setHasError(true)
+        }}
+      />
+    </YStack>
+  )
+}
+```

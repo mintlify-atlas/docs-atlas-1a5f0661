@@ -1,0 +1,500 @@
+---
+title: CLI Reference
+description: Complete reference for Tamagui CLI commands and options
+---
+
+# CLI Reference
+
+Tamagui provides a powerful CLI for building, generating, and managing your Tamagui projects.
+
+## Installation
+
+```bash
+npm install --save-dev @tamagui/cli
+```
+
+Or use without installing:
+
+```bash
+npx @tamagui/cli <command>
+```
+
+## Global Flags
+
+From `code/core/cli/src/cli.ts:300-313`:
+
+```bash
+tamagui --help      # Show help for all commands
+tamagui --version   # Show CLI version
+```
+
+## Commands
+
+### check
+
+Checks dependencies for version inconsistencies.
+
+From `code/core/cli/src/cli.ts:16-34`:
+
+```bash
+tamagui check
+```
+
+#### Flags
+
+- `--help` - Show help for this command
+- `--debug` - Enable debug mode
+- `--verbose` - Enable verbose debug output
+
+#### Example
+
+```bash
+# Basic check
+tamagui check
+
+# With debug output
+tamagui check --debug --verbose
+```
+
+### generate
+
+Builds your Tamagui configuration and outputs CSS and type information.
+
+From `code/core/cli/src/cli.ts:36-64`:
+
+```bash
+tamagui generate
+```
+
+#### Flags
+
+- `--help` - Show help
+- `--debug` - Enable debug mode
+- `--verbose` - Verbose debug output
+
+#### What it does
+
+1. Loads your Tamagui configuration
+2. Generates CSS from themes and tokens
+3. Creates `.tamagui/prompt.md` with LLM-friendly config documentation
+
+#### Example
+
+```bash
+tamagui generate --debug
+```
+
+### generate-css
+
+Generates CSS file from your Tamagui config.
+
+From `code/core/cli/src/cli.ts:66-94`:
+
+```bash
+tamagui generate-css
+```
+
+#### Flags
+
+- `--help` - Show help
+- `--debug` - Debug mode
+- `--verbose` - Verbose output
+- `--output <path>` - Output path for CSS file (default: `./tamagui.generated.css`)
+
+#### Example
+
+```bash
+# Default output
+tamagui generate-css
+
+# Custom output path
+tamagui generate-css --output ./public/tamagui.css
+```
+
+### generate-themes
+
+Pre-builds theme definitions.
+
+From `code/core/cli/src/cli.ts:96-132`:
+
+```bash
+tamagui generate-themes <input-path> <output-path>
+```
+
+#### Arguments
+
+- `<input-path>` - Path to theme source file
+- `<output-path>` - Path to write generated themes
+
+#### Flags
+
+- `--help` - Show help
+- `--debug` - Debug mode
+- `--verbose` - Verbose output
+
+#### Example
+
+```bash
+tamagui generate-themes ./src/themes.ts ./src/themes.generated.ts
+```
+
+### add
+
+Adds fonts and icons to your monorepo.
+
+From `code/core/cli/src/cli.ts:134-153`:
+
+```bash
+tamagui add <type> <path>
+```
+
+#### Arguments
+
+- `<type>` - Package type (fonts, icons, etc.)
+- `<path>` - Installation path
+
+#### Flags
+
+- `--help` - Show help
+- `--debug` - Debug mode
+- `--verbose` - Verbose output
+
+#### Example
+
+```bash
+tamagui add fonts ./packages/fonts
+```
+
+### build
+
+Pre-builds Tamagui components for optimization.
+
+From `code/core/cli/src/cli.ts:155-210`:
+
+```bash
+tamagui build [directory]
+```
+
+#### Arguments
+
+- `[directory]` - Directory or file to build (default: current directory)
+
+#### Flags
+
+- `--help` - Show help
+- `--debug` - Debug mode
+- `--verbose` - Verbose output
+- `--dry-run` - Preview changes without writing files
+- `--target <platform>` - Target platform: `web`, `native`, or `both` (default: `both`)
+- `--include <pattern>` - File pattern to include
+- `--exclude <pattern>` - File pattern to exclude
+- `--output <directory>` - Output directory for built files
+- `--output-around` - Create `.native.tsx` files alongside source files
+- `--expect-optimizations <n>` - Assert minimum number of optimizations
+
+#### Run Command Syntax
+
+From `code/core/cli/src/cli.ts:171-181`:
+
+```bash
+tamagui build [dir] -- <command>
+```
+
+Runs a command after optimization, then auto-restores files.
+
+#### Examples
+
+```bash
+# Build current directory
+tamagui build
+
+# Build specific directory
+tamagui build ./src/components
+
+# Build for web only
+tamagui build --target web
+
+# Dry run (preview changes)
+tamagui build --dry-run
+
+# Include/exclude patterns
+tamagui build --include "**/*.tsx" --exclude "**/*.test.tsx"
+
+# Output to separate directory
+tamagui build ./src --output ./dist
+
+# Create .native.tsx files
+tamagui build --output-around
+
+# Expect minimum optimizations (useful in CI)
+tamagui build --expect-optimizations 10
+
+# Run tests with optimized code, then restore
+tamagui build -- npm test
+```
+
+#### Build Output
+
+From `code/core/cli/src/build.ts:17-23`:
+
+```tsx
+type BuildStats = {
+  filesProcessed: number  // Total files processed
+  optimized: number       // Components optimized
+  flattened: number       // Styles flattened
+  styled: number          // styled() calls
+  found: number           // Tamagui components found
+}
+```
+
+### upgrade
+
+Upgrades all Tamagui packages in your workspace.
+
+From `code/core/cli/src/cli.ts:212-234`:
+
+```bash
+tamagui upgrade
+```
+
+Shorthand: `tamagui up`
+
+#### Flags
+
+- `--help` - Show help
+- `--debug` - Debug mode
+- `--from <version>` - Source version
+- `--to <version>` - Target version
+- `--changelog-only` - Only show changelog without upgrading
+- `--dry-run` - Preview changes without upgrading
+
+#### Examples
+
+```bash
+# Upgrade to latest
+tamagui upgrade
+
+# View changelog only
+tamagui up --changelog-only
+
+# Dry run
+tamagui up --dry-run
+
+# Upgrade to specific version
+tamagui up --to 1.50.0
+```
+
+### update-template
+
+Updates your repo with the source template (for Takeout customers).
+
+From `code/core/cli/src/cli.ts:236-255`:
+
+```bash
+tamagui update-template --template-repo <url>
+```
+
+Shorthand: `tamagui ut`
+
+#### Flags
+
+- `--help` - Show help
+- `--template-repo <url>` - Template repository URL (required)
+- `--ignored-patterns <patterns>` - Space-separated patterns to ignore
+
+#### Example
+
+```bash
+tamagui update-template \
+  --template-repo https://github.com/tamagui/starter \
+  --ignored-patterns "*.lock package-lock.json"
+```
+
+### generate-prompt
+
+Generates LLM-friendly markdown from your Tamagui config.
+
+From `code/core/cli/src/cli.ts:257-277`:
+
+```bash
+tamagui generate-prompt
+```
+
+#### Flags
+
+- `--help` - Show help
+- `--debug` - Debug mode
+- `--output <path>` - Output file path
+
+#### Example
+
+```bash
+# Default output (.tamagui/prompt.md)
+tamagui generate-prompt
+
+# Custom output
+tamagui generate-prompt --output ./docs/config.md
+```
+
+## Configuration
+
+### tamagui.config.ts
+
+The CLI reads configuration from your `tamagui.config.ts`:
+
+```tsx
+import { createTamagui } from '@tamagui/core'
+
+export default createTamagui({
+  // ... your config
+})
+```
+
+### tamagui.build.ts
+
+For build-specific configuration:
+
+```tsx
+import type { TamaguiOptions } from '@tamagui/types'
+
+export default {
+  platform: 'web',
+  outputCSS: './public/tamagui.css',
+  disable: false,
+  disableExtraction: false,
+} satisfies TamaguiOptions
+```
+
+## Build System Details
+
+### Platform-Specific Files
+
+From `code/core/cli/src/build.ts:141-181`:
+
+The build command intelligently handles platform-specific files:
+
+```
+// Base file
+Button.tsx          → optimized for both platforms
+
+// Platform-specific files
+Button.web.tsx      → only optimized for web
+Button.native.tsx   → only optimized for native
+Button.ios.tsx      → only optimized for native
+Button.android.tsx  → only optimized for native
+```
+
+**Rules:**
+- Base file is optimized for platforms without specific files
+- If both `.web.tsx` and `.native.tsx` exist, base file is not modified
+- Platform extensions: `.web`, `.native`, `.ios`, `.android`
+
+### CSS Import Injection
+
+From `code/core/cli/src/build.ts:40-51`:
+
+The build command automatically injects CSS imports:
+
+```tsx
+// Before
+export const Button = styled(Stack, { ... })
+
+// After
+import "./_Button.css"
+export const Button = styled(Stack, { ... })
+
+// With 'use client'
+'use client'
+import "./_Button.css"
+export const Button = styled(Stack, { ... })
+```
+
+### File Restoration
+
+When using `--` to run commands:
+
+1. Build optimizes files
+2. Command runs with optimized code
+3. Files are automatically restored if unchanged
+4. Modified files during command are skipped (not restored)
+
+## Debug Output
+
+Enable verbose debugging:
+
+```bash
+tamagui build --debug --verbose
+```
+
+From `code/core/cli/src/cli.ts:26-28`:
+
+Debug levels:
+- `--debug` - Basic debug info
+- `--debug --verbose` - Full verbose output
+
+## Exit Codes
+
+- `0` - Success
+- `1` - Error or failed assertion (e.g., `--expect-optimizations`)
+
+## Common Workflows
+
+### Development
+
+```bash
+# Check dependencies
+tamagui check
+
+# Generate types and CSS
+tamagui generate
+```
+
+### Production Build
+
+```bash
+# Pre-optimize components
+tamagui build ./src/components --target web
+
+# Generate CSS for production
+tamagui generate-css --output ./public/tamagui.css
+```
+
+### CI/CD
+
+```bash
+# Ensure minimum optimizations (fail if below threshold)
+tamagui build --expect-optimizations 50
+
+# Run tests with optimized code
+tamagui build -- npm test
+```
+
+### Upgrading
+
+```bash
+# Check what will change
+tamagui upgrade --dry-run --changelog-only
+
+# Upgrade
+tamagui upgrade
+```
+
+## Troubleshooting
+
+### Build Issues
+
+**"No tamagui config found"**
+Ensure `tamagui.config.ts` exists and exports a valid config.
+
+**"Expected X optimizations but got Y"**
+Check that your components use Tamagui's `styled()` API.
+
+### CSS Generation
+
+**"Output CSS is empty"**
+Ensure your config includes themes and tokens.
+
+### Package Management
+
+**"Version conflicts detected"**
+Run `tamagui check` to see conflicts, then `tamagui upgrade` to fix.

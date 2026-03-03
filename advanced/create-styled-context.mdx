@@ -1,0 +1,535 @@
+---
+title: createStyledContext
+description: Advanced context API for sharing variant props across component hierarchies
+---
+
+# createStyledContext
+
+The `createStyledContext` API enables sharing variant props across component hierarchies without prop drilling. It's perfect for building compound components with coordinated styles.
+
+## Installation
+
+```bash
+npm install @tamagui/core
+```
+
+## Basic Usage
+
+From `code/core/web/src/helpers/createStyledContext.tsx:7-95`:
+
+```tsx
+import { createStyledContext, styled, YStack, Text } from '@tamagui/core'
+
+// 1. Define variant types
+type CardVariants = {
+  size?: 'small' | 'medium' | 'large'
+  variant?: 'outlined' | 'filled'
+}
+
+// 2. Create context with defaults
+const CardContext = createStyledContext<CardVariants>({
+  size: 'medium',
+  variant: 'filled',
+})
+
+// 3. Create parent component
+export const Card = styled(YStack, {
+  context: CardContext,
+  variants: {
+    size: {
+      small: { padding: '$2', gap: '$2' },
+      medium: { padding: '$4', gap: '$3' },
+      large: { padding: '$6', gap: '$4' },
+    },
+    variant: {
+      outlined: {
+        borderWidth: 1,
+        borderColor: '$borderColor',
+      },
+      filled: {
+        backgroundColor: '$background',
+      },
+    },
+  },
+})
+
+// 4. Create child components that inherit context
+export const CardTitle = styled(Text, {
+  context: CardContext,
+  variants: {
+    size: {
+      small: { fontSize: '$3', fontWeight: '600' },
+      medium: { fontSize: '$5', fontWeight: '600' },
+      large: { fontSize: '$7', fontWeight: '700' },
+    },
+  },
+})
+
+export const CardDescription = styled(Text, {
+  context: CardContext,
+  variants: {
+    size: {
+      small: { fontSize: '$2', color: '$color11' },
+      medium: { fontSize: '$3', color: '$color11' },
+      large: { fontSize: '$4', color: '$color11' },
+    },
+  },
+})
+
+// 5. Use the compound component
+function Example() {
+  return (
+    <Card size="large" variant="outlined">
+      <CardTitle>Title</CardTitle>
+      <CardDescription>Description</CardDescription>
+    </Card>
+  )
+}
+```
+
+The `size` and `variant` props are automatically passed to child components!
+
+## API Reference
+
+### createStyledContext
+
+```tsx
+function createStyledContext<VariantProps>(
+  defaultValues?: VariantProps,
+  namespace?: string
+): StyledContext<VariantProps>
+```
+
+#### Parameters
+
+- `defaultValues` - Default values for variant props
+- `namespace` - Optional namespace for scoping (advanced)
+
+#### Returns
+
+A `StyledContext` object with:
+
+- `Provider` - Context provider component
+- `props` - Default props
+- `context` - Underlying React context
+- `useStyledContext` - Hook to access context values
+
+### Using Context in styled()
+
+```tsx
+const Component = styled(BaseComponent, {
+  context: MyContext,
+  variants: {
+    // Variants that match context props
+  },
+})
+```
+
+## Advanced Patterns
+
+### Scoped Contexts
+
+From `code/core/web/src/helpers/createStyledContext.tsx:44-73`:
+
+Namespaces prevent conflicts when nesting similar components:
+
+```tsx
+const CardContext = createStyledContext<CardVariants>(
+  { size: 'medium' },
+  'card' // namespace
+)
+
+const Card = styled(YStack, {
+  context: CardContext,
+  // ...
+})
+
+// Usage with scoping
+<Card scope="outer-card">
+  <CardTitle>Outer</CardTitle>
+  
+  <Card scope="inner-card">
+    <CardTitle>Inner</CardTitle> {/* Uses inner-card scope */}
+  </Card>
+</Card>
+```
+
+### useStyledContext Hook
+
+Access context values in custom components:
+
+```tsx
+const CardContext = createStyledContext<CardVariants>()
+
+function CustomCardElement() {
+  const { size, variant } = CardContext.useStyledContext()
+  
+  return (
+    <div>
+      Size: {size}, Variant: {variant}
+    </div>
+  )
+}
+```
+
+### Manual Provider Usage
+
+From `code/core/web/src/helpers/createStyledContext.tsx:47-73`:
+
+```tsx
+const CardContext = createStyledContext<CardVariants>()
+
+function CustomCard({ children, size, variant }) {
+  return (
+    <CardContext.Provider size={size} variant={variant}>
+      {children}
+    </CardContext.Provider>
+  )
+}
+```
+
+### Disabling Value Merging
+
+For performance optimization:
+
+```tsx
+<CardContext.Provider
+  size="large"
+  variant="outlined"
+  __disableMergeDefaultValues // Skip merging with defaults
+>
+  {children}
+</CardContext.Provider>
+```
+
+## Real-World Examples
+
+### Form Component System
+
+```tsx
+type FormVariants = {
+  size?: 'sm' | 'md' | 'lg'
+  disabled?: boolean
+  required?: boolean
+}
+
+const FormContext = createStyledContext<FormVariants>({
+  size: 'md',
+  disabled: false,
+  required: false,
+})
+
+export const Form = styled(YStack, {
+  context: FormContext,
+  tag: 'form',
+  gap: '$4',
+  variants: {
+    disabled: {
+      true: { opacity: 0.5, pointerEvents: 'none' },
+    },
+  },
+})
+
+export const FormField = styled(YStack, {
+  context: FormContext,
+  gap: '$2',
+})
+
+export const FormLabel = styled(Text, {
+  context: FormContext,
+  variants: {
+    size: {
+      sm: { fontSize: '$2' },
+      md: { fontSize: '$3' },
+      lg: { fontSize: '$4' },
+    },
+    required: {
+      true: {
+        // Add asterisk via pseudo-element
+        '$after': {
+          content: '*',
+          color: '$red10',
+        },
+      },
+    },
+  },
+})
+
+export const FormInput = styled(Input, {
+  context: FormContext,
+  variants: {
+    size: {
+      sm: { height: 32 },
+      md: { height: 40 },
+      lg: { height: 48 },
+    },
+    disabled: {
+      true: {
+        backgroundColor: '$gray3',
+        cursor: 'not-allowed',
+      },
+    },
+  },
+})
+
+// Usage
+<Form size="lg" disabled={isSubmitting}>
+  <FormField>
+    <FormLabel required>Email</FormLabel>
+    <FormInput placeholder="email@example.com" />
+  </FormField>
+</Form>
+```
+
+### List Component System
+
+```tsx
+type ListVariants = {
+  size?: 'compact' | 'comfortable' | 'spacious'
+  dividers?: boolean
+}
+
+const ListContext = createStyledContext<ListVariants>({
+  size: 'comfortable',
+  dividers: true,
+})
+
+export const List = styled(YStack, {
+  context: ListContext,
+})
+
+export const ListItem = styled(XStack, {
+  context: ListContext,
+  alignItems: 'center',
+  variants: {
+    size: {
+      compact: { padding: '$2', gap: '$2' },
+      comfortable: { padding: '$3', gap: '$3' },
+      spacious: { padding: '$4', gap: '$4' },
+    },
+    dividers: {
+      true: {
+        borderBottomWidth: 1,
+        borderBottomColor: '$borderColor',
+      },
+    },
+  },
+})
+
+export const ListItemText = styled(YStack, {
+  context: ListContext,
+  flex: 1,
+  variants: {
+    size: {
+      compact: { gap: '$1' },
+      comfortable: { gap: '$2' },
+      spacious: { gap: '$3' },
+    },
+  },
+})
+
+// Usage
+<List size="spacious" dividers={false}>
+  <ListItem>
+    <ListItemText>
+      <Text>Title</Text>
+      <Text fontSize="$2" color="$color11">Subtitle</Text>
+    </ListItemText>
+  </ListItem>
+</List>
+```
+
+### Navigation System
+
+```tsx
+type NavVariants = {
+  orientation?: 'horizontal' | 'vertical'
+  size?: 'sm' | 'md' | 'lg'
+  variant?: 'default' | 'pills' | 'underline'
+}
+
+const NavContext = createStyledContext<NavVariants>({
+  orientation: 'horizontal',
+  size: 'md',
+  variant: 'default',
+})
+
+export const Nav = styled(XStack, {
+  context: NavContext,
+  variants: {
+    orientation: {
+      horizontal: { flexDirection: 'row' },
+      vertical: { flexDirection: 'column' },
+    },
+  },
+})
+
+export const NavItem = styled(Stack, {
+  context: NavContext,
+  cursor: 'pointer',
+  variants: {
+    size: {
+      sm: { padding: '$2' },
+      md: { padding: '$3' },
+      lg: { padding: '$4' },
+    },
+    variant: {
+      default: {
+        hoverStyle: { backgroundColor: '$backgroundHover' },
+      },
+      pills: {
+        borderRadius: '$4',
+        hoverStyle: { backgroundColor: '$backgroundHover' },
+      },
+      underline: {
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent',
+        hoverStyle: { borderBottomColor: '$borderColor' },
+      },
+    },
+  },
+})
+
+// Usage
+<Nav orientation="horizontal" variant="pills" size="lg">
+  <NavItem>Home</NavItem>
+  <NavItem>About</NavItem>
+  <NavItem>Contact</NavItem>
+</Nav>
+```
+
+## Implementation Details
+
+### Context Initialization
+
+From `code/core/web/src/helpers/createStyledContext.tsx:15-33`:
+
+```tsx
+// Lazy initialization prevents SSR issues
+const createReactContext = React[
+  Math.random() ? 'createContext' : 'createContext'
+] as typeof React.createContext
+
+const OGContext = createReactContext<VariantProps | undefined>(defaultValues)
+const scopedContexts = new Map<string, Context<VariantProps | undefined>>()
+```
+
+### Value Merging
+
+From `code/core/web/src/helpers/createStyledContext.tsx:56-62`:
+
+```tsx
+const next = useReactMemo(() => {
+  if (__disableMergeDefaultValues) {
+    return values
+  }
+  return mergeProps(defaultValues!, values)
+}, [objectIdentityKey(values)])
+```
+
+### Scope Resolution
+
+From `code/core/web/src/helpers/createStyledContext.tsx:76-86`:
+
+```tsx
+const useStyledContext = (scopeIn = '') => {
+  const lastScopeInNamespace = useReactContext(LastScopeInNamespace)
+  const scope = namespace
+    ? scopeIn
+      ? getNamespacedScope(scopeIn)
+      : lastScopeInNamespace
+    : scopeIn
+  const context = scope ? getOrCreateScopedContext(scope) : OGContext
+  const value = useReactContext(context!) as VariantProps
+  return value
+}
+```
+
+## Performance Considerations
+
+### Memoization
+
+Context values are automatically memoized based on object identity:
+
+```tsx
+// Only re-renders when size or variant changes
+<Card size={size} variant={variant}>
+  <CardTitle>Title</CardTitle>
+</Card>
+```
+
+### Object Identity
+
+From `code/core/web/src/helpers/createStyledContext.tsx:62`:
+
+```tsx
+// Uses objectIdentityKey for efficient change detection
+const next = useReactMemo(() => {
+  return mergeProps(defaultValues!, values)
+}, [objectIdentityKey(values)])
+```
+
+## TypeScript Support
+
+### Full Type Inference
+
+```tsx
+type CardVariants = {
+  size?: 'small' | 'medium' | 'large'
+  variant?: 'outlined' | 'filled'
+}
+
+const CardContext = createStyledContext<CardVariants>()
+
+// TypeScript knows valid props!
+<Card size="small" />    // ✓
+<Card size="tiny" />     // ✗ Type error
+<Card variant="ghost" /> // ✗ Type error
+```
+
+### Context Type Access
+
+```tsx
+import { GetProps } from '@tamagui/core'
+
+type CardProps = GetProps<typeof Card>
+// Includes size, variant, and all YStack props
+```
+
+## Best Practices
+
+1. **Use for compound components** - Perfect for components with multiple related parts
+2. **Define clear variants** - Keep variant options focused and semantic
+3. **Provide good defaults** - Make the common case easy
+4. **Namespace when needed** - Prevent conflicts in complex UIs
+5. **Document variant behavior** - Help users understand variant effects
+6. **Type everything** - Leverage TypeScript for better DX
+7. **Test composition** - Ensure child components receive context correctly
+
+## Debugging
+
+### Check Context Values
+
+```tsx
+function DebugCard({ children, ...props }) {
+  const context = CardContext.useStyledContext()
+  
+  console.log('Card context:', context)
+  
+  return <Card {...props}>{children}</Card>
+}
+```
+
+### Common Issues
+
+**"Context not updating"**
+- Ensure you're passing props to the parent component
+- Check that child components have `context` defined
+
+**"Props not inherited"**
+- Verify both parent and child use the same context
+- Check variant names match between components
+
+**"Performance issues"**
+- Use `__disableMergeDefaultValues` when appropriate
+- Memoize parent component props when they're computed

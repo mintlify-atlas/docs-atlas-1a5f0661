@@ -1,0 +1,381 @@
+---
+title: 'Separator'
+description: 'Visual divider between content sections'
+icon: 'minus'
+---
+
+## Overview
+
+The Separator component creates visual dividers between content sections. It renders as a horizontal or vertical line that adapts to your theme.
+
+## Import
+
+```tsx
+import { Separator } from 'tamagui'
+// or from individual package
+import { Separator } from '@tamagui/separator'
+```
+
+## Basic Usage
+
+### Horizontal Separator
+
+```tsx
+import { YStack, Text, Separator } from 'tamagui'
+
+export function HorizontalDivider() {
+  return (
+    <YStack maxWidth={300}>
+      <Text fontWeight="bold">Section 1</Text>
+      <Text>Content for first section</Text>
+      
+      <Separator marginVertical="$4" />
+      
+      <Text fontWeight="bold">Section 2</Text>
+      <Text>Content for second section</Text>
+    </YStack>
+  )
+}
+```
+
+### Vertical Separator
+
+```tsx
+import { XStack, Text, Separator } from 'tamagui'
+
+export function VerticalDivider() {
+  return (
+    <XStack height={40} alignItems="center">
+      <Text>Home</Text>
+      
+      <Separator vertical marginHorizontal="$3" />
+      
+      <Text>About</Text>
+      
+      <Separator vertical marginHorizontal="$3" />
+      
+      <Text>Contact</Text>
+    </XStack>
+  )
+}
+```
+
+## Props
+
+<ParamField path="vertical" type="boolean" default="false">
+  Changes orientation from horizontal to vertical.
+  
+  ```tsx
+  <Separator vertical />
+  ```
+</ParamField>
+
+<ParamField path="unstyled" type="boolean">
+  Removes default styling. Useful for custom separators.
+  
+  ```tsx
+  <Separator unstyled backgroundColor="$red9" height={2} />
+  ```
+</ParamField>
+
+### Style Props
+
+Separator accepts all standard View style props:
+
+<ParamField path="borderColor" type="string">
+  Color of the separator line. Defaults to `$backgroundFocus`.
+  
+  ```tsx
+  <Separator borderColor="$blue9" />
+  ```
+</ParamField>
+
+<ParamField path="marginVertical" type="number | SizeTokens">
+  Vertical margin around horizontal separators.
+  
+  ```tsx
+  <Separator marginVertical="$4" />
+  <Separator my="$4" />  {/* Shorthand */}
+  ```
+</ParamField>
+
+<ParamField path="marginHorizontal" type="number | SizeTokens">
+  Horizontal margin around vertical separators.
+  
+  ```tsx
+  <Separator vertical marginHorizontal="$3" />
+  <Separator vertical mx="$3" />  {/* Shorthand */}
+  ```
+</ParamField>
+
+## Examples
+
+### Basic Content Divider
+
+```tsx
+import { YStack, Paragraph, Separator } from 'tamagui'
+
+export function ContentDivider() {
+  return (
+    <YStack width="100%" maxWidth={300} padding="$4">
+      <Paragraph fontWeight="800">Tamagui</Paragraph>
+      <Paragraph>A cross-platform component library.</Paragraph>
+      
+      <Separator marginVertical={15} />
+      
+      <Paragraph fontWeight="800">Features</Paragraph>
+      <Paragraph>Universal, themeable, and performant.</Paragraph>
+    </YStack>
+  )
+}
+```
+
+### Navigation Links
+
+```tsx
+import { XStack, Text, Separator } from 'tamagui'
+
+export function NavLinks() {
+  return (
+    <XStack height={20} alignItems="center">
+      <Text>Blog</Text>
+      <Separator vertical marginHorizontal={16} />
+      <Text>Docs</Text>
+      <Separator vertical marginHorizontal={16} />
+      <Text>Source</Text>
+    </XStack>
+  )
+}
+```
+
+### List Items
+
+```tsx
+import { YStack, XStack, Text, Separator } from 'tamagui'
+
+export function ListWithSeparators() {
+  const items = ['Item 1', 'Item 2', 'Item 3', 'Item 4']
+  
+  return (
+    <YStack 
+      backgroundColor="$background" 
+      borderRadius="$4" 
+      padding="$2"
+    >
+      {items.map((item, index) => (
+        <>
+          <XStack 
+            key={item}
+            padding="$3" 
+            hoverStyle={{ backgroundColor: '$backgroundHover' }}
+          >
+            <Text>{item}</Text>
+          </XStack>
+          {index < items.length - 1 && <Separator />}
+        </>
+      ))}
+    </YStack>
+  )
+}
+```
+
+### Custom Styled Separator
+
+```tsx
+import { Separator } from 'tamagui'
+
+export function CustomSeparator() {
+  return (
+    <Separator
+      unstyled
+      borderBottomWidth={2}
+      borderColor="$blue9"
+      borderStyle="dashed"
+      marginVertical="$4"
+    />
+  )
+}
+```
+
+### Gradient Separator
+
+```tsx
+import { YStack, LinearGradient } from 'tamagui'
+
+export function GradientSeparator() {
+  return (
+    <YStack height={2} marginVertical="$4">
+      <LinearGradient
+        width="100%"
+        height="100%"
+        colors={['$blue9', '$purple9', '$pink9']}
+        start={[0, 0]}
+        end={[1, 0]}
+      />
+    </YStack>
+  )
+}
+```
+
+### Card Section Dividers
+
+```tsx
+import { Card, YStack, Text, Separator } from 'tamagui'
+
+export function CardWithSections() {
+  return (
+    <Card padding="$4" maxWidth={400}>
+      <YStack gap="$3">
+        <YStack>
+          <Text fontSize="$6" fontWeight="bold">Header</Text>
+          <Text color="$color11">Main heading section</Text>
+        </YStack>
+        
+        <Separator />
+        
+        <YStack>
+          <Text fontSize="$5" fontWeight="600">Body</Text>
+          <Text color="$color11">Content body section</Text>
+        </YStack>
+        
+        <Separator />
+        
+        <YStack>
+          <Text fontSize="$4" fontWeight="600">Footer</Text>
+          <Text color="$color11" fontSize="$2">Additional information</Text>
+        </YStack>
+      </YStack>
+    </Card>
+  )
+}
+```
+
+### Sidebar Layout
+
+```tsx
+import { XStack, YStack, Text, Separator } from 'tamagui'
+
+export function SidebarLayout() {
+  return (
+    <XStack height={400}>
+      <YStack 
+        width={200} 
+        padding="$4" 
+        backgroundColor="$background"
+      >
+        <Text>Sidebar</Text>
+      </YStack>
+      
+      <Separator vertical />
+      
+      <YStack 
+        flex={1} 
+        padding="$4"
+      >
+        <Text>Main Content</Text>
+      </YStack>
+    </XStack>
+  )
+}
+```
+
+### Self-Stretching Vertical Separator
+
+```tsx
+import { XStack, YStack, Text, Separator } from 'tamagui'
+
+export function StretchingSeparator() {
+  return (
+    <XStack minHeight={100} alignItems="center">
+      <YStack flex={1} padding="$4">
+        <Text>Left Content</Text>
+        <Text fontSize="$2">With varying height</Text>
+      </YStack>
+      
+      <Separator vertical self="stretch" marginVertical="$2" />
+      
+      <YStack flex={1} padding="$4">
+        <Text>Right Content</Text>
+      </YStack>
+    </XStack>
+  )
+}
+```
+
+## Default Styles
+
+When `unstyled` is `false` (default):
+
+### Horizontal (default)
+- `borderColor: '$backgroundFocus'`
+- `borderBottomWidth: 1`
+- `height: 0`
+- `maxHeight: 0`
+- `y: -0.5` (slight offset for pixel alignment)
+
+### Vertical
+- `borderColor: '$backgroundFocus'`
+- `borderRightWidth: 1`
+- `width: 0`
+- `maxWidth: 0`
+- `x: -0.5` (slight offset for pixel alignment)
+
+## Theming
+
+Separator responds to theme context:
+
+```tsx
+import { Theme, YStack, Text, Separator } from 'tamagui'
+
+<Theme name="dark">
+  <YStack padding="$4">
+    <Text>Dark theme content</Text>
+    <Separator marginVertical="$3" />
+    <Text>Separator adapts to theme</Text>
+  </YStack>
+</Theme>
+```
+
+## Accessibility
+
+- Separator renders as a `<div>` on web with `role="separator"`
+- Purely decorative, so it's excluded from accessibility tree by default
+- Use semantic HTML or ARIA labels on surrounding content for context
+- Ensure sufficient color contrast if using custom colors
+
+```tsx
+<section aria-label="Article sections">
+  <div>
+    <h2>Section 1</h2>
+    <p>Content</p>
+  </div>
+  <Separator />
+  <div>
+    <h2>Section 2</h2>
+    <p>Content</p>
+  </div>
+</section>
+```
+
+## Platform Differences
+
+### Web
+- Uses `height: initial` and `maxHeight: initial` for vertical separators to work with flexbox
+
+### Native
+- Uses `height: auto` and `maxHeight: auto` instead
+
+## Type Definitions
+
+```tsx
+import type { GetProps } from '@tamagui/core'
+import { Separator } from '@tamagui/separator'
+
+type SeparatorProps = GetProps<typeof Separator>
+```
+
+## See Also
+
+- [Stacks](/components/stacks) - Layout containers
+- [Group](/components/group) - For connected component groups
+- [Spacer](/components/spacer) - For flexible spacing

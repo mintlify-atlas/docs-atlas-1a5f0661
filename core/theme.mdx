@@ -1,0 +1,546 @@
+---
+title: Theming System
+description: Dynamic theming with Tamagui's theme system
+---
+
+Tamagui's theming system provides dynamic, scoped themes that can be changed at runtime. Themes map semantic names to color values, enabling features like dark mode, component-specific theming, and brand variations.
+
+## Basic Theming
+
+```tsx
+const themes = {
+  light: {
+    background: '#fff',
+    color: '#000',
+    borderColor: '#ddd',
+  },
+  dark: {
+    background: '#000',
+    color: '#fff',
+    borderColor: '#333',
+  },
+}
+
+const config = createTamagui({
+  themes,
+  // ...
+})
+```
+
+## Using Themes
+
+### Theme Provider
+
+Wrap your app with `TamaguiProvider` and set the default theme:
+
+```tsx
+import { TamaguiProvider } from 'tamagui'
+import config from './tamagui.config'
+
+function App() {
+  return (
+    <TamaguiProvider config={config} defaultTheme="light">
+      {/* Your app */}
+    </TamaguiProvider>
+  )
+}
+```
+
+### Switching Themes
+
+Change theme using the `Theme` component:
+
+```tsx
+import { Theme, View, Text } from 'tamagui'
+
+function MyComponent() {
+  return (
+    <>
+      <Theme name="light">
+        <View backgroundColor="$background">
+          <Text color="$color">Light theme</Text>
+        </View>
+      </Theme>
+      
+      <Theme name="dark">
+        <View backgroundColor="$background">
+          <Text color="$color">Dark theme</Text>
+        </View>
+      </Theme>
+    </>
+  )
+}
+```
+
+### Component Theme Prop
+
+Apply theme directly to a component:
+
+```tsx
+<View theme="dark" backgroundColor="$background">
+  <Text color="$color">Uses dark theme</Text>
+</View>
+```
+
+## Theme Structure
+
+### Required Theme Keys
+
+Tamagui expects certain keys in your theme for component styling:
+
+```tsx
+import type { TamaguiBaseTheme } from 'tamagui'
+
+const theme: TamaguiBaseTheme = {
+  background: '#fff',
+  backgroundHover: '#f5f5f5',
+  backgroundPress: '#e5e5e5',
+  backgroundFocus: '#f0f0f0',
+  
+  color: '#000',
+  colorHover: '#333',
+  colorPress: '#666',
+  colorFocus: '#444',
+  
+  borderColor: '#ddd',
+  borderColorHover: '#ccc',
+  borderColorPress: '#bbb',
+  borderColorFocus: '#aaa',
+  
+  shadowColor: 'rgba(0,0,0,0.1)',
+  shadowColorHover: 'rgba(0,0,0,0.2)',
+  shadowColorPress: 'rgba(0,0,0,0.3)',
+  shadowColorFocus: 'rgba(0,0,0,0.15)',
+}
+```
+
+### Custom Theme Keys
+
+Add any custom keys you need:
+
+```tsx
+const themes = {
+  light: {
+    // Required keys
+    background: '#fff',
+    color: '#000',
+    // ...
+    
+    // Custom keys
+    success: '#00aa00',
+    error: '#aa0000',
+    warning: '#ffaa00',
+    info: '#0066ff',
+    
+    cardBackground: '#fafafa',
+    inputBackground: '#fff',
+  },
+}
+
+// Use custom keys
+<View backgroundColor="$success" />
+<Text color="$error">Error message</Text>
+```
+
+## Creating Themes
+
+### Using createTheme
+
+```tsx
+import { createTheme } from '@tamagui/create-theme'
+
+const lightTheme = createTheme(
+  // Palette (array of colors)
+  [
+    '#fff',    // 0
+    '#f5f5f5', // 1
+    '#e5e5e5', // 2
+    // ...
+    '#000',    // -1
+  ],
+  // Theme definition (maps keys to palette indices)
+  {
+    background: 0,
+    backgroundHover: 1,
+    backgroundPress: 2,
+    color: -1,
+  }
+)
+```
+
+### Theme Masks
+
+Create variations using masks:
+
+```tsx
+import { createTheme } from '@tamagui/create-theme'
+
+const lightMask = {
+  background: 0,
+  backgroundHover: 1,
+  color: -1,
+}
+
+const darkMask = {
+  background: -1,
+  backgroundHover: -2,
+  color: 0,
+}
+
+const lightPalette = ['#fff', '#f5f5f5', ..., '#000']
+const darkPalette = ['#000', '#1a1a1a', ..., '#fff']
+
+const themes = {
+  light: createTheme(lightPalette, lightMask),
+  dark: createTheme(darkPalette, darkMask),
+}
+```
+
+## Sub-Themes
+
+Create component-specific theme variants:
+
+```tsx
+const themes = {
+  light: {
+    background: '#fff',
+    color: '#000',
+  },
+  
+  // Button sub-theme (applied when name="Button")
+  light_Button: {
+    background: '#0066ff',
+    color: '#fff',
+  },
+  
+  // Card sub-theme
+  light_Card: {
+    background: '#fafafa',
+    color: '#000',
+  },
+  
+  dark: {
+    background: '#000',
+    color: '#fff',
+  },
+  
+  dark_Button: {
+    background: '#4096ff',
+    color: '#fff',
+  },
+}
+
+// Automatically applies light_Button theme
+const Button = styled(View, {
+  name: 'Button',
+  backgroundColor: '$background',
+  color: '$color',
+})
+```
+
+### Nested Sub-Themes
+
+Sub-themes can be nested:
+
+```tsx
+const themes = {
+  light: { /* ... */ },
+  light_Button: { /* ... */ },
+  light_Button_primary: { /* ... */ },
+  light_Button_secondary: { /* ... */ },
+}
+
+<Theme name="Button">
+  <Theme name="primary">
+    <View backgroundColor="$background" />
+  </Theme>
+</Theme>
+```
+
+## Theme Inversions
+
+Create inverse themes (e.g., light button in dark theme):
+
+```tsx
+const themes = {
+  light: {
+    background: '#fff',
+    color: '#000',
+  },
+  dark: {
+    background: '#000',
+    color: '#fff',
+  },
+}
+
+// Inverts to light theme when in dark theme
+<Theme name="dark">
+  <Theme inverse>
+    <View backgroundColor="$background">
+      Light background in dark theme
+    </View>
+  </Theme>
+</Theme>
+```
+
+## Theme Hooks
+
+### useTheme
+
+Access current theme values:
+
+```tsx
+import { useTheme } from 'tamagui'
+
+function MyComponent() {
+  const theme = useTheme()
+  
+  return (
+    <View style={{ backgroundColor: theme.background.val }}>
+      <Text style={{ color: theme.color.val }}>Text</Text>
+    </View>
+  )
+}
+```
+
+### useThemeName
+
+Get the current theme name:
+
+```tsx
+import { useThemeName } from 'tamagui'
+
+function ThemeSwitcher() {
+  const themeName = useThemeName()
+  
+  return (
+    <Text>Current theme: {themeName}</Text>
+  )
+}
+```
+
+### useThemeControl
+
+Programmatically control theme:
+
+```tsx
+import { useThemeControl } from 'tamagui'
+
+function ThemeToggle() {
+  const theme = useThemeControl()
+  
+  const toggleTheme = () => {
+    theme.set(
+      theme.name === 'light' ? 'dark' : 'light'
+    )
+  }
+  
+  return (
+    <Button onPress={toggleTheme}>
+      Toggle Theme
+    </Button>
+  )
+}
+```
+
+## System Color Scheme
+
+Respect user's system preference:
+
+```tsx
+const config = createTamagui({
+  themes,
+  settings: {
+    shouldAddPrefersColorThemes: true,
+  },
+})
+
+// Automatically uses system preference
+<TamaguiProvider config={config} defaultTheme="light">
+  {/* Uses 'dark' if system prefers dark mode */}
+</TamaguiProvider>
+```
+
+## Theme Scoping
+
+### Shallow Theming
+
+Apply theme only to the current component, not children:
+
+```tsx
+<View theme="blue" themeShallow backgroundColor="$background">
+  <Text color="$color">
+    Text uses parent theme, not blue theme
+  </Text>
+</View>
+```
+
+### Unstyled Components
+
+Disable theme application:
+
+```tsx
+<View unstyled backgroundColor="blue">
+  Component themes don't apply
+</View>
+```
+
+## Performance
+
+### Theme Deduplication
+
+Tamagui automatically deduplicates identical themes:
+
+```tsx
+const themes = {
+  light: { background: '#fff', color: '#000' },
+  light_alt: { background: '#fff', color: '#000' }, // Same as light
+}
+
+// Tamagui generates CSS for 'light' only once
+```
+
+### Theme Variables
+
+Themes use CSS variables for instant switching:
+
+```tsx
+// Theme change doesn't require re-render
+<Theme name={themeName}>
+  <View backgroundColor="$background" />
+</Theme>
+```
+
+## Advanced Patterns
+
+### Theme Builder
+
+Generate themes programmatically:
+
+```tsx
+import { createThemes } from '@tamagui/theme-builder'
+
+const themes = createThemes({
+  light: [
+    // Palette
+    { name: 'background', color: '#fff' },
+    { name: 'color', color: '#000' },
+  ],
+  dark: [
+    { name: 'background', color: '#000' },
+    { name: 'color', color: '#fff' },
+  ],
+})
+```
+
+### Dynamic Themes
+
+Create themes at runtime:
+
+```tsx
+import { addTheme } from 'tamagui'
+
+function createBrandTheme(primaryColor: string) {
+  addTheme({
+    name: 'brand',
+    theme: {
+      background: '#fff',
+      color: primaryColor,
+      borderColor: primaryColor,
+    },
+  })
+}
+```
+
+### Conditional Theming
+
+```tsx
+function Card({ error }: { error?: boolean }) {
+  return (
+    <View theme={error ? 'error' : null} backgroundColor="$background">
+      {/* ... */}
+    </View>
+  )
+}
+```
+
+## Best Practices
+
+<Tip>
+**Use semantic theme keys**
+
+Prefer semantic names over specific colors:
+
+```tsx
+// ✅ Good
+theme: {
+  background: '#fff',
+  primary: '#0066ff',
+  error: '#ff0000',
+}
+
+// ❌ Avoid
+theme: {
+  white: '#fff',
+  blue: '#0066ff',
+  red: '#ff0000',
+}
+```
+</Tip>
+
+<Tip>
+**Provide pseudo variants**
+
+Include hover/press/focus variants for interactive elements:
+
+```tsx
+theme: {
+  background: '#fff',
+  backgroundHover: '#f5f5f5',
+  backgroundPress: '#e5e5e5',
+}
+```
+</Tip>
+
+<Warning>
+**Avoid deep theme nesting**
+
+Excessive theme nesting can impact performance and make debugging difficult.
+</Warning>
+
+<Note>
+**Theme changes are instant**
+
+Theme switching uses CSS variables, so no re-render is needed. This makes theme changes extremely fast.
+</Note>
+
+## TypeScript
+
+Extend theme types for custom keys:
+
+```tsx
+const themes = {
+  light: {
+    background: '#fff',
+    // Custom keys
+    success: '#00aa00',
+    customKey: '#abc',
+  },
+}
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig {
+    themes: typeof themes
+  }
+}
+
+// TypeScript now knows about custom keys
+<View backgroundColor="$success" /> // ✅
+```
+
+## Related
+
+- [Tokens](/core/tokens) - Design tokens
+- [Configuration](/core/configuration) - Theme configuration
+- [styled()](/core/styled) - Using themes in components
+- [Variants](/core/variants) - Theme-based variants

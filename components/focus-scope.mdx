@@ -1,0 +1,330 @@
+---
+title: FocusScope
+description: Manage focus behavior within elements accessibly
+---
+
+FocusScope is a utility component for managing keyboard focus within a container. It controls focus trapping, auto-focus behavior, and focus cycling for accessible interactive components like dialogs, popovers, and modals.
+
+<Note>
+FocusScope is a web-only component. On React Native, it renders children without focus management since native platforms handle focus differently.
+</Note>
+
+## Installation
+
+FocusScope is already included in `tamagui`, or you can install it independently:
+
+```bash
+npm install @tamagui/focus-scope
+```
+
+## Usage
+
+Wrap any content that needs focus management:
+
+```tsx
+import { Button, FocusScope, XStack } from 'tamagui'
+
+export default () => (
+  <FocusScope loop trapped>
+    <XStack space="$4">
+      <Button>First</Button>
+      <Button>Second</Button>
+      <Button>Third</Button>
+    </XStack>
+  </FocusScope>
+)
+```
+
+## Props
+
+<ParamField path="enabled" type="boolean" default="true">
+  Whether focus management is enabled. Set to false to temporarily disable focus control.
+</ParamField>
+
+<ParamField path="loop" type="boolean" default="false">
+  When true, tabbing from last item will focus first tabbable element and shift+tab from first item will focus last tabbable element.
+</ParamField>
+
+<ParamField path="trapped" type="boolean" default="false">
+  When true, focus cannot escape the focus scope via keyboard, pointer, or programmatic focus. Essential for modal dialogs.
+</ParamField>
+
+<ParamField path="focusOnIdle" type="boolean | number | { min?: number; max?: number }" default="false">
+  When true, waits for idle before focusing using requestIdleCallback. When a number, waits that many ms. Object sets a lower and upper bound. Helps prevent reflows during animations, as focusing inputs can block the main thread.
+</ParamField>
+
+<ParamField path="onMountAutoFocus" type="(event: Event) => void">
+  Event handler called when auto-focusing on mount. Call `event.preventDefault()` to prevent the default behavior.
+</ParamField>
+
+<ParamField path="onUnmountAutoFocus" type="(event: Event) => void">
+  Event handler called when auto-focusing on unmount. Call `event.preventDefault()` to prevent the default behavior.
+</ParamField>
+
+<ParamField path="forceUnmount" type="boolean" default="false">
+  If unmount is animated, set this to true to force re-focus at the start of animation rather than after.
+</ParamField>
+
+<ParamField path="children" type="React.ReactNode | ((props: FocusProps) => React.ReactNode)">
+  Content to apply focus management to, or a function that receives focus props for advanced use cases.
+</ParamField>
+
+## Real-World Examples
+
+### Modal Dialog with Focus Trap
+
+Trap focus within a modal dialog:
+
+```tsx
+import { Button, Dialog, FocusScope, Input, XStack, YStack } from 'tamagui'
+
+export default () => (
+  <Dialog>
+    <Dialog.Trigger asChild>
+      <Button>Open Modal</Button>
+    </Dialog.Trigger>
+
+    <Dialog.Portal>
+      <Dialog.Overlay />
+      <Dialog.Content>
+        <FocusScope trapped loop focusOnIdle={100}>
+          <YStack space="$4" padding="$4">
+            <Dialog.Title>User Details</Dialog.Title>
+            <Input placeholder="Name" />
+            <Input placeholder="Email" />
+            <XStack space="$2">
+              <Dialog.Close asChild>
+                <Button variant="outlined">Cancel</Button>
+              </Dialog.Close>
+              <Button>Save</Button>
+            </XStack>
+          </YStack>
+        </FocusScope>
+      </Dialog.Content>
+    </Dialog.Portal>
+  </Dialog>
+)
+```
+
+### Toolbar with Focus Looping
+
+Allow users to cycle through toolbar buttons:
+
+```tsx
+import { Button, FocusScope, XStack } from 'tamagui'
+import { Bold, Italic, Underline, Link } from '@tamagui/lucide-icons'
+
+export default () => (
+  <FocusScope loop>
+    <XStack 
+      space="$2" 
+      padding="$2" 
+      backgroundColor="$background"
+      borderRadius="$4"
+      borderWidth={1}
+      borderColor="$borderColor"
+    >
+      <Button size="$3" icon={Bold} circular />
+      <Button size="$3" icon={Italic} circular />
+      <Button size="$3" icon={Underline} circular />
+      <Button size="$3" icon={Link} circular />
+      {/* Tab from Link goes back to Bold */}
+    </XStack>
+  </FocusScope>
+)
+```
+
+### Search Dropdown with Auto-Focus
+
+Automatically focus the search input when dropdown opens:
+
+```tsx
+import { Button, FocusScope, Input, Popover, YStack } from 'tamagui'
+import { Search } from '@tamagui/lucide-icons'
+
+export default () => (
+  <Popover>
+    <Popover.Trigger asChild>
+      <Button icon={Search}>Search</Button>
+    </Popover.Trigger>
+
+    <Popover.Content>
+      <FocusScope trapped focusOnIdle={50}>
+        <YStack space="$3" padding="$3">
+          <Input 
+            placeholder="Search..." 
+            autoFocus 
+          />
+          <YStack space="$2">
+            <Button variant="outlined">Recent searches</Button>
+            <Button variant="outlined">Popular items</Button>
+          </YStack>
+        </YStack>
+      </FocusScope>
+    </Popover.Content>
+  </Popover>
+)
+```
+
+### Conditional Focus Trapping
+
+Enable focus trapping only when needed:
+
+```tsx
+import { Button, FocusScope, XStack, YStack } from 'tamagui'
+import { useState } from 'react'
+
+export default () => {
+  const [isEditing, setIsEditing] = useState(false)
+
+  return (
+    <YStack space="$4">
+      <Button onPress={() => setIsEditing(!isEditing)}>
+        {isEditing ? 'Done Editing' : 'Start Editing'}
+      </Button>
+
+      <FocusScope trapped={isEditing} loop>
+        <XStack space="$2" padding="$4" borderWidth={1} borderColor="$borderColor">
+          <Button>Action 1</Button>
+          <Button>Action 2</Button>
+          <Button>Action 3</Button>
+        </XStack>
+      </FocusScope>
+    </YStack>
+  )
+}
+```
+
+### Function as Children Pattern
+
+Advanced use case with custom focus container:
+
+```tsx
+import { FocusScope, styled, XStack } from 'tamagui'
+
+const FocusContainer = styled(XStack, {
+  borderWidth: 2,
+  borderColor: 'transparent',
+  borderRadius: '$4',
+  padding: '$4',
+
+  variants: {
+    focused: {
+      true: {
+        borderColor: '$blue10',
+        shadowColor: '$blue10',
+        shadowRadius: 10,
+        shadowOpacity: 0.3,
+      },
+    },
+  },
+})
+
+export default () => (
+  <FocusScope loop>
+    {({ onKeyDown, tabIndex, ref }) => (
+      <FocusContainer
+        ref={ref}
+        tabIndex={tabIndex}
+        onKeyDown={onKeyDown}
+        space="$4"
+        focused
+      >
+        <Button>Action 1</Button>
+        <Button>Action 2</Button>
+        <Button>Action 3</Button>
+      </FocusContainer>
+    )}
+  </FocusScope>
+)
+```
+
+### Preventing Auto-Focus
+
+Prevent default auto-focus behavior:
+
+```tsx
+import { Button, FocusScope, XStack } from 'tamagui'
+
+export default () => (
+  <FocusScope
+    trapped
+    onMountAutoFocus={(event) => {
+      // Prevent auto-focus on mount
+      event.preventDefault()
+    }}
+  >
+    <XStack space="$4">
+      <Button>Not Auto-Focused</Button>
+      <Button>Second Button</Button>
+    </XStack>
+  </FocusScope>
+)
+```
+
+## Accessibility Benefits
+
+- **Keyboard Navigation**: Manages tab order and focus flow for keyboard-only users
+- **Focus Trapping**: Keeps focus within modal dialogs and overlays, meeting WCAG 2.1 success criteria
+- **Auto-Focus**: Automatically focuses the first interactive element when components mount
+- **Focus Return**: Returns focus to the triggering element when components unmount
+- **Loop Navigation**: Prevents focus from leaving the scope when tabbing, creating intuitive circular navigation
+- **Reduced Motion**: The `focusOnIdle` prop respects animation performance by preventing layout thrashing
+- **Screen Reader Support**: Works seamlessly with assistive technologies by maintaining proper tab order
+
+## Advanced: FocusScope.Controller
+
+Use the controller pattern for managing focus from parent components:
+
+```tsx
+import { Button, FocusScope, XStack, YStack } from 'tamagui'
+import { useState } from 'react'
+
+export default () => {
+  const [trapped, setTrapped] = useState(false)
+
+  return (
+    <YStack space="$4">
+      <Button onPress={() => setTrapped(!trapped)}>
+        {trapped ? 'Disable' : 'Enable'} Focus Trap
+      </Button>
+
+      <FocusScope.Controller trapped={trapped} loop>
+        <FocusScope>
+          <XStack space="$4">
+            <Button>Controlled</Button>
+            <Button>Focus</Button>
+            <Button>Behavior</Button>
+          </XStack>
+        </FocusScope>
+      </FocusScope.Controller>
+    </YStack>
+  )
+}
+```
+
+Controller props override individual FocusScope props, allowing centralized focus management across multiple scopes.
+
+## Usage in Other Components
+
+Many Tamagui components export FocusScope for advanced focus control:
+
+```tsx
+import { Dialog, Popover, Select } from 'tamagui'
+
+// Available on:
+<Dialog.FocusScope />
+<Popover.FocusScope />
+<Select.FocusScope />
+// And more...
+```
+
+## Best Practices
+
+- Always use `trapped` for modal dialogs to prevent focus from escaping
+- Enable `loop` for toolbars and button groups to create intuitive navigation
+- Use `focusOnIdle` when opening animated overlays to prevent janky animations
+- Prevent auto-focus with `onMountAutoFocus` when the default behavior isn't desired
+- Test with keyboard-only navigation (Tab, Shift+Tab, Arrow keys)
+- Verify focus returns to the correct element on unmount
+- Don't nest multiple trapped focus scopes - use a controller instead

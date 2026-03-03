@@ -1,0 +1,420 @@
+---
+title: AlertDialog
+description: A modal dialog that interrupts the user with important content and expects a response.
+---
+
+# AlertDialog
+
+A modal dialog that interrupts the user with important content and expects a response. AlertDialogs are purpose-built for displaying critical information that requires acknowledgment or a decision.
+
+## Installation
+
+```bash
+npm install @tamagui/alert-dialog
+```
+
+## Anatomy
+
+```tsx
+import { AlertDialog } from '@tamagui/alert-dialog'
+
+export default () => (
+  <AlertDialog>
+    <AlertDialog.Trigger />
+    <AlertDialog.Portal>
+      <AlertDialog.Overlay />
+      <AlertDialog.Content>
+        <AlertDialog.Title />
+        <AlertDialog.Description />
+        <AlertDialog.Cancel />
+        <AlertDialog.Action />
+      </AlertDialog.Content>
+    </AlertDialog.Portal>
+  </AlertDialog>
+)
+```
+
+## Basic Usage
+
+```tsx
+import { AlertDialog, Button, XStack, YStack } from 'tamagui'
+
+export default function AlertDialogExample() {
+  return (
+    <AlertDialog>
+      <AlertDialog.Trigger asChild>
+        <Button>Delete Account</Button>
+      </AlertDialog.Trigger>
+
+      <AlertDialog.Portal>
+        <AlertDialog.Overlay
+          key="overlay"
+          animation="quick"
+          opacity={0.5}
+          enterStyle={{ opacity: 0 }}
+          exitStyle={{ opacity: 0 }}
+        />
+
+        <AlertDialog.Content
+          bordered
+          elevate
+          key="content"
+          animation={[
+            'quick',
+            {
+              opacity: {
+                overshootClamping: true,
+              },
+            },
+          ]}
+          enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
+          exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
+          gap="$4"
+        >
+          <AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+          <AlertDialog.Description>
+            This action cannot be undone. This will permanently delete your account and remove
+            your data from our servers.
+          </AlertDialog.Description>
+
+          <XStack gap="$3" justifyContent="flex-end">
+            <AlertDialog.Cancel asChild>
+              <Button>Cancel</Button>
+            </AlertDialog.Cancel>
+            <AlertDialog.Action asChild>
+              <Button theme="red">Yes, delete account</Button>
+            </AlertDialog.Action>
+          </XStack>
+        </AlertDialog.Content>
+      </AlertDialog.Portal>
+    </AlertDialog>
+  )
+}
+```
+
+## API Reference
+
+### AlertDialog
+
+Contains all the parts of an alert dialog. Extends Dialog with alert-specific behavior.
+
+<ParamField path="open" type="boolean">
+  The controlled open state of the alert dialog.
+</ParamField>
+
+<ParamField path="defaultOpen" type="boolean" default="false">
+  The open state when initially rendered. Use when you do not need to control the open state.
+</ParamField>
+
+<ParamField path="onOpenChange" type="(open: boolean) => void">
+  Event handler called when the open state changes.
+</ParamField>
+
+<ParamField path="native" type="boolean | 'ios'[]">
+  When true, uses the platform's native alert dialog (iOS Alert.alert on React Native).
+</ParamField>
+
+### AlertDialog.Trigger
+
+The button that opens the alert dialog.
+
+<ParamField path="asChild" type="boolean">
+  Change the component to a different HTML tag or custom component.
+</ParamField>
+
+### AlertDialog.Portal
+
+Portals the alert dialog content into the body.
+
+<ParamField path="forceMount" type="boolean">
+  Used to force mounting when more control is needed.
+</ParamField>
+
+### AlertDialog.Overlay
+
+A layer that covers the inert portion of the view when the alert dialog is open.
+
+<ParamField path="forceMount" type="boolean">
+  Used to force mounting when more control is needed.
+</ParamField>
+
+### AlertDialog.Content
+
+Contains the content to be rendered in the open alert dialog.
+
+<ParamField path="onEscapeKeyDown" type="(event: KeyboardEvent) => void">
+  Event handler called when the escape key is pressed. Can be prevented by calling `event.preventDefault`.
+</ParamField>
+
+<ParamField path="onOpenAutoFocus" type="(event: Event) => void">
+  Event handler called when auto-focusing on open. By default, focuses the Cancel button. Can be prevented.
+</ParamField>
+
+<ParamField path="onCloseAutoFocus" type="(event: Event) => void">
+  Event handler called when auto-focusing on close. Can be prevented.
+</ParamField>
+
+### AlertDialog.Title
+
+An accessible title to be announced when the alert dialog is opened. **Required for accessibility.**
+
+### AlertDialog.Description
+
+An accessible description to be announced when the alert dialog is opened. **Required for accessibility.**
+
+AlertDialog must include a description for screen reader users. If you don't want a visible description, you can use VisuallyHidden.
+
+### AlertDialog.Action
+
+A button that closes the dialog and performs the primary action. Typically used for destructive or confirming actions.
+
+<ParamField path="asChild" type="boolean">
+  Change the component to a different HTML tag or custom component.
+</ParamField>
+
+### AlertDialog.Cancel
+
+A button that closes the dialog without performing the action. Automatically receives focus when the dialog opens.
+
+<ParamField path="asChild" type="boolean">
+  Change the component to a different HTML tag or custom component.
+</ParamField>
+
+### AlertDialog.Destructive
+
+An alternative action button styled for destructive actions.
+
+<ParamField path="asChild" type="boolean">
+  Change the component to a different HTML tag or custom component.
+</ParamField>
+
+## Controlled vs Uncontrolled
+
+### Uncontrolled
+
+```tsx
+<AlertDialog defaultOpen={false}>
+  {/* ... */}
+</AlertDialog>
+```
+
+### Controlled
+
+```tsx
+const [open, setOpen] = useState(false)
+
+return (
+  <AlertDialog open={open} onOpenChange={setOpen}>
+    {/* ... */}
+  </AlertDialog>
+)
+```
+
+## Native Platform Support
+
+On React Native, AlertDialog can use the platform's native alert:
+
+```tsx
+import { AlertDialog, Button } from 'tamagui'
+
+<AlertDialog native>
+  <AlertDialog.Trigger asChild>
+    <Button>Delete</Button>
+  </AlertDialog.Trigger>
+  
+  <AlertDialog.Title>Confirm Delete</AlertDialog.Title>
+  <AlertDialog.Description>
+    Are you sure you want to delete this item?
+  </AlertDialog.Description>
+  
+  <AlertDialog.Cancel>
+    <Button>Cancel</Button>
+  </AlertDialog.Cancel>
+  
+  <AlertDialog.Action>
+    <Button>Delete</Button>
+  </AlertDialog.Action>
+</AlertDialog>
+```
+
+On iOS, this renders as `Alert.alert()` with native buttons.
+
+## Animation
+
+AlertDialogs support the same animation capabilities as Dialog:
+
+```tsx
+<AlertDialog.Content
+  animation="medium"
+  enterStyle={{ opacity: 0, scale: 0.9, y: -20 }}
+  exitStyle={{ opacity: 0, scale: 0.95, y: 10 }}
+>
+  {/* content */}
+</AlertDialog.Content>
+```
+
+## Accessibility
+
+### ARIA Attributes
+
+- `AlertDialog.Content` has `role="alertdialog"` and `aria-modal="true"`
+- `AlertDialog.Title` is automatically connected via `aria-labelledby`
+- `AlertDialog.Description` is automatically connected via `aria-describedby`
+- Unlike regular dialogs, AlertDialog **requires** both Title and Description
+
+### Keyboard Navigation
+
+- <kbd>Space</kbd> or <kbd>Enter</kbd> - Opens the dialog when focus is on the trigger
+- <kbd>Tab</kbd> - Moves focus to the next element (focus is trapped within the dialog)
+- <kbd>Shift + Tab</kbd> - Moves focus to the previous element
+- <kbd>Escape</kbd> - Closes the dialog (can be prevented)
+
+### Focus Management
+
+- When opened, focus moves to the Cancel button by default
+- Focus is trapped within the alert dialog
+- When closed, focus returns to the trigger
+- Clicking outside the dialog does **not** close it (unlike regular Dialog)
+
+### Screen Reader Announcements
+
+- The Title and Description are announced when the dialog opens
+- The alertdialog role signals to assistive technologies that this requires immediate attention
+
+## Composition Pattern
+
+```tsx
+import { AlertDialog, styled, XStack } from 'tamagui'
+
+const StyledAlertContent = styled(AlertDialog.Content, {
+  backgroundColor: '$background',
+  borderRadius: '$4',
+  padding: '$6',
+  maxWidth: 500,
+  gap: '$4',
+})
+
+export function ConfirmDialog({ title, description, onConfirm, children }) {
+  return (
+    <AlertDialog>
+      <AlertDialog.Trigger asChild>{children}</AlertDialog.Trigger>
+
+      <AlertDialog.Portal>
+        <AlertDialog.Overlay />
+        <StyledAlertContent>
+          <AlertDialog.Title>{title}</AlertDialog.Title>
+          <AlertDialog.Description>{description}</AlertDialog.Description>
+
+          <XStack gap="$3" justifyContent="flex-end">
+            <AlertDialog.Cancel asChild>
+              <Button>Cancel</Button>
+            </AlertDialog.Cancel>
+            <AlertDialog.Action asChild>
+              <Button theme="red" onPress={onConfirm}>
+                Confirm
+              </Button>
+            </AlertDialog.Action>
+          </XStack>
+        </StyledAlertContent>
+      </AlertDialog.Portal>
+    </AlertDialog>
+  )
+}
+```
+
+## Advanced Usage
+
+### Multiple Actions
+
+```tsx
+<AlertDialog.Content>
+  <AlertDialog.Title>Choose an action</AlertDialog.Title>
+  <AlertDialog.Description>
+    This item can be archived or permanently deleted.
+  </AlertDialog.Description>
+
+  <XStack gap="$2" justifyContent="flex-end">
+    <AlertDialog.Cancel asChild>
+      <Button>Cancel</Button>
+    </AlertDialog.Cancel>
+    <AlertDialog.Action asChild>
+      <Button onPress={handleArchive}>Archive</Button>
+    </AlertDialog.Action>
+    <AlertDialog.Destructive asChild>
+      <Button theme="red" onPress={handleDelete}>
+        Delete
+      </Button>
+    </AlertDialog.Destructive>
+  </XStack>
+</AlertDialog.Content>
+```
+
+### Custom Focus Behavior
+
+```tsx
+<AlertDialog.Content
+  onOpenAutoFocus={(event) => {
+    // Focus the action button instead of cancel
+    event.preventDefault()
+    actionButtonRef.current?.focus()
+  }}
+>
+  {/* content */}
+</AlertDialog.Content>
+```
+
+### With Form Validation
+
+```tsx
+function DeleteWithConfirmation() {
+  const [confirmText, setConfirmText] = useState('')
+  const [open, setOpen] = useState(false)
+  const isValid = confirmText === 'DELETE'
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialog.Trigger asChild>
+        <Button>Delete Account</Button>
+      </AlertDialog.Trigger>
+
+      <AlertDialog.Portal>
+        <AlertDialog.Overlay />
+        <AlertDialog.Content>
+          <AlertDialog.Title>Confirm Deletion</AlertDialog.Title>
+          <AlertDialog.Description>
+            Type DELETE to confirm account deletion.
+          </AlertDialog.Description>
+
+          <Input
+            value={confirmText}
+            onChangeText={setConfirmText}
+            placeholder="Type DELETE"
+          />
+
+          <XStack gap="$3" justifyContent="flex-end">
+            <AlertDialog.Cancel asChild>
+              <Button>Cancel</Button>
+            </AlertDialog.Cancel>
+            <AlertDialog.Action asChild>
+              <Button theme="red" disabled={!isValid} onPress={handleDelete}>
+                Delete
+              </Button>
+            </AlertDialog.Action>
+          </XStack>
+        </AlertDialog.Content>
+      </AlertDialog.Portal>
+    </AlertDialog>
+  )
+}
+```
+
+## Dialog vs AlertDialog
+
+| Feature | Dialog | AlertDialog |
+|---------|--------|-------------|
+| Purpose | General content overlay | Critical decisions/confirmations |
+| Click outside | Closes by default | Does not close |
+| Description required | Optional | Required for accessibility |
+| Initial focus | First element | Cancel button |
+| Role | `dialog` | `alertdialog` |
+| Use cases | Forms, settings, info | Confirmations, warnings, errors |

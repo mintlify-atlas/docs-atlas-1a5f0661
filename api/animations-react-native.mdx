@@ -1,0 +1,382 @@
+---
+title: React Native Animated Driver
+description: React Native Animated API driver for cross-platform animations
+---
+
+The React Native Animated driver uses React Native's built-in `Animated` API to provide cross-platform animations that work on iOS, Android, and web.
+
+## Installation
+
+```bash
+npm install @tamagui/animations-react-native
+```
+
+## Usage
+
+```tsx
+import { createAnimations } from '@tamagui/animations-react-native'
+import { createTamagui } from '@tamagui/core'
+
+const animations = createAnimations({
+  fast: {
+    type: 'spring',
+    damping: 20,
+    mass: 1.2,
+    stiffness: 250,
+  },
+  medium: {
+    type: 'spring',
+    damping: 15,
+    stiffness: 120,
+  },
+  slow: {
+    type: 'timing',
+    duration: 450,
+  },
+})
+
+const config = createTamagui({
+  animations,
+  // ... other config
+})
+```
+
+## Animation Types
+
+### Spring Animations
+
+Physics-based spring animations with configurable properties:
+
+```tsx
+const animations = createAnimations({
+  bouncy: {
+    type: 'spring',
+    damping: 10,
+    mass: 0.9,
+    stiffness: 100,
+  },
+})
+```
+
+<ParamField path="type" type="'spring'" default="'spring'">
+  Animation type
+</ParamField>
+
+<ParamField path="damping" type="number">
+  Controls "bounciness"/overshoot. Higher = less bounce.
+</ParamField>
+
+<ParamField path="mass" type="number">
+  Mass of the moving object. Higher = more inertia.
+</ParamField>
+
+<ParamField path="stiffness" type="number">
+  Spring stiffness coefficient. Higher = faster/stiffer.
+</ParamField>
+
+<ParamField path="velocity" type="number">
+  Initial velocity. Higher = faster start.
+</ParamField>
+
+<ParamField path="tension" type="number">
+  Alternative to stiffness (legacy API).
+</ParamField>
+
+<ParamField path="friction" type="number">
+  Alternative to damping (legacy API).
+</ParamField>
+
+<ParamField path="speed" type="number">
+  Spring speed multiplier.
+</ParamField>
+
+<ParamField path="bounciness" type="number">
+  Alternative bounce control (legacy API).
+</ParamField>
+
+<ParamField path="overshootClamping" type="boolean">
+  Prevent overshoot past target value.
+</ParamField>
+
+<ParamField path="delay" type="number">
+  Delay in milliseconds before animation starts.
+</ParamField>
+
+### Timing Animations
+
+Simple duration-based animations with easing:
+
+```tsx
+const animations = createAnimations({
+  smooth: {
+    type: 'timing',
+    duration: 300,
+    easing: Easing.inOut(Easing.ease),
+  },
+})
+```
+
+<ParamField path="type" type="'timing'" required>
+  Animation type
+</ParamField>
+
+<ParamField path="duration" type="number">
+  Animation duration in milliseconds.
+</ParamField>
+
+<ParamField path="easing" type="EasingFunction">
+  Easing function from `react-native`'s Easing API.
+</ParamField>
+
+<ParamField path="delay" type="number">
+  Delay in milliseconds before animation starts.
+</ParamField>
+
+## Configuration
+
+### Basic Configuration
+
+```tsx
+import { createAnimations } from '@tamagui/animations-react-native'
+
+const animations = createAnimations({
+  // Quick spring
+  quick: {
+    damping: 20,
+    stiffness: 300,
+  },
+  
+  // Bouncy spring
+  bouncy: {
+    damping: 9,
+    stiffness: 150,
+  },
+  
+  // Smooth timing
+  smooth: {
+    type: 'timing',
+    duration: 300,
+  },
+})
+```
+
+## Features
+
+### Native Driver Support
+
+Automatically uses native driver for better performance when possible:
+
+```tsx
+// Native driver used for transform and opacity
+<View 
+  animation="fast"
+  opacity={0.5}
+  x={100}
+/>
+
+// Falls back to JS driver for layout properties
+<View
+  animation="fast" 
+  width={200}  // Can't use native driver
+/>
+```
+
+### Transform Animations
+
+Supports all React Native transform properties:
+
+```tsx
+<View
+  animation="bouncy"
+  scale={1.5}           // Animated.Value interpolated
+  rotate="45deg"       // Interpolated with deg unit
+  x={100}              // translateX
+  y={50}               // translateY  
+/>
+```
+
+### Color Animations
+
+Smooth color interpolation:
+
+```tsx
+<View
+  animation="medium"
+  backgroundColor="$blue10"
+  hoverStyle={{
+    backgroundColor: '$red10',
+  }}
+/>
+```
+
+### Per-Property Animations
+
+Different animations for different properties:
+
+```tsx
+<View
+  animation={{
+    opacity: 'quick',     // Fast spring for opacity
+    scale: 'bouncy',      // Bouncy spring for scale
+  }}
+  opacity={0.8}
+  scale={1.1}
+/>
+```
+
+### Enter/Exit Animations
+
+Full AnimatePresence support:
+
+```tsx
+<AnimatePresence>
+  {visible && (
+    <View
+      key="item"
+      animation="medium"
+      enterStyle={{ opacity: 0, scale: 0.8 }}
+      exitStyle={{ opacity: 0, scale: 0.8 }}
+    >
+      Content
+    </View>
+  )}
+</AnimatePresence>
+```
+
+## Implementation Details
+
+### Driver Configuration
+
+The driver returns:
+
+```typescript
+{
+  isReactNative: true,
+  inputStyle: 'value',         // Expects numeric values
+  outputStyle: 'inline',       // Returns Animated.Values inline
+  animations,
+  needsCustomComponent: true,  // Uses Animated.View/Text
+  View: Animated.View,
+  Text: Animated.Text,
+  useAnimatedNumber,
+  useAnimatedNumberReaction,
+  useAnimatedNumberStyle,
+  usePresence,
+  ResetPresence,
+}
+```
+
+### Value Interpolation
+
+The driver automatically interpolates values with units:
+
+- **Transforms:** Interpolated with appropriate units (`deg`, `px`, etc.)
+- **Colors:** Interpolated between color values
+- **Numbers:** Direct Animated.Value animation
+
+### Exit Animation Tracking
+
+For exit animations:
+
+1. Starts all property animations
+2. Tracks completion via animation callbacks
+3. Calls `sendExitComplete` when all animations finish
+4. Handles interrupted exits gracefully
+
+## Examples
+
+### Basic Spring
+
+```tsx
+import { createAnimations } from '@tamagui/animations-react-native'
+
+const animations = createAnimations({
+  bouncy: {
+    damping: 10,
+    stiffness: 100,
+  },
+})
+
+<Button
+  animation="bouncy"
+  pressStyle={{ scale: 0.9 }}
+>
+  Press Me
+</Button>
+```
+
+### Timing with Easing
+
+```tsx
+import { Easing } from 'react-native'
+import { createAnimations } from '@tamagui/animations-react-native'
+
+const animations = createAnimations({
+  smooth: {
+    type: 'timing',
+    duration: 400,
+    easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+  },
+})
+```
+
+### Complex Multi-Property
+
+```tsx
+<View
+  animation={[
+    'bouncy',
+    { 
+      opacity: { type: 'timing', duration: 200 },
+      scale: { damping: 15, stiffness: 200 },
+    }
+  ]}
+  opacity={0.8}
+  scale={1.2}
+  rotate="10deg"
+/>
+```
+
+### Delayed Animation
+
+```tsx
+const animations = createAnimations({
+  delayed: {
+    type: 'spring',
+    damping: 15,
+    stiffness: 150,
+    delay: 200,  // Wait 200ms before starting
+  },
+})
+```
+
+## Performance
+
+### Native Driver Benefits
+
+- **60 FPS** - Animations run on native thread
+- **No bridge** - Values don't cross JS bridge during animation
+- **Smooth** - Not affected by JS thread blocking
+
+### When Native Driver is Used
+
+✅ **Supported:**
+- `opacity`
+- `transform` (translate, scale, rotate, skew)
+
+❌ **Not Supported:**
+- Layout properties (width, height, margin, padding)
+- Border properties
+- Most color properties (except `backgroundColor` on some platforms)
+
+## Limitations
+
+- **No layout animations** - Can't animate width/height with native driver
+- **Platform differences** - Slight behavior differences between iOS/Android/web
+- **No interruption handling** - Springs can't be cleanly interrupted mid-animation
+
+## See Also
+
+- [Animations](/core/animations) - Animation system overview
+- [Reanimated Driver](/api/animations-reanimated) - Better React Native performance
+- [Motion Driver](/api/animations-motion) - Advanced web animations

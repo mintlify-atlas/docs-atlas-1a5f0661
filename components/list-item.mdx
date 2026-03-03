@@ -1,0 +1,211 @@
+---
+title: ListItem
+description: A flexible list item component for displaying structured content.
+---
+
+# ListItem
+
+A flexible list item component for displaying structured content.
+
+## Installation
+
+```bash
+npm install @tamagui/list-item
+```
+
+## Usage
+
+```tsx
+import { ListItem } from '@tamagui/list-item'
+import { YStack } from '@tamagui/stacks'
+
+export default function ListItemExample() {
+  return (
+    <YStack>
+      <ListItem title="Item 1" subTitle="Description" />
+      <ListItem title="Item 2" subTitle="Description" />
+      <ListItem title="Item 3" subTitle="Description" />
+    </YStack>
+  )
+}
+```
+
+## Anatomy
+
+```tsx
+import { ListItem } from '@tamagui/list-item'
+
+export default () => (
+  <ListItem>
+    <ListItem.Icon />
+    <ListItem.Title />
+    <ListItem.Subtitle />
+  </ListItem>
+)
+```
+
+## API Reference
+
+### ListItem
+
+<ParamField path="title" type="ReactNode">
+  The title of the list item.
+</ParamField>
+
+<ParamField path="subTitle" type="ReactNode">
+  The subtitle or description of the list item.
+</ParamField>
+
+<ParamField path="icon" type="IconProp">
+  An icon displayed before the content.
+</ParamField>
+
+<ParamField path="iconAfter" type="IconProp">
+  An icon displayed after the content.
+</ParamField>
+
+<ParamField path="scaleIcon" type="number" default="1">
+  Scale factor for the icon size.
+</ParamField>
+
+<ParamField path="iconSize" type="SizeTokens">
+  Explicit size for the icon.
+</ParamField>
+
+<ParamField path="size" type="SizeTokens" default="$true">
+  The size of the list item.
+</ParamField>
+
+<ParamField path="variant" type="'outlined'">
+  The visual variant of the list item.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Whether the list item is disabled.
+</ParamField>
+
+<ParamField path="active" type="boolean">
+  Whether the list item is in an active state.
+</ParamField>
+
+### ListItem.Title
+
+Displays the title text of the list item.
+
+### ListItem.Subtitle
+
+Displays the subtitle text of the list item.
+
+### ListItem.Icon
+
+<ParamField path="size" type="SizeTokens">
+  The size of the icon.
+</ParamField>
+
+<ParamField path="scaleIcon" type="number" default="1">
+  Scale factor for the icon.
+</ParamField>
+
+Displays an icon within the list item.
+
+### ListItem.Text
+
+A text component that inherits list item styling.
+
+## Examples
+
+### With Icons
+
+```tsx
+import { ListItem } from '@tamagui/list-item'
+import { YStack } from '@tamagui/stacks'
+import { User, Mail, Phone } from '@tamagui/lucide-icons'
+
+export default function ListWithIcons() {
+  return (
+    <YStack>
+      <ListItem icon={User} title="John Doe" subTitle="User" />
+      <ListItem icon={Mail} title="john@example.com" subTitle="Email" />
+      <ListItem icon={Phone} title="+1 234 567 8900" subTitle="Phone" />
+    </YStack>
+  )
+}
+```
+
+### Interactive List
+
+```tsx
+import { ListItem } from '@tamagui/list-item'
+import { YStack } from '@tamagui/stacks'
+import { ChevronRight } from '@tamagui/lucide-icons'
+
+export default function InteractiveList() {
+  return (
+    <YStack>
+      <ListItem
+        title="Settings"
+        iconAfter={ChevronRight}
+        pressStyle={{ backgroundColor: '$backgroundPress' }}
+        cursor="pointer"
+        onPress={() => console.log('Settings pressed')}
+      />
+      <ListItem
+        title="Profile"
+        iconAfter={ChevronRight}
+        pressStyle={{ backgroundColor: '$backgroundPress' }}
+        cursor="pointer"
+        onPress={() => console.log('Profile pressed')}
+      />
+    </YStack>
+  )
+}
+```
+
+### Outlined Variant
+
+```tsx
+import { ListItem } from '@tamagui/list-item'
+import { YStack } from '@tamagui/stacks'
+
+export default function OutlinedList() {
+  return (
+    <YStack gap="$2">
+      <ListItem
+        variant="outlined"
+        title="Outlined Item 1"
+        subTitle="With border"
+      />
+      <ListItem
+        variant="outlined"
+        title="Outlined Item 2"
+        subTitle="With border"
+      />
+    </YStack>
+  )
+}
+```
+
+### Custom Content
+
+```tsx
+import { ListItem } from '@tamagui/list-item'
+import { YStack, XStack } from '@tamagui/stacks'
+import { Avatar } from '@tamagui/avatar'
+
+export default function CustomListItem() {
+  return (
+    <ListItem size="$6">
+      <XStack gap="$3" alignItems="center" flex={1}>
+        <Avatar circular size="$4">
+          <Avatar.Image src="https://i.pravatar.cc/150" />
+          <Avatar.Fallback backgroundColor="$blue10" />
+        </Avatar>
+        <YStack flex={1}>
+          <ListItem.Title>John Doe</ListItem.Title>
+          <ListItem.Subtitle>Active 2 hours ago</ListItem.Subtitle>
+        </YStack>
+      </XStack>
+    </ListItem>
+  )
+}
+```

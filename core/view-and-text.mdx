@@ -1,0 +1,546 @@
+---
+title: View and Text
+description: Core primitives for building Tamagui UIs
+---
+
+View and Text are Tamagui's foundational components. They work identically on web and native, accepting all Tamagui styling features including tokens, variants, pseudo states, and media queries.
+
+## View
+
+The `View` component is the base container component, equivalent to `div` on web and `View` on React Native.
+
+### Basic Usage
+
+```tsx
+import { View } from 'tamagui'
+
+<View 
+  backgroundColor="$background" 
+  padding="$4" 
+  borderRadius="$4"
+>
+  Content
+</View>
+```
+
+### Type Definition
+
+```typescript
+export type View = TamaguiElement
+export type ViewProps = ViewNonStyleProps & ViewStyle
+
+export const View = createComponent<
+  ViewProps,
+  View,
+  ViewNonStyleProps,
+  ViewStylePropsBase
+>({
+  acceptsClassName: true,
+  validStyles,
+})
+```
+
+### Available Style Props
+
+View accepts all layout and visual styling props:
+
+<CodeGroup>
+
+```tsx Layout
+<View
+  width={200}
+  height={100}
+  padding="$4"
+  margin="$2"
+  flex={1}
+  flexDirection="row"
+  alignItems="center"
+  justifyContent="space-between"
+  gap="$3"
+/>
+```
+
+```tsx Visual
+<View
+  backgroundColor="$blue10"
+  borderRadius="$4"
+  borderWidth={1}
+  borderColor="$borderColor"
+  shadowColor="$shadowColor"
+  shadowRadius={10}
+  shadowOffset={{ width: 0, height: 4 }}
+  opacity={0.95}
+/>
+```
+
+```tsx Transform
+<View
+  x={10}
+  y={20}
+  scale={1.1}
+  rotate="45deg"
+  transform={[
+    { translateX: 10 },
+    { scale: 1.5 },
+  ]}
+/>
+```
+
+</CodeGroup>
+
+## Text
+
+The `Text` component is for text content, equivalent to `span` on web and `Text` on React Native.
+
+### Basic Usage
+
+```tsx
+import { Text } from 'tamagui'
+
+<Text 
+  color="$color" 
+  fontSize="$4"
+  fontWeight="600"
+>
+  Hello World
+</Text>
+```
+
+### Type Definition
+
+```typescript
+export type Text = TamaguiTextElement
+export type TextProps = TextNonStyleProps & TextStylePropsBase
+
+export const Text = createComponent<
+  TextProps,
+  Text,
+  TextNonStyleProps,
+  TextStylePropsBase
+>({
+  componentName: 'Text',
+  acceptsClassName: true,
+  isText: true,
+  
+  defaultProps:
+    process.env.TAMAGUI_TARGET === 'web'
+      ? undefined
+      : {
+          suppressHighlighting: true,
+        },
+  
+  inlineWhenUnflattened: new Set(['fontFamily']),
+  
+  variants: {
+    numberOfLines: {
+      1: ellipsisStyle,
+      ':number': (numberOfLines) =>
+        numberOfLines >= 1
+          ? {
+              WebkitLineClamp: numberOfLines,
+              WebkitBoxOrient: 'vertical',
+              display: '-webkit-box',
+              overflow: 'hidden',
+            }
+          : null,
+    },
+    ellipsis: {
+      true: ellipsisStyle,
+    },
+  },
+})
+```
+
+### Text-Specific Props
+
+<CodeGroup>
+
+```tsx Typography
+<Text
+  fontFamily="$body"
+  fontSize="$5"
+  fontWeight="600"
+  fontStyle="italic"
+  lineHeight="$5"
+  letterSpacing={0.5}
+  textAlign="center"
+  textTransform="uppercase"
+/>
+```
+
+```tsx Decoration
+<Text
+  color="$blue10"
+  textDecorationLine="underline"
+  textDecorationStyle="solid"
+  textDecorationColor="$blue8"
+  textShadowColor="$shadowColor"
+  textShadowRadius={2}
+  textShadowOffset={{ width: 1, height: 1 }}
+/>
+```
+
+```tsx Truncation
+<Text
+  numberOfLines={2}
+  ellipsis
+>
+  This text will be truncated after two lines with an ellipsis
+</Text>
+```
+
+</CodeGroup>
+
+### Built-in Variants
+
+Text includes built-in variants for text truncation:
+
+```tsx
+// Single line ellipsis
+<Text numberOfLines={1}>
+  Long text that will be truncated...
+</Text>
+
+// Multi-line ellipsis (web only)
+<Text numberOfLines={3}>
+  Long text that will be truncated after three lines...
+</Text>
+
+// Alternative ellipsis prop
+<Text ellipsis>
+  Single line with ellipsis
+</Text>
+```
+
+## Common Props
+
+Both View and Text support all Tamagui features:
+
+### Token Support
+
+```tsx
+<View
+  padding="$4"           // space token
+  backgroundColor="$blue10"  // color token
+  width="$10"            // size token
+  borderRadius="$4"      // radius token
+  zIndex="$1"           // zIndex token
+/>
+```
+
+### Pseudo States
+
+```tsx
+<View
+  backgroundColor="$background"
+  cursor="pointer"
+  
+  hoverStyle={{
+    backgroundColor: '$backgroundHover',
+    scale: 1.02,
+  }}
+  
+  pressStyle={{
+    backgroundColor: '$backgroundPress',
+    scale: 0.98,
+  }}
+  
+  focusStyle={{
+    borderColor: '$borderColorFocus',
+  }}
+/>
+```
+
+### Media Queries
+
+```tsx
+<View
+  padding="$2"
+  
+  $gtSm={{
+    padding: '$4',
+    flexDirection: 'row',
+  }}
+  
+  $gtMd={{
+    padding: '$6',
+  }}
+/>
+```
+
+### Animation
+
+```tsx
+<View
+  animation="quick"
+  scale={isExpanded ? 1.5 : 1}
+  opacity={isVisible ? 1 : 0}
+  
+  enterStyle={{
+    opacity: 0,
+    scale: 0.9,
+  }}
+  
+  exitStyle={{
+    opacity: 0,
+    scale: 0.9,
+  }}
+/>
+```
+
+## Shorthands
+
+Both components support shorthands for common properties:
+
+```tsx
+<View
+  w={200}          // width
+  h={100}          // height
+  bg="$blue10"     // backgroundColor
+  bc="$borderColor" // borderColor
+  br="$4"          // borderRadius
+  p="$4"           // padding
+  m="$2"           // margin
+  px="$4"          // paddingHorizontal
+  py="$2"          // paddingVertical
+  mx="auto"        // marginHorizontal
+  my="$2"          // marginVertical
+  f={1}            // flex
+  fd="row"         // flexDirection
+  ai="center"      // alignItems
+  jc="space-between" // justifyContent
+  pos="absolute"   // position
+  zi={10}          // zIndex
+  o={0.8}          // opacity
+/>
+```
+
+<Note>
+Shorthands are defined in your `createTamagui` config. The built-in shorthands are optimized for minimal class names. You can customize or disable them in your configuration.
+</Note>
+
+## Special Props
+
+### asChild
+
+Pass props through to a child element:
+
+```tsx
+<View asChild>
+  <CustomComponent />
+</View>
+
+// Web-specific mapping
+<View asChild="web">
+  <button>Click me</button>
+</View>
+
+// Skip style props
+<View asChild="except-style">
+  <CustomComponent />
+</View>
+```
+
+### render
+
+Control the rendered HTML element (web only):
+
+```tsx
+// Render as specific HTML element
+<View render="button" cursor="pointer">
+  Click me
+</View>
+
+// Clone and merge with JSX element
+<View render={<a href="/" />}>
+  Link
+</View>
+
+// Full control with function
+<View
+  render={(props, state) => (
+    <button {...props} data-pressed={state.press}>
+      {props.children}
+    </button>
+  )}
+>
+  Button
+</View>
+```
+
+### theme
+
+Apply a theme to this component and children:
+
+```tsx
+<View theme="dark">
+  <Text color="$color">Uses dark theme colors</Text>
+</View>
+
+// Shallow - only apply to this element
+<View theme="blue" themeShallow>
+  <Text color="$color">Still uses parent theme</Text>
+</View>
+```
+
+### group
+
+Create group interactions:
+
+```tsx
+<View group="card" cursor="pointer">
+  <Text
+    $group-card-hover={{
+      color: '$blue10',
+    }}
+  >
+    Hover the card to see this change color
+  </Text>
+</View>
+```
+
+## Cross-Platform Considerations
+
+### Web vs Native Differences
+
+<CodeGroup>
+
+```tsx Web-Only
+// These props work only on web
+<View
+  cursor="pointer"
+  userSelect="none"
+  pointerEvents="none"
+  whiteSpace="nowrap"
+  overflow="hidden"
+/>
+```
+
+```tsx Native-Only
+// These props work only on native
+<View
+  accessible
+  accessibilityLabel="Card"
+  accessibilityRole="button"
+/>
+```
+
+```tsx Cross-Platform
+// These work everywhere
+<View
+  backgroundColor="$background"
+  padding="$4"
+  borderRadius="$4"
+  opacity={0.8}
+/>
+```
+
+</CodeGroup>
+
+### Events
+
+```tsx
+<View
+  onPress={() => console.log('pressed')}
+  onLongPress={() => console.log('long pressed')}
+  onPressIn={() => console.log('press in')}
+  onPressOut={() => console.log('press out')}
+  
+  // Web-specific
+  onClick={() => console.log('clicked')}
+  onMouseEnter={() => console.log('mouse enter')}
+  onMouseLeave={() => console.log('mouse leave')}
+/>
+```
+
+## Creating Styled Variants
+
+Extend View and Text with styled():
+
+```tsx
+import { styled, View, Text } from 'tamagui'
+
+const Card = styled(View, {
+  name: 'Card',
+  backgroundColor: '$background',
+  borderRadius: '$4',
+  padding: '$4',
+  
+  variants: {
+    elevated: {
+      true: {
+        shadowColor: '$shadowColor',
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+      },
+    },
+  },
+})
+
+const Heading = styled(Text, {
+  name: 'Heading',
+  fontFamily: '$heading',
+  fontSize: '$8',
+  fontWeight: '700',
+  color: '$color',
+  
+  variants: {
+    level: {
+      1: { fontSize: '$10' },
+      2: { fontSize: '$8' },
+      3: { fontSize: '$6' },
+    },
+  },
+})
+```
+
+## Performance Tips
+
+<Tip>
+**Use static styles when possible**
+
+The compiler can optimize static styles to CSS:
+
+```tsx
+// ✅ Optimized to CSS
+<View backgroundColor="$blue10" padding="$4" />
+
+// ❌ Runtime evaluation required
+<View style={{ backgroundColor: someVariable }} />
+```
+</Tip>
+
+<Tip>
+**Leverage the compiler**
+
+Tamagui's compiler extracts static styles at build time. Components with only static props have nearly zero runtime cost.
+</Tip>
+
+## Accessibility
+
+Both components support accessibility props:
+
+```tsx
+<View
+  accessible
+  accessibilityLabel="Navigation menu"
+  accessibilityRole="navigation"
+  accessibilityHint="Main navigation"
+/>
+
+<Text
+  accessible
+  accessibilityLabel="Error message"
+  accessibilityRole="alert"
+  accessibilityLiveRegion="polite"
+>
+  Form submission failed
+</Text>
+```
+
+## Related
+
+- [styled()](/core/styled) - Create custom styled components
+- [Tokens](/core/tokens) - Using design tokens
+- [Theme](/core/theme) - Theming system
+- [Animations](/core/animations) - Animating components

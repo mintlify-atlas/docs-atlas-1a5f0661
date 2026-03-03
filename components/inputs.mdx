@@ -1,0 +1,396 @@
+---
+title: Input
+description: A text input component with cross-platform support and theme integration
+---
+
+## Installation
+
+```bash
+npm install @tamagui/input
+```
+
+## Import
+
+```tsx
+import { Input } from '@tamagui/input'
+```
+
+## Usage
+
+### Basic Example
+
+```tsx
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  return <Input placeholder="Enter text..." />
+}
+```
+
+### Controlled Input
+
+```tsx
+import { useState } from 'react'
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  const [value, setValue] = useState('')
+
+  return (
+    <Input
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      placeholder="Controlled input"
+    />
+  )
+}
+```
+
+### With onChangeText (React Native Style)
+
+```tsx
+import { useState } from 'react'
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  const [value, setValue] = useState('')
+
+  return (
+    <Input
+      value={value}
+      onChangeText={setValue}
+      placeholder="React Native style"
+    />
+  )
+}
+```
+
+### Sizes
+
+```tsx
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  return (
+    <>
+      <Input size="$2" placeholder="Small" />
+      <Input size="$3" placeholder="Medium" />
+      <Input size="$4" placeholder="Large" />
+      <Input size="$5" placeholder="Extra Large" />
+    </>
+  )
+}
+```
+
+### Input Types
+
+```tsx
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  return (
+    <>
+      <Input type="text" placeholder="Text" />
+      <Input type="email" placeholder="Email" />
+      <Input type="password" placeholder="Password" />
+      <Input type="number" placeholder="Number" />
+      <Input type="tel" placeholder="Phone" />
+      <Input type="url" placeholder="URL" />
+    </>
+  )
+}
+```
+
+### Textarea
+
+```tsx
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  return (
+    <Input
+      tag="textarea"
+      rows={4}
+      placeholder="Multi-line text..."
+    />
+  )
+}
+```
+
+### Form Validation
+
+```tsx
+import { useState } from 'react'
+import { Input } from '@tamagui/input'
+import { YStack, Text } from '@tamagui/stacks'
+
+function Demo() {
+  const [email, setEmail] = useState('')
+  const [error, setError] = useState('')
+
+  const validateEmail = (value: string) => {
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    setError(isValid ? '' : 'Invalid email address')
+    return isValid
+  }
+
+  return (
+    <YStack space>
+      <Input
+        type="email"
+        value={email}
+        onChangeText={(value) => {
+          setEmail(value)
+          validateEmail(value)
+        }}
+        onBlur={() => validateEmail(email)}
+        placeholder="Enter email"
+        required
+      />
+      {error && <Text color="$red10">{error}</Text>}
+    </YStack>
+  )
+}
+```
+
+### With Labels
+
+```tsx
+import { Input } from '@tamagui/input'
+import { Label } from '@tamagui/label'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <YStack space>
+      <Label htmlFor="username">Username</Label>
+      <Input id="username" placeholder="Enter username" />
+    </YStack>
+  )
+}
+```
+
+### Disabled State
+
+```tsx
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  return <Input disabled placeholder="Disabled input" />
+}
+```
+
+### With Submit Handler
+
+```tsx
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  const handleSubmit = (e) => {
+    console.log('Submitted:', e.nativeEvent.text)
+  }
+
+  return (
+    <Input
+      placeholder="Press Enter to submit"
+      onSubmitEditing={handleSubmit}
+    />
+  )
+}
+```
+
+### Styled Placeholder
+
+```tsx
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  return (
+    <Input
+      placeholder="Custom placeholder color"
+      placeholderTextColor="$blue10"
+    />
+  )
+}
+```
+
+### Selection Control
+
+```tsx
+import { useState } from 'react'
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  const [selection, setSelection] = useState({ start: 0, end: 0 })
+
+  return (
+    <Input
+      defaultValue="Select some text"
+      selection={selection}
+      onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+      selectionColor="$blue10"
+    />
+  )
+}
+```
+
+## API Reference
+
+### Input Props
+
+<ParamField path="size" type="SizeTokens">
+  Size of the input. Can use size tokens like `$2`, `$3`, `$4`, etc.
+</ParamField>
+
+<ParamField path="type" type="string">
+  HTML input type: `text`, `email`, `password`, `number`, `tel`, `url`, etc.
+</ParamField>
+
+<ParamField path="value" type="string">
+  Controlled value of the input.
+</ParamField>
+
+<ParamField path="defaultValue" type="string">
+  Default uncontrolled value.
+</ParamField>
+
+<ParamField path="placeholder" type="string">
+  Placeholder text when input is empty.
+</ParamField>
+
+<ParamField path="placeholderTextColor" type="ColorTokens">
+  Color of placeholder text using Tamagui color tokens.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disable the input.
+</ParamField>
+
+<ParamField path="readOnly" type="boolean">
+  Make the input read-only.
+</ParamField>
+
+<ParamField path="required" type="boolean">
+  Mark the input as required for form validation.
+</ParamField>
+
+<ParamField path="autoFocus" type="boolean">
+  Automatically focus the input on mount.
+</ParamField>
+
+<ParamField path="maxLength" type="number">
+  Maximum number of characters allowed.
+</ParamField>
+
+<ParamField path="pattern" type="string">
+  Regex pattern for HTML5 validation.
+</ParamField>
+
+<ParamField path="rows" type="number">
+  Number of rows for textarea mode.
+</ParamField>
+
+<ParamField path="tag" type="'input' | 'textarea'">
+  Render as input or textarea element.
+</ParamField>
+
+<ParamField path="onChange" type="(event) => void">
+  Callback when input value changes (web-style event).
+</ParamField>
+
+<ParamField path="onChangeText" type="(text: string) => void">
+  Callback when input value changes (React Native style).
+</ParamField>
+
+<ParamField path="onSubmitEditing" type="(e: { nativeEvent: { text: string } }) => void">
+  Callback when Enter/Return is pressed.
+</ParamField>
+
+<ParamField path="onFocus" type="(event) => void">
+  Callback when input receives focus.
+</ParamField>
+
+<ParamField path="onBlur" type="(event) => void">
+  Callback when input loses focus.
+</ParamField>
+
+<ParamField path="selection" type="{ start: number, end?: number }">
+  Control text selection range.
+</ParamField>
+
+<ParamField path="onSelectionChange" type="(e) => void">
+  Callback when selection changes.
+</ParamField>
+
+<ParamField path="selectionColor" type="ColorTokens">
+  Color of selected text highlight.
+</ParamField>
+
+<ParamField path="autoComplete" type="string">
+  HTML autocomplete attribute for autofill.
+</ParamField>
+
+<ParamField path="autoCorrect" type="boolean | 'on' | 'off'">
+  Enable/disable automatic spelling correction.
+</ParamField>
+
+<ParamField path="autoCapitalize" type="'none' | 'sentences' | 'words' | 'characters' | 'off' | 'on'">
+  Control automatic text capitalization.
+</ParamField>
+
+<ParamField path="spellCheck" type="boolean">
+  Enable/disable spell checking.
+</ParamField>
+
+<ParamField path="name" type="string">
+  Name attribute for form submission.
+</ParamField>
+
+<ParamField path="id" type="string">
+  ID attribute for label association.
+</ParamField>
+
+## Theming
+
+Input responds to the following theme tokens:
+
+- `$background` - Background color
+- `$borderColor` - Default border color
+- `$borderColorHover` - Border color on hover
+- `$borderColorFocus` - Border color when focused
+- `$color` - Text color
+- `$outlineColor` - Focus outline color
+- `$placeholderColor` - Placeholder text color (when using `placeholderTextColor`)
+
+```tsx
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  return (
+    <Input theme="blue" placeholder="Themed input" />
+  )
+}
+```
+
+## Accessibility
+
+- Renders as semantic `<input>` or `<textarea>` element
+- Supports keyboard navigation
+- Compatible with screen readers
+- Works with Label component via `htmlFor`/`id`
+- Supports all ARIA attributes
+- Focus visible styles with outline
+- Disabled state prevents interaction
+
+## Cross-Platform Notes
+
+### Web
+- Full HTML input attributes supported
+- Native browser validation
+- Autofill integration
+
+### Native (React Native)
+- Uses TextInput under the hood
+- Supports `onChangeText` callback
+- Native keyboard types
+- Platform-specific props are accepted but ignored on web

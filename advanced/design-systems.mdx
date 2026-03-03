@@ -1,0 +1,508 @@
+---
+title: Building Design Systems
+description: Architecture patterns for building scalable design systems with Tamagui
+---
+
+# Building Design Systems
+
+Tamagui is built from the ground up to support large-scale design systems. This guide covers architecture patterns and best practices.
+
+## Design System Architecture
+
+A typical Tamagui design system consists of:
+
+1. **Theme Foundation** - Base colors, tokens, and palettes
+2. **Component Library** - Reusable UI components
+3. **Animation System** - Consistent motion design
+4. **Type System** - Full TypeScript support
+5. **Configuration** - Build and optimization settings
+
+## Theme System Architecture
+
+### ThemeBuilder Pattern
+
+Tamagui provides a powerful `ThemeBuilder` class for creating complex theme hierarchies:
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:103-122`:
+
+```tsx
+import { createThemeBuilder } from '@tamagui/theme-builder'
+
+const builder = createThemeBuilder()
+  .addPalettes({
+    light: ['#fff', '#f5f5f5', ...],
+    dark: ['#000', '#1a1a1a', ...],
+  })
+  .addTemplates({
+    base: {
+      background: 0,
+      color: 11,
+      borderColor: 4,
+    },
+  })
+  .addThemes({
+    light: { template: 'base', palette: 'light' },
+    dark: { template: 'base', palette: 'dark' },
+  })
+
+const themes = builder.build()
+```
+
+### Palette Definitions
+
+Define color palettes with type safety:
+
+```tsx
+type PaletteDefinitions = {
+  [paletteName: string]: string[]
+}
+
+const palettes: PaletteDefinitions = {
+  light_blue: [
+    '#e6f4ff',
+    '#bae7ff',
+    '#91d5ff',
+    '#69c0ff',
+    '#40a9ff',
+    '#1890ff',
+    '#096dd9',
+    '#0050b3',
+    '#003a8c',
+    '#002766',
+  ],
+}
+```
+
+### Template System
+
+Templates map semantic tokens to palette positions:
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:125-136`:
+
+```tsx
+type TemplateDefinitions = {
+  [templateName: string]: {
+    [tokenName: string]: number
+  }
+}
+
+const templates = {
+  base: {
+    background: 0,
+    backgroundHover: 1,
+    backgroundPress: 2,
+    backgroundFocus: 3,
+    color: 11,
+    colorHover: 10,
+    colorPress: 11,
+    borderColor: 4,
+  },
+}
+```
+
+### Child Theme Nesting
+
+Create nested theme hierarchies with automatic naming:
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:202-299`:
+
+```tsx
+builder.addChildThemes(
+  {
+    blue: { template: 'base', palette: 'blue' },
+    red: { template: 'base', palette: 'red' },
+  },
+  {
+    avoidNestingWithin: ['accent'],
+  }
+)
+
+// Generates:
+// light_blue, dark_blue, light_red, dark_red
+// But NOT light_accent_blue (avoided due to avoidNestingWithin)
+```
+
+## Component Theme Patterns
+
+### Component-Specific Themes
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:190-200`:
+
+```tsx
+builder.addComponentThemes(
+  {
+    Button: { template: 'base' },
+    Input: { template: 'base' },
+    Card: { template: 'surface' },
+  },
+  {
+    avoidNestingWithin: ['blue', 'red'],
+  }
+)
+
+// Usage:
+<Button theme="Button" />
+<Input theme="Input" />
+```
+
+### Mask System for Theme Variants
+
+Masks transform existing themes:
+
+```tsx
+import { createMask } from '@tamagui/create-theme'
+
+builder.addMasks({
+  inverse: {
+    name: 'inverse',
+    mask: (template, opts) => {
+      return {
+        ...template,
+        background: template.color,
+        color: template.background,
+      }
+    },
+  },
+})
+
+builder.addThemes({
+  inverse: { mask: 'inverse' },
+})
+```
+
+## Styled Context Pattern
+
+### Creating Styled Contexts
+
+From `code/core/web/src/helpers/createStyledContext.tsx:7-95`:
+
+```tsx
+import { createStyledContext } from '@tamagui/core'
+
+// Define variant props
+type CardVariants = {
+  size?: 'small' | 'medium' | 'large'
+  variant?: 'outlined' | 'filled'
+}
+
+// Create context with defaults
+const CardContext = createStyledContext<CardVariants>({
+  size: 'medium',
+  variant: 'filled',
+})
+
+// Provider component
+export const Card = styled(YStack, {
+  context: CardContext,
+  variants: {
+    size: {
+      small: { padding: '$2' },
+      medium: { padding: '$4' },
+      large: { padding: '$6' },
+    },
+    variant: {
+      outlined: { borderWidth: 1 },
+      filled: { backgroundColor: '$background' },
+    },
+  },
+})
+
+// Child components automatically inherit context
+export const CardTitle = styled(Text, {
+  context: CardContext,
+  variants: {
+    size: {
+      small: { fontSize: '$3' },
+      medium: { fontSize: '$5' },
+      large: { fontSize: '$7' },
+    },
+  },
+})
+
+// Usage
+<Card size="large" variant="outlined">
+  <CardTitle>Title</CardTitle> {/* Automatically uses size="large" */}
+</Card>
+```
+
+### Scoped Contexts
+
+Contexts support scoping to prevent conflicts:
+
+```tsx
+const CardContext = createStyledContext<CardVariants>(
+  { size: 'medium' },
+  'card' // namespace
+)
+
+<Card scope="card-1">
+  <CardTitle /> {/* Uses card-1 scope */}
+</Card>
+<Card scope="card-2">
+  <CardTitle /> {/* Uses card-2 scope */}
+</Card>
+```
+
+## Token System
+
+### Defining Tokens
+
+```tsx
+import { createTokens } from '@tamagui/core'
+
+export const tokens = createTokens({
+  color: {
+    blue1: '#e6f4ff',
+    blue2: '#bae7ff',
+    // ...
+  },
+  space: {
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    // ...
+  },
+  size: {
+    sm: 32,
+    md: 40,
+    lg: 48,
+    // ...
+  },
+  radius: {
+    0: 0,
+    1: 3,
+    2: 5,
+    3: 7,
+    // ...
+  },
+  zIndex: {
+    0: 0,
+    1: 100,
+    2: 200,
+    // ...
+  },
+})
+```
+
+### Token References
+
+Tokens can reference other tokens:
+
+```tsx
+const tokens = createTokens({
+  space: {
+    1: 4,
+    2: '$1 * 2', // 8
+    3: '$2 * 1.5', // 12
+  },
+})
+```
+
+## Component Library Patterns
+
+### Base Component Pattern
+
+```tsx
+import { styled, YStack } from '@tamagui/core'
+
+export const Container = styled(YStack, {
+  name: 'Container',
+  maxWidth: 1200,
+  marginHorizontal: 'auto',
+  paddingHorizontal: '$4',
+  
+  variants: {
+    size: {
+      sm: { maxWidth: 640 },
+      md: { maxWidth: 768 },
+      lg: { maxWidth: 1024 },
+      xl: { maxWidth: 1280 },
+    },
+  } as const,
+})
+```
+
+### Compound Component Pattern
+
+```tsx
+export const List = styled(YStack, {
+  name: 'List',
+})
+
+export const ListItem = styled(XStack, {
+  name: 'ListItem',
+  padding: '$3',
+  borderBottomWidth: 1,
+  borderColor: '$borderColor',
+})
+
+// Usage
+<List>
+  <ListItem>Item 1</ListItem>
+  <ListItem>Item 2</ListItem>
+</List>
+```
+
+### Polymorphic Components
+
+```tsx
+import { GetProps } from '@tamagui/core'
+
+type HeadingProps = GetProps<typeof Heading> & {
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+}
+
+export const Heading = ({ as = 'h2', ...props }: HeadingProps) => {
+  return <Text tag={as} {...props} />
+}
+```
+
+## Platform-Specific Design
+
+### Platform-Specific Styles
+
+```tsx
+import { Platform } from 'react-native'
+
+export const Button = styled(Stack, {
+  ...(Platform.OS === 'web' && {
+    cursor: 'pointer',
+    userSelect: 'none',
+  }),
+  
+  ...(Platform.OS === 'ios' && {
+    shadowColor: '$shadowColor',
+    shadowOffset: { width: 0, height: 2 },
+  }),
+  
+  ...(Platform.OS === 'android' && {
+    elevation: 4,
+  }),
+})
+```
+
+### Media Queries
+
+```tsx
+export const Card = styled(YStack, {
+  padding: '$2',
+  
+  $gtSm: {
+    padding: '$4',
+  },
+  
+  $gtMd: {
+    padding: '$6',
+    flexDirection: 'row',
+  },
+})
+```
+
+## Type Safety
+
+### Typed Theme Access
+
+```tsx
+import { useTheme } from '@tamagui/core'
+
+function MyComponent() {
+  const theme = useTheme()
+  
+  // Fully typed!
+  const bg = theme.background.get()
+  const color = theme.color.get()
+}
+```
+
+### Typed Variants
+
+```tsx
+import { styled, VariantSpreadExtras } from '@tamagui/core'
+
+export const Button = styled(Stack, {
+  variants: {
+    size: {
+      small: { height: 32 },
+      medium: { height: 40 },
+      large: { height: 48 },
+    },
+  } as const,
+})
+
+// TypeScript knows valid sizes!
+<Button size="small" /> // ✓
+<Button size="tiny" />  // ✗ Type error
+```
+
+## Design System Documentation
+
+### Component Metadata
+
+```tsx
+export const Button = styled(Stack, {
+  name: 'Button',
+  
+  // Add helpful JSDoc
+  /**
+   * Primary action button
+   * @example
+   * <Button onPress={handlePress}>Click me</Button>
+   */
+})
+```
+
+### Storybook Integration
+
+```tsx
+import { Button } from './Button'
+
+export default {
+  title: 'Components/Button',
+  component: Button,
+}
+
+export const Primary = {
+  args: {
+    children: 'Primary Button',
+    variant: 'primary',
+  },
+}
+```
+
+## Performance Optimization
+
+### Static Extraction
+
+Enable static extraction in `tamagui.config.ts`:
+
+```tsx
+export default createTamagui({
+  // ... other config
+  settings: {
+    fastSchemeChange: true,
+    shouldAddPrefersColorThemes: true,
+  },
+})
+```
+
+### Component Memoization
+
+```tsx
+import { memo } from 'react'
+
+export const Button = memo(styled(Stack, {
+  // ... styles
+}))
+```
+
+## Best Practices
+
+1. **Start with Tokens** - Define your design tokens first
+2. **Use ThemeBuilder** - Build complex theme hierarchies systematically
+3. **Leverage Contexts** - Use styled contexts for component variants
+4. **Type Everything** - Take advantage of TypeScript for safety
+5. **Document Components** - Add JSDoc comments for better DX
+6. **Test Across Platforms** - Ensure consistency on web and native
+7. **Optimize Builds** - Use static extraction for production
+8. **Version Your System** - Semantic versioning for breaking changes

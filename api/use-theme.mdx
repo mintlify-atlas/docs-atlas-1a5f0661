@@ -1,0 +1,144 @@
+---
+title: useTheme
+description: Access the current theme values in your components
+---
+
+# useTheme
+
+The `useTheme` hook provides access to the current theme object in your Tamagui components. It returns a proxied theme object that automatically tracks which theme values you access, enabling optimal re-rendering.
+
+## Import
+
+```tsx
+import { useTheme } from 'tamagui'
+// or
+import { useTheme } from '@tamagui/core'
+```
+
+## Function Signature
+
+```typescript
+function useTheme(): ThemeProxied
+```
+
+## Return Value
+
+<ResponseField name="ThemeProxied" type="object">
+  A proxied theme object containing all theme tokens as Variable objects. The proxy tracks which theme values are accessed to optimize re-renders.
+
+  **Common theme properties:**
+  - `background` - Background color token
+  - `color` - Text color token
+  - `borderColor` - Border color token
+  - Plus any custom theme tokens defined in your configuration
+
+  Each property returns a `Variable` object with a `get()` method to retrieve the actual value.
+</ResponseField>
+
+## Usage
+
+### Basic Usage
+
+```tsx
+import { useTheme, View, Text } from 'tamagui'
+
+function MyComponent() {
+  const theme = useTheme()
+
+  return (
+    <View style={{ backgroundColor: theme.background?.get() }}>
+      <Text style={{ color: theme.color?.get() }}>
+        Hello World
+      </Text>
+    </View>
+  )
+}
+```
+
+### Accessing Theme Colors
+
+```tsx
+import { useTheme } from 'tamagui'
+
+function ColoredButton() {
+  const theme = useTheme()
+  
+  return (
+    <Pressable
+      style={{
+        backgroundColor: theme.background?.get(),
+        borderColor: theme.borderColor?.get(),
+        borderWidth: 2,
+      }}
+    >
+      <Text style={{ color: theme.color?.get() }}>
+        Click Me
+      </Text>
+    </Pressable>
+  )
+}
+```
+
+### Using with Custom Color Helper
+
+```tsx
+import { getVariable, useTheme } from '@tamagui/web'
+
+function useCurrentColor(colorProp) {
+  const theme = useTheme()
+  
+  return colorProp
+    ? getVariable(colorProp)
+    : theme.color?.get()
+}
+```
+
+### With Radio Group Indicators
+
+```tsx
+import { useTheme } from 'tamagui'
+
+function RadioGroupItem({ checked, label }) {
+  const theme = useTheme()
+  
+  return (
+    <Pressable
+      style={{
+        borderColor: theme.borderColor?.get(),
+        borderWidth: checked ? 4 : 2,
+        backgroundColor: checked ? undefined : theme.background?.get(),
+      }}
+    >
+      {checked && (
+        <View
+          style={{
+            backgroundColor: theme.color?.get(),
+            width: '35%',
+            height: '35%',
+          }}
+        />
+      )}
+    </Pressable>
+  )
+}
+```
+
+## How It Works
+
+1. **Proxy Tracking**: The returned theme object is a Proxy that tracks which theme keys you access
+2. **Selective Re-renders**: Components only re-render when the specific theme values they use change
+3. **Automatic Updates**: When theme changes (e.g., light/dark mode toggle), components re-render with new values
+4. **SSR Safe**: Works correctly in server-side rendering scenarios
+
+## Best Practices
+
+1. **Use Optional Chaining**: Always use `?.get()` to safely access theme values
+2. **Access Values Once**: Store accessed values in variables if used multiple times
+3. **Theme-Aware Components**: Use `useTheme` for components that need dynamic theme awareness
+4. **Variable Objects**: Remember that theme values are Variable objects - call `.get()` to retrieve the actual value
+
+## Related
+
+- [Theme Guide](/core/theme) - For applying theme overrides
+- [Configuration](/core/configuration) - Setting up themes
+- [Tokens](/core/tokens) - Defining color tokens

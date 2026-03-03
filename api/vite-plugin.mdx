@@ -1,0 +1,337 @@
+---
+title: Vite Plugin
+description: Tamagui compiler plugin for Vite
+---
+
+The Vite plugin enables Tamagui's optimizing compiler in Vite projects, extracting styles to CSS at build time for better performance.
+
+## Installation
+
+```bash
+npm install @tamagui/vite-plugin
+```
+
+## Usage
+
+```ts
+// vite.config.ts
+import { tamaguiPlugin } from '@tamagui/vite-plugin'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [
+    tamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+    }),
+  ],
+})
+```
+
+## Configuration Options
+
+### Tamagui Options
+
+<ParamField path="config" type="string" required>
+  Path to your Tamagui config file.
+  
+  ```ts
+  config: './src/tamagui.config.ts'
+  ```
+</ParamField>
+
+<ParamField path="components" type="string[]" required>
+  Array of component packages to optimize.
+  
+  ```ts
+  components: ['tamagui', '@my-org/ui']
+  ```
+</ParamField>
+
+<ParamField path="disableExtraction" type="boolean" default="false">
+  Disable the optimizing compiler (useful for debugging).
+  
+  ```ts
+  disableExtraction: process.env.NODE_ENV === 'development'
+  ```
+</ParamField>
+
+<ParamField path="disable" type="boolean" default="false">
+  Fully disable the plugin including debug attributes.
+  
+  ```ts
+  disable: false
+  ```
+</ParamField>
+
+<ParamField path="platform" type="'web' | 'native'" default="'web'">
+  Target platform.
+  
+  ```ts
+  platform: 'web'
+  ```
+</ParamField>
+
+<ParamField path="useReactNativeWebLite" type="boolean | 'without-animated'" default="false">
+  Use react-native-web-lite instead of react-native-web.
+  
+  ```ts
+  useReactNativeWebLite: true
+  // or without Animated API
+  useReactNativeWebLite: 'without-animated'
+  ```
+</ParamField>
+
+<ParamField path="disableWatchTamaguiConfig" type="boolean" default="false">
+  Disable watching tamagui.config.ts for changes.
+  
+  ```ts
+  disableWatchTamaguiConfig: false
+  ```
+</ParamField>
+
+<ParamField path="disableResolveConfig" type="boolean" default="false">
+  Disable automatic resolve configuration (aliases, extensions).
+  
+  ```ts
+  disableResolveConfig: false
+  ```
+</ParamField>
+
+## Helpers
+
+### tamaguiAliases
+
+For advanced use cases, you can configure aliases separately:
+
+```ts
+import { tamaguiAliases } from '@tamagui/vite-plugin'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  resolve: {
+    alias: [
+      ...tamaguiAliases({ rnwLite: true, svg: true }),
+      // Your other aliases
+    ],
+  },
+})
+```
+
+<ParamField path="rnwLite" type="boolean | 'without-animated'" default="false">
+  Alias react-native to @tamagui/react-native-web-lite.
+  
+  ```ts
+  tamaguiAliases({ rnwLite: true })
+  ```
+</ParamField>
+
+<ParamField path="svg" type="boolean" default="false">
+  Alias react-native-svg to @tamagui/react-native-svg.
+  
+  ```ts
+  tamaguiAliases({ svg: true })
+  ```
+</ParamField>
+
+## Examples
+
+### Basic Configuration
+
+```ts
+// vite.config.ts
+import { tamaguiPlugin } from '@tamagui/vite-plugin'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [
+    react(),
+    tamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+    }),
+  ],
+})
+```
+
+### With React Native Web Lite
+
+```ts
+export default defineConfig({
+  plugins: [
+    react(),
+    tamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+      useReactNativeWebLite: true,
+    }),
+  ],
+})
+```
+
+### Development Mode (No Extraction)
+
+```ts
+export default defineConfig({
+  plugins: [
+    react(),
+    tamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+      disableExtraction: process.env.NODE_ENV === 'development',
+    }),
+  ],
+})
+```
+
+### Multiple Component Libraries
+
+```ts
+export default defineConfig({
+  plugins: [
+    react(),
+    tamaguiPlugin({
+      components: [
+        'tamagui',
+        '@my-org/ui',
+        '@my-org/design-system',
+      ],
+      config: './src/tamagui.config.ts',
+    }),
+  ],
+})
+```
+
+### Manual Alias Configuration
+
+```ts
+import { tamaguiAliases, tamaguiPlugin } from '@tamagui/vite-plugin'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [
+    tamaguiPlugin({
+      components: ['tamagui'],
+      config: './src/tamagui.config.ts',
+      disableResolveConfig: true,  // Disable auto aliases
+    }),
+  ],
+  resolve: {
+    alias: [
+      // Manual control over alias order
+      ...tamaguiAliases({
+        rnwLite: 'without-animated',
+        svg: true,
+      }),
+      // Other aliases
+      { find: '@', replacement: '/src' },
+    ],
+  },
+})
+```
+
+## How It Works
+
+### Build-Time Optimization
+
+The plugin:
+
+1. **Analyzes** your TSX files for Tamagui components
+2. **Extracts** styles to static CSS classes
+3. **Generates** optimized CSS files
+4. **Replaces** dynamic styles with static className attributes
+5. **Removes** unused style props from runtime bundle
+
+### Example Transformation
+
+**Input:**
+```tsx
+<View backgroundColor="$blue10" padding="$4" />
+```
+
+**Output:**
+```tsx
+// Optimized component
+<div className="_bg_blue10 _p_4" />
+
+// Generated CSS
+._bg_blue10 { background-color: var(--blue10); }
+._p_4 { padding: var(--space-4); }
+```
+
+### Cache Management
+
+The plugin uses a global cache to:
+- Share compiled results across Vite environments (SSR/client)
+- Deduplicate concurrent extractions
+- Automatically clear when cache exceeds 64MB
+
+### File Watching
+
+Automatically watches your `tamagui.config.ts` and invalidates the cache when it changes.
+
+## Environment Variables
+
+<ParamField path="DEBUG_TAMAGUI_CACHE" type="string">
+  Enable debug logging for cache operations.
+  
+  ```bash
+  DEBUG_TAMAGUI_CACHE=1 vite dev
+  ```
+</ParamField>
+
+<ParamField path="TAMAGUI_IS_CLIENT" type="string">
+  Set automatically by the plugin to identify client environment.
+</ParamField>
+
+<ParamField path="TAMAGUI_ENVIRONMENT" type="string">
+  Set automatically to `"client"` or `"ssr"`.
+</ParamField>
+
+## Troubleshooting
+
+### Styles Not Extracting
+
+Enable debug mode in your component:
+
+```tsx
+// At top of file
+// tamagui-debug
+
+<View backgroundColor="$red10" />
+```
+
+Or use verbose debugging:
+
+```tsx
+// tamagui-debug-verbose
+```
+
+### Cache Issues
+
+Clear the Vite cache:
+
+```bash
+rm -rf node_modules/.vite
+```
+
+### Config Not Loading
+
+Ensure your config path is correct:
+
+```ts
+tamaguiPlugin({
+  // Relative to project root
+  config: './src/tamagui.config.ts',
+  // or absolute
+  config: path.join(__dirname, 'src/tamagui.config.ts'),
+})
+```
+
+## See Also
+
+- [Configuration](/core/configuration)
+- [Compiler](/compiler/introduction)
+- [Next.js Plugin](/api/next-plugin)
+- [Webpack Loader](/api/webpack-loader)

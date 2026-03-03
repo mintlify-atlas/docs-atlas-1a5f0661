@@ -1,0 +1,326 @@
+---
+title: LinearGradient
+description: Linear gradients that work with Tamagui style props
+---
+
+LinearGradient is a cross-platform component that renders linear gradients using CSS gradients on web and expo-linear-gradient on native. It accepts Tamagui style props and theme colors for seamless integration with your design system.
+
+## Installation
+
+LinearGradient is already included in `tamagui`, or you can install it independently:
+
+```bash
+npm install @tamagui/linear-gradient
+```
+
+### Native Setup
+
+On native, LinearGradient uses `expo-linear-gradient` for rendering. This works with vanilla React Native or Expo.
+
+#### Step 1: Install expo-linear-gradient
+
+```bash
+npm install expo-linear-gradient
+```
+
+#### Step 2: Import the setup module
+
+In your app's entry file (index.js or App.tsx), before any Tamagui imports:
+
+```tsx
+import '@tamagui/native/setup-expo-linear-gradient'
+```
+
+That's it! LinearGradient will automatically detect and use expo-linear-gradient when available.
+
+<Note>
+If you don't set up expo-linear-gradient, LinearGradient will log a warning on native. On web, LinearGradient uses CSS gradients and doesn't require any additional setup.
+</Note>
+
+## Usage
+
+Because LinearGradient requires a native package, import it separately:
+
+```tsx
+import { LinearGradient } from '@tamagui/linear-gradient'
+import { LinearGradient } from 'tamagui/linear-gradient'
+```
+
+Basic gradient from top to bottom:
+
+```tsx
+import { LinearGradient } from '@tamagui/linear-gradient'
+import { YStack, Text } from 'tamagui'
+
+export default () => (
+  <LinearGradient
+    colors={['$blue8', '$purple8']}
+    width={300}
+    height={200}
+    borderRadius="$4"
+  >
+    <YStack flex={1} justifyContent="center" alignItems="center">
+      <Text color="white" fontSize="$6" fontWeight="bold">
+        Gradient Background
+      </Text>
+    </YStack>
+  </LinearGradient>
+)
+```
+
+## Props
+
+LinearGradient extends YStack and accepts all Tamagui style props.
+
+<ParamField path="colors" type="string[]" required>
+  Array of two or more colors. Accepts theme tokens (e.g., `'$blue8'`) or any valid color string (e.g., `'#FF0000'`, `'rgba(255,0,0,0.5)'`).
+</ParamField>
+
+<ParamField path="locations" type="number[] | null">
+  Array of numbers ranging from 0 to 1, inclusive, and the same length as the colors array. Each number indicates where each respective color should be located. For example, `[0, 0.5, 1]` places the first color at the start, second at middle, and third at the end.
+</ParamField>
+
+<ParamField path="start" type="LinearGradientPoint | null" default="{ x: 0.5, y: 0.0 }">
+  Starting point of the gradient. For example, `{ x: 0.1, y: 0.2 }` means the gradient starts 10% from the left and 20% from the top. Can also be an array: `[0.1, 0.2]`.
+</ParamField>
+
+<ParamField path="end" type="LinearGradientPoint | null" default="{ x: 0.5, y: 1.0 }">
+  Ending point of the gradient. For example, `{ x: 0.9, y: 0.8 }` means the gradient ends 90% from the left and 80% from the top. Can also be an array: `[0.9, 0.8]`.
+</ParamField>
+
+## Real-World Examples
+
+### Hero Section Background
+
+```tsx
+import { LinearGradient } from '@tamagui/linear-gradient'
+import { H1, Paragraph, Button, YStack } from 'tamagui'
+
+export default () => (
+  <LinearGradient
+    colors={['$blue10', '$purple10', '$pink10']}
+    locations={[0, 0.5, 1]}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    width="100%"
+    minHeight={500}
+  >
+    <YStack 
+      flex={1} 
+      justifyContent="center" 
+      alignItems="center" 
+      padding="$6"
+      space="$4"
+    >
+      <H1 color="white" textAlign="center">
+        Welcome to Your App
+      </H1>
+      <Paragraph color="white" opacity={0.9} textAlign="center" maxWidth={600}>
+        Build beautiful, cross-platform applications with Tamagui
+      </Paragraph>
+      <Button size="$5" backgroundColor="white" color="$blue10">
+        Get Started
+      </Button>
+    </YStack>
+  </LinearGradient>
+)
+```
+
+### Card with Gradient Border
+
+```tsx
+import { LinearGradient } from '@tamagui/linear-gradient'
+import { Card, H3, Paragraph, YStack } from 'tamagui'
+
+export default () => (
+  <LinearGradient
+    colors={['$blue8', '$purple8']}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    padding={3}
+    borderRadius="$5"
+  >
+    <Card backgroundColor="$background" padding="$5" borderRadius="$4">
+      <YStack space="$3">
+        <H3>Premium Feature</H3>
+        <Paragraph>This card has a gradient border effect</Paragraph>
+      </YStack>
+    </Card>
+  </LinearGradient>
+)
+```
+
+### Button with Gradient Background
+
+```tsx
+import { LinearGradient } from '@tamagui/linear-gradient'
+import { Text } from 'tamagui'
+
+const GradientButton = ({ children, ...props }) => (
+  <LinearGradient
+    colors={['$blue9', '$blue11']}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 0, y: 1 }}
+    padding="$3"
+    paddingHorizontal="$5"
+    borderRadius="$10"
+    pressStyle={{ opacity: 0.8 }}
+    hoverStyle={{ opacity: 0.9 }}
+    cursor="pointer"
+    {...props}
+  >
+    <Text color="white" fontWeight="bold">
+      {children}
+    </Text>
+  </LinearGradient>
+)
+
+export default () => (
+  <GradientButton onPress={() => console.log('Pressed!')}>
+    Click Me
+  </GradientButton>
+)
+```
+
+### Horizontal Gradient Divider
+
+```tsx
+import { LinearGradient } from '@tamagui/linear-gradient'
+import { YStack, H2, Paragraph } from 'tamagui'
+
+export default () => (
+  <YStack space="$4" padding="$4">
+    <H2>Section One</H2>
+    <Paragraph>First section content</Paragraph>
+
+    <LinearGradient
+      colors={['transparent', '$borderColor', 'transparent']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      height={1}
+      width="100%"
+    />
+
+    <H2>Section Two</H2>
+    <Paragraph>Second section content</Paragraph>
+  </YStack>
+)
+```
+
+### Status Badge with Gradient
+
+```tsx
+import { LinearGradient } from '@tamagui/linear-gradient'
+import { Text, XStack } from 'tamagui'
+
+const StatusBadge = ({ status }: { status: 'success' | 'warning' | 'error' }) => {
+  const gradients = {
+    success: ['$green9', '$green11'],
+    warning: ['$yellow9', '$orange10'],
+    error: ['$red9', '$red11'],
+  }
+
+  return (
+    <LinearGradient
+      colors={gradients[status]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      paddingHorizontal="$3"
+      paddingVertical="$1.5"
+      borderRadius="$3"
+    >
+      <Text color="white" fontSize="$2" fontWeight="600" textTransform="uppercase">
+        {status}
+      </Text>
+    </LinearGradient>
+  )
+}
+
+export default () => (
+  <XStack space="$2">
+    <StatusBadge status="success" />
+    <StatusBadge status="warning" />
+    <StatusBadge status="error" />
+  </XStack>
+)
+```
+
+### Animated Skeleton Loader
+
+```tsx
+import { LinearGradient } from '@tamagui/linear-gradient'
+import { YStack, AnimatePresence } from 'tamagui'
+import { useState, useEffect } from 'react'
+
+export default () => {
+  const [position, setPosition] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPosition((prev) => (prev + 0.1) % 2)
+    }, 50)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <YStack width={300} height={100} borderRadius="$4" overflow="hidden">
+      <LinearGradient
+        colors={['$gray5', '$gray7', '$gray5']}
+        locations={[0, 0.5, 1]}
+        start={{ x: position - 0.5, y: 0 }}
+        end={{ x: position + 0.5, y: 0 }}
+        width="100%"
+        height="100%"
+      />
+    </YStack>
+  )
+}
+```
+
+## Alternative: backgroundImage Style Prop
+
+For simple gradients, you can use the `backgroundImage` style prop instead:
+
+```tsx
+import { View } from 'tamagui'
+
+export default () => (
+  <View 
+    backgroundImage="linear-gradient(to bottom, $blue8, $purple8)"
+    width={300}
+    height={200}
+    borderRadius="$4"
+  />
+)
+```
+
+Use `<LinearGradient>` when you need:
+- Precise color stop control with `locations`
+- Cross-platform gradient support on React Native
+- Dynamic gradient positioning with `start` and `end` points
+- Theme token integration
+
+## Accessibility Benefits
+
+- **Contrast Ratios**: When using gradients for text backgrounds, ensure sufficient contrast between text and all gradient colors for readability
+- **Reduced Motion**: Animated gradients should respect the `prefers-reduced-motion` media query
+- **Semantic Markup**: Use gradients for visual enhancement, not to convey critical information - always provide text alternatives
+- **Focus Indicators**: When using gradients on interactive elements, ensure focus indicators remain visible
+
+## Technical Details
+
+LinearGradient is built on top of YStack and inherits all its capabilities:
+
+- **Web**: Uses CSS `linear-gradient()` with automatic angle calculation based on start/end points
+- **Native**: Wraps `expo-linear-gradient` with Tamagui style prop support
+- **Performance**: On web, gradients with non-standard angles (where x-coordinates differ) use `onLayout` to calculate dimensions for accurate rendering
+- **Color Normalization**: Automatically converts Tamagui theme tokens to platform-specific color formats
+
+## Best Practices
+
+- Use theme tokens for colors to maintain consistency across your design system
+- Keep gradient color combinations accessible with sufficient contrast
+- Consider performance when animating gradients - use CSS animations on web when possible
+- Test gradients on both light and dark themes
+- Avoid overusing gradients - they work best as accents and focal points
+- For complex multi-color gradients, specify `locations` for precise control

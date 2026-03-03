@@ -1,0 +1,165 @@
+---
+title: Tabs
+description: A set of layered sections of content, known as tab panels, that are displayed one at a time.
+---
+
+# Tabs
+
+A set of layered sections of content, known as tab panels, that are displayed one at a time.
+
+## Installation
+
+```bash
+npm install @tamagui/tabs
+```
+
+## Usage
+
+```tsx
+import { Tabs } from '@tamagui/tabs'
+
+export default function TabsExample() {
+  return (
+    <Tabs defaultValue="tab1" orientation="horizontal">
+      <Tabs.List>
+        <Tabs.Tab value="tab1">Tab 1</Tabs.Tab>
+        <Tabs.Tab value="tab2">Tab 2</Tabs.Tab>
+        <Tabs.Tab value="tab3">Tab 3</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Content value="tab1">
+        Content for tab 1
+      </Tabs.Content>
+      <Tabs.Content value="tab2">
+        Content for tab 2
+      </Tabs.Content>
+      <Tabs.Content value="tab3">
+        Content for tab 3
+      </Tabs.Content>
+    </Tabs>
+  )
+}
+```
+
+## Anatomy
+
+```tsx
+import { Tabs } from '@tamagui/tabs'
+
+export default () => (
+  <Tabs>
+    <Tabs.List>
+      <Tabs.Tab />
+    </Tabs.List>
+    <Tabs.Content />
+  </Tabs>
+)
+```
+
+## API Reference
+
+### Tabs
+
+<ParamField path="value" type="string">
+  The value for the selected tab, if controlled.
+</ParamField>
+
+<ParamField path="defaultValue" type="string">
+  The value of the tab to select by default, if uncontrolled.
+</ParamField>
+
+<ParamField path="onValueChange" type="(value: string) => void">
+  A function called when a new tab is selected.
+</ParamField>
+
+<ParamField path="orientation" type="'horizontal' | 'vertical'" default="horizontal">
+  The orientation the tabs are layed out. Mainly so arrow navigation is done accordingly (left & right vs. up & down).
+</ParamField>
+
+<ParamField path="dir" type="'ltr' | 'rtl'">
+  The direction of navigation between toolbar items.
+</ParamField>
+
+<ParamField path="activationMode" type="'automatic' | 'manual'" default="automatic">
+  Whether a tab is activated automatically or manually. Only supported in web.
+</ParamField>
+
+### Tabs.List
+
+<ParamField path="loop" type="boolean" default="true">
+  Whether to loop over after reaching the end or start of the items.
+</ParamField>
+
+### Tabs.Tab
+
+<ParamField path="value" type="string" required>
+  The value for the tabs state to be changed to after activation of the trigger.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Whether the tab is disabled.
+</ParamField>
+
+<ParamField path="onInteraction" type="(type: 'select' | 'focus' | 'hover', layout: TabLayout | null) => void">
+  Used for making custom indicators when trigger interacted with.
+</ParamField>
+
+<ParamField path="activeStyle" type="object">
+  Custom styles to apply when tab is active.
+</ParamField>
+
+<ParamField path="activeTheme" type="string | null">
+  Theme to apply when tab is active (use null for no theme).
+</ParamField>
+
+### Tabs.Content
+
+<ParamField path="value" type="string" required>
+  Will show the content when the value matches the state of Tabs root.
+</ParamField>
+
+<ParamField path="forceMount" type="boolean">
+  Used to force mounting when more control is needed. Useful when controlling animation with Tamagui animations.
+</ParamField>
+
+## Examples
+
+### Controlled Tabs
+
+```tsx
+import { useState } from 'react'
+import { Tabs } from '@tamagui/tabs'
+
+export default function ControlledTabs() {
+  const [activeTab, setActiveTab] = useState('tab1')
+
+  return (
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs.List>
+        <Tabs.Tab value="tab1">Tab 1</Tabs.Tab>
+        <Tabs.Tab value="tab2">Tab 2</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Content value="tab1">Tab 1 content</Tabs.Content>
+      <Tabs.Content value="tab2">Tab 2 content</Tabs.Content>
+    </Tabs>
+  )
+}
+```
+
+### Vertical Tabs
+
+```tsx
+import { Tabs } from '@tamagui/tabs'
+
+export default function VerticalTabs() {
+  return (
+    <Tabs defaultValue="tab1" orientation="vertical">
+      <Tabs.List>
+        <Tabs.Tab value="tab1">Tab 1</Tabs.Tab>
+        <Tabs.Tab value="tab2">Tab 2</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Content value="tab1">Tab 1 content</Tabs.Content>
+      <Tabs.Content value="tab2">Tab 2 content</Tabs.Content>
+    </Tabs>
+  )
+}
+```

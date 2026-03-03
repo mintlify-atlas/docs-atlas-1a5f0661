@@ -1,0 +1,575 @@
+---
+title: Configuration
+description: Configure Tamagui with createTamagui
+---
+
+The `createTamagui` function is the entry point for configuring your Tamagui design system. It sets up tokens, themes, fonts, media queries, animations, and other global settings.
+
+## Basic Setup
+
+```tsx tamagui.config.ts
+import { createTamagui } from 'tamagui'
+
+const config = createTamagui({
+  tokens,
+  themes,
+  fonts,
+  media,
+  shorthands,
+  animations,
+})
+
+type Conf = typeof config
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+
+export default config
+```
+
+## Type Signature
+
+```typescript
+export function createTamagui<Conf extends CreateTamaguiProps>(
+  configIn: Conf
+): InferTamaguiConfig<Conf>
+```
+
+## Configuration Options
+
+<ParamField path="tokens" type="CreateTokens" required>
+  Design tokens organized by category (color, space, size, radius, zIndex).
+  
+  ```tsx
+  import { createTokens } from 'tamagui'
+  
+  const tokens = createTokens({
+    color: {
+      blue1: '#e6f4ff',
+      blue10: '#0050b3',
+    },
+    space: {
+      1: 4,
+      2: 8,
+      4: 16,
+    },
+    size: {
+      sm: 32,
+      md: 48,
+      lg: 64,
+    },
+    radius: {
+      0: 0,
+      1: 4,
+      2: 8,
+    },
+    zIndex: {
+      0: 0,
+      1: 100,
+    },
+  })
+  ```
+</ParamField>
+
+<ParamField path="themes" type="ThemesLikeObject" required>
+  Theme definitions mapping theme keys to color values.
+  
+  ```tsx
+  const themes = {
+    light: {
+      background: '#fff',
+      color: '#000',
+      borderColor: '#ddd',
+    },
+    dark: {
+      background: '#000',
+      color: '#fff',
+      borderColor: '#333',
+    },
+  }
+  ```
+</ParamField>
+
+<ParamField path="fonts" type="GenericFonts">
+  Font families with token-based properties.
+  
+  ```tsx
+  import { createFont } from 'tamagui'
+  
+  const fonts = {
+    body: createFont({
+      family: 'Inter, sans-serif',
+      size: {
+        1: 12,
+        2: 14,
+        3: 16,
+        4: 18,
+      },
+      lineHeight: {
+        1: 16,
+        2: 20,
+        3: 24,
+        4: 28,
+      },
+      weight: {
+        4: '400',
+        7: '700',
+      },
+      letterSpacing: {
+        4: 0,
+        7: -0.5,
+      },
+    }),
+  }
+  ```
+</ParamField>
+
+<ParamField path="media" type="GenericMedia">
+  Responsive breakpoint definitions.
+  
+  ```tsx
+  const media = {
+    xs: { maxWidth: 660 },
+    sm: { maxWidth: 800 },
+    md: { maxWidth: 1020 },
+    lg: { maxWidth: 1280 },
+    xl: { maxWidth: 1650 },
+    gtXs: { minWidth: 661 },
+    gtSm: { minWidth: 801 },
+    gtMd: { minWidth: 1021 },
+    gtLg: { minWidth: 1281 },
+  }
+  ```
+</ParamField>
+
+<ParamField path="shorthands" type="CreateShorthands">
+  Shorthand mappings for style properties.
+  
+  ```tsx
+  import { createShorthands } from 'tamagui'
+  
+  const shorthands = createShorthands({
+    p: 'padding',
+    px: 'paddingHorizontal',
+    py: 'paddingVertical',
+    m: 'margin',
+    mx: 'marginHorizontal',
+    my: 'marginVertical',
+    bg: 'backgroundColor',
+    bc: 'borderColor',
+    br: 'borderRadius',
+  })
+  ```
+</ParamField>
+
+<ParamField path="animations" type="AnimationDriver | MultiDriverAnimations">
+  Animation driver configuration.
+  
+  ```tsx
+  import { createAnimations } from '@tamagui/animations-css'
+  
+  const animations = createAnimations({
+    quick: 'ease-in 150ms',
+    medium: 'ease-in-out 300ms',
+    slow: 'ease-out 500ms',
+  })
+  ```
+</ParamField>
+
+<ParamField path="settings" type="TamaguiSettings">
+  Global behavior settings.
+  
+  <ParamField path="defaultFont" type="string">
+    Default font family key (e.g., `'body'`).
+  </ParamField>
+  
+  <ParamField path="defaultPosition" type="'static' | 'relative'" default="'static'">
+    Default CSS position for View components (web only).
+  </ParamField>
+  
+  <ParamField path="shouldAddPrefersColorThemes" type="boolean" default="false">
+    Automatically add theme variants based on system color scheme preference.
+  </ParamField>
+  
+  <ParamField path="themeClassNameOnRoot" type="boolean" default="false">
+    Apply theme class names to root HTML element instead of wrapper div.
+  </ParamField>
+  
+  <ParamField path="disableRootThemeClass" type="boolean" default="false">
+    Disable theme class name on root entirely.
+  </ParamField>
+  
+  <ParamField path="mediaQueryDefaultActive" type="Record<string, boolean>">
+    Default active state for media queries (for SSR).
+    
+    ```tsx
+    mediaQueryDefaultActive: {
+      xs: true,
+      sm: true,
+      md: true,
+      lg: true,
+      xl: true,
+      // desktop-first
+      gtXs: false,
+      gtSm: false,
+    }
+    ```
+  </ParamField>
+  
+  <ParamField path="onlyAllowShorthands" type="boolean" default="false">
+    Only allow shorthand props (disallow full prop names for smaller bundle size).
+  </ParamField>
+  
+  <ParamField path="webContainerType" type="'inline-size' | 'size' | 'normal'" default="'inline-size'">
+    CSS container-type for container queries (web only).
+  </ParamField>
+</ParamField>
+
+<ParamField path="defaultProps" type="Record<string, any>">
+  Default props for named components.
+  
+  ```tsx
+  defaultProps: {
+    View: {
+      position: 'relative',
+    },
+    Text: {
+      color: '$color',
+    },
+  }
+  ```
+</ParamField>
+
+<ParamField path="selectionStyles" type="(theme: ThemeParsed) => object | null">
+  Function to generate text selection styles based on theme.
+  
+  ```tsx
+  selectionStyles: (theme) => ({
+    backgroundColor: theme.color5,
+    color: theme.color11,
+  })
+  ```
+</ParamField>
+
+## Complete Example
+
+<CodeGroup>
+
+```tsx tamagui.config.ts
+import { createTamagui, createTokens } from 'tamagui'
+import { createAnimations } from '@tamagui/animations-css'
+import { createMedia } from '@tamagui/react-native-media-driver'
+import { shorthands } from '@tamagui/shorthands'
+import { themes } from './themes'
+import { fonts } from './fonts'
+
+const tokens = createTokens({
+  color: {
+    white: '#fff',
+    black: '#000',
+    blue1: '#e6f4ff',
+    blue10: '#0050b3',
+    gray1: '#fafafa',
+    gray12: '#1a1a1a',
+  },
+  space: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    5: 20,
+    6: 24,
+    8: 32,
+  },
+  size: {
+    0: 0,
+    1: 20,
+    2: 24,
+    3: 28,
+    4: 32,
+    true: 32,
+    6: 48,
+    8: 64,
+  },
+  radius: {
+    0: 0,
+    1: 3,
+    2: 5,
+    3: 7,
+    4: 9,
+    true: 9,
+  },
+  zIndex: {
+    0: 0,
+    1: 100,
+    2: 200,
+    3: 300,
+  },
+})
+
+const media = createMedia({
+  xs: { maxWidth: 660 },
+  sm: { maxWidth: 800 },
+  md: { maxWidth: 1020 },
+  lg: { maxWidth: 1280 },
+  xl: { maxWidth: 1650 },
+  gtXs: { minWidth: 661 },
+  gtSm: { minWidth: 801 },
+  gtMd: { minWidth: 1021 },
+  gtLg: { minWidth: 1281 },
+})
+
+const animations = createAnimations({
+  quick: 'ease-in 150ms',
+  medium: 'ease-in-out 300ms',
+  slow: 'ease-out 500ms',
+  bouncy: 'cubic-bezier(0.68, -0.55, 0.265, 1.55) 400ms',
+})
+
+const config = createTamagui({
+  tokens,
+  themes,
+  fonts,
+  media,
+  shorthands,
+  animations,
+  
+  settings: {
+    defaultFont: 'body',
+    shouldAddPrefersColorThemes: true,
+    themeClassNameOnRoot: true,
+    mediaQueryDefaultActive: {
+      xs: true,
+      sm: true,
+      md: true,
+      lg: true,
+      xl: true,
+    },
+  },
+  
+  selectionStyles: (theme) =>
+    theme.color5
+      ? {
+          backgroundColor: theme.color5,
+          color: theme.color11,
+        }
+      : null,
+})
+
+type Conf = typeof config
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+
+export default config
+```
+
+```tsx app.tsx
+import { TamaguiProvider } from 'tamagui'
+import config from './tamagui.config'
+
+export default function App() {
+  return (
+    <TamaguiProvider config={config} defaultTheme="light">
+      {/* Your app */}
+    </TamaguiProvider>
+  )
+}
+```
+
+</CodeGroup>
+
+## Multi-Driver Animations
+
+Support multiple animation drivers in one config:
+
+```tsx
+import { createAnimations as createCSSAnimations } from '@tamagui/animations-css'
+import { createAnimations as createMotionAnimations } from '@tamagui/animations-motion'
+
+const animations = {
+  default: createCSSAnimations({
+    quick: 'ease-in 150ms',
+    medium: 'ease-in-out 300ms',
+  }),
+  motion: createMotionAnimations({
+    quick: { type: 'spring', duration: 150 },
+    bouncy: { type: 'spring', damping: 10, stiffness: 100 },
+  }),
+}
+
+const config = createTamagui({
+  animations,
+  // ...
+})
+
+// Use specific driver
+<View animatedBy="motion" animation="bouncy" />
+```
+
+## Built-in Shorthands
+
+Tamagui includes optimized built-in shorthands for minimal class names:
+
+```tsx
+const builtinShorthands = {
+  bblr: 'borderBottomLeftRadius',
+  bbrr: 'borderBottomRightRadius',
+  btlr: 'borderTopLeftRadius',
+  btrr: 'borderTopRightRadius',
+  bs: 'borderStyle',
+  bw: 'borderWidth',
+  col: 'color',
+  dsp: 'display',
+  fb: 'flexBasis',
+  fd: 'flexDirection',
+  ff: 'fontFamily',
+  fs: 'fontSize',
+  fw: 'fontWeight',
+  lh: 'lineHeight',
+  ls: 'letterSpacing',
+  o: 'opacity',
+  pe: 'pointerEvents',
+  pos: 'position',
+  // ...
+}
+```
+
+You can override or extend these:
+
+```tsx
+const config = createTamagui({
+  shorthands: {
+    // Adds to built-in shorthands
+    p: 'padding',
+    m: 'margin',
+  },
+})
+```
+
+## TypeScript Integration
+
+Declare your config to get full type safety:
+
+```tsx tamagui.config.ts
+const config = createTamagui({ /* ... */ })
+
+type Conf = typeof config
+
+// This makes TypeScript aware of your config everywhere
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+
+export default config
+```
+
+Now your tokens, themes, and media queries are fully typed:
+
+```tsx
+import { View } from 'tamagui'
+
+// TypeScript knows about your tokens
+<View 
+  backgroundColor="$blue10"  // ✅ Autocomplete
+  padding="$4"              // ✅ Autocomplete
+  $gtMd={{ padding: '$6' }} // ✅ Autocomplete
+/>
+```
+
+## CSS Output
+
+Get generated CSS for SSR or static export:
+
+```tsx
+const config = createTamagui({ /* ... */ })
+
+// Get all CSS
+const css = config.getCSS()
+
+// Get only new CSS since last call
+const newCss = config.getNewCSS()
+
+// Control what's included
+const css = config.getCSS({
+  exclude: 'design-system',  // Exclude tokens/themes/fonts CSS
+})
+```
+
+## Configuration Files
+
+Tamagui looks for config at:
+
+- `tamagui.config.ts`
+- `tamagui.config.js`
+- `src/tamagui.config.ts`
+- Path specified in `package.json` `tamagui.config` field
+
+```json package.json
+{
+  "tamagui": {
+    "config": "./config/tamagui.config.ts"
+  }
+}
+```
+
+## Best Practices
+
+<Tip>
+**Organize large configs into modules**
+
+Split tokens, themes, and fonts into separate files:
+
+```tsx
+import { createTamagui } from 'tamagui'
+import { tokens } from './tokens'
+import { themes } from './themes'
+import { fonts } from './fonts'
+import { media } from './media'
+
+const config = createTamagui({
+  tokens,
+  themes,
+  fonts,
+  media,
+})
+```
+</Tip>
+
+<Tip>
+**Use semantic token names**
+
+Prefer semantic names over specific values:
+
+```tsx
+// ✅ Good
+color: {
+  primary: '#0066ff',
+  background: '#fff',
+  text: '#000',
+}
+
+// ❌ Avoid
+color: {
+  blue: '#0066ff',
+  white: '#fff',
+  black: '#000',
+}
+```
+</Tip>
+
+<Warning>
+**Don't create circular dependencies**
+
+Avoid importing styled components in your config file, as the config is needed to create styled components.
+</Warning>
+
+## Related
+
+- [Tokens](/core/tokens) - Design token system
+- [Theme](/core/theme) - Theme configuration
+- [Animations](/core/animations) - Animation drivers
+- [Server Rendering](/core/server-rendering) - SSR setup

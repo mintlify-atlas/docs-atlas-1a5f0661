@@ -1,0 +1,324 @@
+---
+title: Why Tamagui?
+description: Learn why Tamagui is the best choice for cross-platform React development
+---
+
+# Why Tamagui?
+
+Tamagui solves the fundamental challenge of cross-platform development: **how do you share code between web and native without sacrificing performance or code quality?**
+
+## The Cross-Platform Challenge
+
+Most cross-platform solutions force you to choose:
+
+- **Runtime performance** - Traditional CSS-in-JS libraries add runtime overhead
+- **Code sharing** - Platform-specific optimizations often require separate codebases
+- **Developer experience** - Achieving great performance usually means complex, hard-to-maintain code
+
+Tamagui refuses this trade-off. You get all three.
+
+## The Tamagui Solution
+
+### 1. Optimizing Compiler
+
+The killer feature of Tamagui is its optimizing compiler that runs at build time.
+
+**On Web:**
+- Styled components are flattened to simple `div` elements
+- Styles are extracted into atomic CSS classes
+- Media queries and pseudo-states are optimized
+- Component trees are simplified, removing wrapper elements
+
+**On Native:**
+- Style objects are hoisted and memoized
+- Unnecessary component wrappers are removed
+- Platform-specific optimizations are applied automatically
+
+<Note>
+  In the ~500px² responsive browser section of the Tamagui website, **49 of 55 inline styled components are flattened** to a simple `div`. The homepage gains nearly **15% on Lighthouse** with the compiler enabled.
+</Note>
+
+### 2. True Cross-Platform
+
+Write your component once, and it works perfectly on iOS, Android, and web:
+
+```tsx
+import { Button, YStack, H2 } from 'tamagui'
+
+export function MyScreen() {
+  return (
+    <YStack padding="$4" gap="$4" backgroundColor="$background">
+      <H2>Hello World</H2>
+      <Button theme="accent" onPress={() => console.log('Pressed')}>
+        Click Me
+      </Button>
+    </YStack>
+  )
+}
+```
+
+This exact code runs on:
+- Web browsers (Chrome, Safari, Firefox, etc.)
+- iOS devices and simulators
+- Android devices and emulators
+- React Native for Windows
+- React Native for macOS
+
+**No platform-specific code. No conditional imports. No runtime checks.**
+
+### 3. Zero Runtime Overhead (with compiler)
+
+When compiled, your Tamagui components are transformed into the most efficient possible code:
+
+**Before compilation:**
+```tsx
+<YStack
+  padding="$4"
+  gap="$4"
+  backgroundColor="$blue3"
+  borderRadius="$4"
+  hoverStyle={{ backgroundColor: '$blue4' }}
+>
+  <Text>Hello</Text>
+</YStack>
+```
+
+**After compilation (web):**
+```html
+<div class="_padding-4 _gap-4 _bg-blue3 _radius-4 _hover-bg-blue4">
+  <span class="_text">Hello</span>
+</div>
+```
+
+No JavaScript runtime styling. Just static CSS classes.
+
+### 4. Type-Safe Design System
+
+Every design token, theme value, and component prop is fully typed:
+
+```tsx
+import { YStack } from 'tamagui'
+
+<YStack
+  padding="$4"        // ✅ Valid token
+  padding="$999"     // ❌ TypeScript error
+  backgroundColor="$blue9"  // ✅ Valid color
+  backgroundColor="$banana" // ❌ TypeScript error
+/>
+```
+
+Your IDE provides intelligent autocompletion for all tokens, making it easy to stay consistent with your design system.
+
+### 5. Performance that Scales
+
+Tamagui is built for production apps with thousands of components:
+
+- **Compile-time optimization** means no runtime style calculation overhead
+- **Atomic CSS** on web results in tiny CSS bundles regardless of app size
+- **Hoisted styles** on native avoid recreation on every render
+- **Tree shaking** removes unused components and styles
+
+<Tip>
+  The larger your app, the more you benefit from Tamagui's compiler. Style extraction and deduplication scale linearly, not exponentially.
+</Tip>
+
+## Key Benefits
+
+<CardGroup cols={2}>
+  <Card title="Write Once, Run Everywhere" icon="mobile">
+    Share 95%+ of your UI code between web and native without compromises.
+  </Card>
+  
+  <Card title="Production-Grade Performance" icon="gauge">
+    Compiler optimizations deliver performance that matches or exceeds hand-written platform-specific code.
+  </Card>
+  
+  <Card title="Rich Component Library" icon="box">
+    50+ accessible, customizable components including complex ones like Select, Dialog, and Sheet.
+  </Card>
+  
+  <Card title="Powerful Theming" icon="palette">
+    Sophisticated theme system with automatic dark mode, nested themes, and runtime theme switching.
+  </Card>
+  
+  <Card title="Flexible Animations" icon="sparkles">
+    Multiple animation drivers (CSS, React Native Animated, Reanimated) with a unified API.
+  </Card>
+  
+  <Card title="Gradual Adoption" icon="rocket">
+    Works both compiled and at runtime. Add to existing projects incrementally.
+  </Card>
+</CardGroup>
+
+## Use Cases
+
+### Perfect For:
+
+**Cross-Platform Apps**
+Building an app that needs to run on web, iOS, and Android with a single codebase.
+
+```tsx
+import { Button, Input, YStack } from 'tamagui'
+
+export function LoginForm() {
+  return (
+    <YStack gap="$4" padding="$4">
+      <Input placeholder="Email" />
+      <Input placeholder="Password" secureTextEntry />
+      <Button theme="accent">Sign In</Button>
+    </YStack>
+  )
+}
+```
+
+This form works perfectly on all platforms with proper native inputs and interactions.
+
+**Design Systems**
+Building a company-wide design system that teams can use across web and native apps.
+
+```tsx
+import { styled, YStack } from '@tamagui/core'
+
+export const Card = styled(YStack, {
+  name: 'Card',
+  padding: '$4',
+  borderRadius: '$4',
+  backgroundColor: '$background',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+  
+  variants: {
+    elevated: {
+      true: {
+        elevation: '$4',
+        shadowColor: '$shadowColor',
+      },
+    },
+  },
+})
+```
+
+Your design system components automatically work everywhere and get compiler optimizations.
+
+**High-Performance Dashboards**
+Building data-heavy interfaces where performance is critical.
+
+The compiler ensures that even with hundreds of components on screen, your app stays fast.
+
+**Rapid Prototyping**
+Quickly building prototypes that can evolve into production apps.
+
+Start without the compiler for fast iteration, then enable it for production performance.
+
+### When to Choose Tamagui:
+
+✅ **You need true cross-platform code sharing**
+If you're building for multiple platforms and want to maximize code reuse
+
+✅ **Performance is critical**
+If your app needs to be fast and you can't afford runtime styling overhead
+
+✅ **You want a complete solution**
+If you need a style system, component library, and compiler in one cohesive package
+
+✅ **Type safety matters**
+If you want your design system to be enforced at compile time
+
+✅ **You're building a design system**
+If you're creating reusable components for multiple projects
+
+## Comparison with Alternatives
+
+### vs. React Native + React Native Web
+
+**Tamagui:**
+- ✅ Optimizing compiler for production performance
+- ✅ Rich component library included
+- ✅ Sophisticated theming system
+- ✅ Design token management built-in
+
+**RN + RNW:**
+- ❌ No compile-time optimizations
+- ❌ Build your own components
+- ❌ Manual theme management
+- ❌ Roll your own design system
+
+### vs. CSS-in-JS Libraries (styled-components, emotion)
+
+**Tamagui:**
+- ✅ Works on web AND native
+- ✅ Compile-time extraction (no runtime overhead)
+- ✅ Built-in theme system
+- ✅ Responsive props out of the box
+
+**CSS-in-JS:**
+- ❌ Web only
+- ❌ Runtime styling overhead (unless using newer CSS extraction)
+- ❌ Theming requires additional setup
+- ❌ Responsive styling requires custom solution
+
+### vs. NativeWind / Tailwind
+
+**Tamagui:**
+- ✅ Type-safe design tokens
+- ✅ Theme-aware (automatic dark mode)
+- ✅ Component library included
+- ✅ Animation system built-in
+
+**NativeWind:**
+- ✅ Familiar Tailwind syntax
+- ❌ No type safety for utilities
+- ❌ Build your own components
+- ❌ Manual animation setup
+
+## Real-World Performance
+
+Projects using Tamagui report:
+
+- **15-20% improvement** in Lighthouse scores when enabling the compiler
+- **50-80% reduction** in runtime style calculations
+- **Smaller bundle sizes** due to CSS extraction and tree shaking
+- **Faster time-to-interactive** on both web and native
+
+<Note>
+  The Tamagui documentation site itself is built with Tamagui, serving as a real-world example of a complex, high-performance web application.
+</Note>
+
+## Getting Started
+
+Ready to try Tamagui? Start with:
+
+<Steps>
+  <Step title="Create a new project">
+    ```bash
+    npm create tamagui@latest
+    ```
+  </Step>
+  
+  <Step title="Or add to existing project">
+    ```bash
+    npm install tamagui
+    ```
+  </Step>
+  
+  <Step title="Follow the Quick Start">
+    Check out the [Quick Start guide](/quickstart) for a step-by-step tutorial
+  </Step>
+</Steps>
+
+## Learn More
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Get Tamagui set up in your project
+  </Card>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Build your first component in minutes
+  </Card>
+  <Card title="Configuration" icon="gear" href="/core/configuration">
+    Learn about configuring themes and tokens
+  </Card>
+  <Card title="Components" icon="box" href="/components/button">
+    Explore the component library
+  </Card>
+</CardGroup>

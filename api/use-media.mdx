@@ -1,0 +1,225 @@
+---
+title: useMedia
+description: React to media query changes and responsive breakpoints
+---
+
+# useMedia
+
+The `useMedia` hook provides access to the current media query state in your Tamagui components. It returns an object with boolean values for each configured media query, allowing you to build responsive interfaces that react to screen size changes.
+
+## Import
+
+```tsx
+import { useMedia } from 'tamagui'
+// or
+import { useMedia } from '@tamagui/core'
+```
+
+## Function Signature
+
+```typescript
+function useMedia(
+  componentContext?: ComponentContextI,
+  debug?: DebugProp
+): UseMediaState
+```
+
+## Parameters
+
+<ParamField path="componentContext" type="ComponentContextI" optional>
+  Internal component context for advanced usage. Typically not needed in user code.
+</ParamField>
+
+<ParamField path="debug" type="boolean | 'verbose'" optional>
+  Enable debug logging to track media query changes. Useful for development.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="UseMediaState" type="object">
+  A proxied object containing boolean values for each configured media query. The proxy tracks which media queries you access to optimize re-renders.
+
+  **Common media query properties** (based on your configuration):
+  - `xs` - Extra small screens
+  - `sm` - Small screens  
+  - `md` - Medium screens
+  - `lg` - Large screens
+  - `xl` - Extra large screens
+  - `gtXs` - Greater than extra small
+  - `gtSm` - Greater than small
+  - `gtMd` - Greater than medium
+  - `gtLg` - Greater than large
+
+  Each property returns `true` when the media query matches, `false` otherwise.
+</ResponseField>
+
+## Usage
+
+### Basic Responsive Layout
+
+```tsx
+import { useMedia, YStack, XStack, Text } from 'tamagui'
+
+function ResponsiveLayout() {
+  const media = useMedia()
+
+  return (
+    <YStack>
+      <Text>Screen Size:</Text>
+      {media.xs && <Text>Extra Small</Text>}
+      {media.sm && <Text>Small</Text>}
+      {media.md && <Text>Medium</Text>}
+      {media.lg && <Text>Large</Text>}
+    </YStack>
+  )
+}
+```
+
+### Conditional Rendering
+
+```tsx
+import { useMedia, YStack, XStack } from 'tamagui'
+
+function Navigation() {
+  const media = useMedia()
+
+  return media.gtMd ? (
+    <XStack space="$4">
+      <NavigationItem>Home</NavigationItem>
+      <NavigationItem>About</NavigationItem>
+      <NavigationItem>Contact</NavigationItem>
+    </XStack>
+  ) : (
+    <MobileMenu />
+  )
+}
+```
+
+### Responsive Width Control
+
+```tsx
+import { useMedia, View } from 'tamagui'
+import { useState, useEffect } from 'react'
+
+function ResponsiveContainer() {
+  const media = useMedia()
+  const [width, setWidth] = useState(800)
+
+  const breakpoints = [
+    { at: 400, name: 'xs' },
+    { at: 600, name: 'sm' },
+    { at: 800, name: 'md' },
+    { at: 1000, name: 'lg' },
+  ]
+
+  useEffect(() => {
+    if (media.sm) {
+      setWidth(600)
+    } else if (media.md) {
+      setWidth(800)
+    } else if (media.lg) {
+      setWidth(1000)
+    }
+  }, [media.sm, media.md, media.lg])
+
+  return (
+    <View width={width}>
+      {/* Content */}
+    </View>
+  )
+}
+```
+
+### Dynamic Column Count
+
+```tsx
+import { useMedia, YStack } from 'tamagui'
+
+function ResponsiveGrid({ items }) {
+  const media = useMedia()
+
+  const columns = media.lg ? 4 : media.md ? 3 : media.sm ? 2 : 1
+
+  return (
+    <YStack flexDirection="row" flexWrap="wrap">
+      {items.map((item, i) => (
+        <YStack
+          key={i}
+          width={`${100 / columns}%`}
+          padding="$2"
+        >
+          {item}
+        </YStack>
+      ))}
+    </YStack>
+  )
+}
+```
+
+### Debug Mode
+
+```tsx
+import { useMedia } from 'tamagui'
+
+function DebugComponent() {
+  // Enable debug logging in development
+  const media = useMedia(undefined, 'verbose')
+
+  // Console will log: "useMedia() ✍️ md false => true"
+  // when media queries change
+
+  return <View>{/* ... */}</View>
+}
+```
+
+## How It Works
+
+1. **Media Query Listeners**: Sets up native media query listeners for each configured breakpoint
+2. **Selective Tracking**: The proxy tracks which media queries you access
+3. **Optimized Re-renders**: Only re-renders when accessed media queries change
+4. **SSR Support**: Returns initial/default state on server, then hydrates with actual values
+5. **React 18 Compatible**: Uses `useSyncExternalStore` for concurrent rendering support
+
+## Configuration
+
+Media queries are configured in your Tamagui config:
+
+```tsx
+import { createTamagui } from 'tamagui'
+
+export default createTamagui({
+  media: {
+    xs: { maxWidth: 660 },
+    sm: { maxWidth: 800 },
+    md: { maxWidth: 1020 },
+    lg: { maxWidth: 1280 },
+    xl: { maxWidth: 1420 },
+    gtXs: { minWidth: 660 + 1 },
+    gtSm: { minWidth: 800 + 1 },
+    gtMd: { minWidth: 1020 + 1 },
+    gtLg: { minWidth: 1280 + 1 },
+  },
+  // ... other config
+})
+```
+
+## Best Practices
+
+1. **Access Only What You Need**: Only access the media queries you actually use to minimize re-renders
+2. **Use Greater-Than Queries**: `gtSm`, `gtMd` etc. are often more useful than max-width queries
+3. **Combine with useMemo**: Memoize expensive calculations based on media queries
+4. **SSR Considerations**: Be aware of hydration - server renders with default values
+5. **Debug in Development**: Use the debug parameter to understand media query changes
+
+## Performance
+
+The hook is highly optimized:
+- Only re-renders when accessed media queries change
+- Uses native media query listeners (no polling)
+- Automatic cleanup of listeners
+- Minimal bundle size impact
+
+## Related
+
+- [styled()](/api/styled) - Using media queries in styled components
+- [Configuration](/core/configuration) - Configuring media queries

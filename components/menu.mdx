@@ -1,0 +1,227 @@
+---
+title: Menu
+description: Displays a menu to the user, triggered by a button press or right click.
+---
+
+# Menu
+
+Displays a menu to the user, triggered by a button press or right click.
+
+## Installation
+
+```bash
+npm install @tamagui/menu
+```
+
+## Usage
+
+```tsx
+import { Menu } from '@tamagui/menu'
+
+export default function MenuExample() {
+  return (
+    <Menu>
+      <Menu.Trigger>
+        <Button>Open Menu</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.Item onPress={() => console.log('Undo')}>Undo</Menu.Item>
+        <Menu.Item onPress={() => console.log('Redo')}>Redo</Menu.Item>
+        <Menu.Separator />
+        <Menu.Item onPress={() => console.log('Cut')}>Cut</Menu.Item>
+        <Menu.Item onPress={() => console.log('Copy')}>Copy</Menu.Item>
+        <Menu.Item onPress={() => console.log('Paste')}>Paste</Menu.Item>
+      </Menu.Content>
+    </Menu>
+  )
+}
+```
+
+## Anatomy
+
+```tsx
+import { Menu } from '@tamagui/menu'
+
+export default () => (
+  <Menu>
+    <Menu.Trigger />
+    <Menu.Portal>
+      <Menu.Content>
+        <Menu.Item />
+        <Menu.CheckboxItem />
+        <Menu.RadioGroup>
+          <Menu.RadioItem />
+        </Menu.RadioGroup>
+        <Menu.Sub>
+          <Menu.SubTrigger />
+          <Menu.SubContent />
+        </Menu.Sub>
+        <Menu.Separator />
+      </Menu.Content>
+    </Menu.Portal>
+  </Menu>
+)
+```
+
+## API Reference
+
+### Menu
+
+The root component that manages menu state.
+
+### Menu.Trigger
+
+The button that toggles the menu.
+
+### Menu.Portal
+
+Portals the menu content to the body (web only).
+
+### Menu.Content
+
+The component that contains the menu items.
+
+### Menu.Item
+
+<ParamField path="onPress" type="() => void">
+  Called when the item is selected.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Whether the item is disabled.
+</ParamField>
+
+### Menu.ItemTitle
+
+The title text of a menu item.
+
+### Menu.ItemSubtitle
+
+The subtitle text of a menu item.
+
+### Menu.ItemIcon
+
+An icon displayed within a menu item.
+
+### Menu.ItemImage
+
+An image displayed within a menu item.
+
+### Menu.CheckboxItem
+
+<ParamField path="checked" type="boolean">
+  The controlled checked state of the item.
+</ParamField>
+
+<ParamField path="onCheckedChange" type="(checked: boolean) => void">
+  Called when the checked state changes.
+</ParamField>
+
+### Menu.RadioGroup
+
+<ParamField path="value" type="string">
+  The controlled value of the radio group.
+</ParamField>
+
+<ParamField path="onValueChange" type="(value: string) => void">
+  Called when the value changes.
+</ParamField>
+
+### Menu.RadioItem
+
+<ParamField path="value" type="string" required>
+  The value of the radio item.
+</ParamField>
+
+### Menu.ItemIndicator
+
+Displays a checkmark when the parent CheckboxItem or RadioItem is checked.
+
+### Menu.Separator
+
+A visual separator between menu items.
+
+### Menu.Sub
+
+A submenu container.
+
+### Menu.SubTrigger
+
+The trigger for a submenu.
+
+### Menu.SubContent
+
+The content of a submenu.
+
+### Menu.Group
+
+Groups multiple menu items.
+
+### Menu.Label
+
+A label for a group of menu items.
+
+### Menu.Arrow
+
+An optional arrow pointing to the trigger.
+
+## Examples
+
+### With Checkboxes
+
+```tsx
+import { useState } from 'react'
+import { Menu } from '@tamagui/menu'
+
+export default function MenuWithCheckboxes() {
+  const [showBookmarks, setShowBookmarks] = useState(true)
+  const [showUrls, setShowUrls] = useState(false)
+
+  return (
+    <Menu>
+      <Menu.Trigger>
+        <Button>View</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.CheckboxItem
+          checked={showBookmarks}
+          onCheckedChange={setShowBookmarks}
+        >
+          Show Bookmarks
+          <Menu.ItemIndicator />
+        </Menu.CheckboxItem>
+        <Menu.CheckboxItem checked={showUrls} onCheckedChange={setShowUrls}>
+          Show Full URLs
+          <Menu.ItemIndicator />
+        </Menu.CheckboxItem>
+      </Menu.Content>
+    </Menu>
+  )
+}
+```
+
+### With Submenu
+
+```tsx
+import { Menu } from '@tamagui/menu'
+
+export default function MenuWithSubmenu() {
+  return (
+    <Menu>
+      <Menu.Trigger>
+        <Button>File</Button>
+      </Menu.Trigger>
+      <Menu.Content>
+        <Menu.Item>New File</Menu.Item>
+        <Menu.Sub>
+          <Menu.SubTrigger>Open Recent</Menu.SubTrigger>
+          <Menu.SubContent>
+            <Menu.Item>file1.txt</Menu.Item>
+            <Menu.Item>file2.txt</Menu.Item>
+          </Menu.SubContent>
+        </Menu.Sub>
+      </Menu.Content>
+    </Menu>
+  )
+}
+```

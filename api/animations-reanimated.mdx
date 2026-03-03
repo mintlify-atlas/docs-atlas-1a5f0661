@@ -1,0 +1,433 @@
+---
+title: Reanimated Driver
+description: High-performance animations using React Native Reanimated
+---
+
+The Reanimated driver uses React Native Reanimated v3+ for high-performance animations that run on the UI thread, providing the smoothest animations possible on mobile and web.
+
+## Installation
+
+```bash
+npm install @tamagui/animations-reanimated react-native-reanimated
+```
+
+Follow the [Reanimated installation guide](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/) to configure Babel plugin.
+
+## Usage
+
+```tsx
+import { createAnimations } from '@tamagui/animations-reanimated'
+import { createTamagui } from '@tamagui/core'
+
+const animations = createAnimations({
+  fast: {
+    type: 'spring',
+    damping: 20,
+    stiffness: 300,
+  },
+  medium: {
+    type: 'spring',
+    damping: 15,
+    stiffness: 150,
+  },
+  slow: {
+    type: 'timing',
+    duration: 450,
+  },
+})
+
+const config = createTamagui({
+  animations,
+  // ... other config
+})
+```
+
+## Animation Types
+
+### Spring Animations
+
+Physics-based spring animations:
+
+```tsx
+const animations = createAnimations({
+  bouncy: {
+    type: 'spring',
+    damping: 10,
+    mass: 1,
+    stiffness: 100,
+  },
+})
+```
+
+<ParamField path="type" type="'spring'" default="'spring'">
+  Animation type
+</ParamField>
+
+<ParamField path="damping" type="number" default="10">
+  Damping coefficient. Higher = less oscillation.
+</ParamField>
+
+<ParamField path="mass" type="number" default="1">
+  Mass of the animated object. Higher = more inertia.
+</ParamField>
+
+<ParamField path="stiffness" type="number" default="100">
+  Spring stiffness. Higher = faster/stiffer spring.
+</ParamField>
+
+<ParamField path="overshootClamping" type="boolean" default="false">
+  Whether to clamp overshoot.
+</ParamField>
+
+<ParamField path="restDisplacementThreshold" type="number" default="0.01">
+  Displacement threshold to consider animation at rest.
+</ParamField>
+
+<ParamField path="restSpeedThreshold" type="number" default="2">
+  Speed threshold to consider animation at rest.
+</ParamField>
+
+<ParamField path="delay" type="number">
+  Delay in milliseconds before animation starts.
+</ParamField>
+
+### Timing Animations
+
+Duration-based animations with easing:
+
+```tsx
+const animations = createAnimations({
+  smooth: {
+    type: 'timing',
+    duration: 300,
+    easing: Easing.inOut(Easing.ease),
+  },
+})
+```
+
+<ParamField path="type" type="'timing'" required>
+  Animation type
+</ParamField>
+
+<ParamField path="duration" type="number" default="300">
+  Animation duration in milliseconds.
+</ParamField>
+
+<ParamField path="easing" type="EasingFunction">
+  Easing function from Reanimated's Easing API.
+</ParamField>
+
+<ParamField path="delay" type="number">
+  Delay in milliseconds before animation starts.
+</ParamField>
+
+## Configuration
+
+### Basic Configuration
+
+```tsx
+import { createAnimations } from '@tamagui/animations-reanimated'
+
+const animations = createAnimations({
+  // Quick spring (default type)
+  quick: {
+    damping: 20,
+    stiffness: 300,
+  },
+  
+  // Bouncy spring
+  bouncy: {
+    type: 'spring',
+    damping: 9,
+    stiffness: 150,
+  },
+  
+  // Timing animation
+  smooth: {
+    type: 'timing',
+    duration: 300,
+  },
+})
+```
+
+## Features
+
+### UI Thread Animations
+
+All animations run on the UI thread (native/worklet), not the JS thread:
+
+```tsx
+<View
+  animation="fast"
+  opacity={0.5}
+  x={100}
+/>
+// Animated entirely on UI thread - no JS bridge
+```
+
+### Transform Animations
+
+Full support for all transform properties:
+
+```tsx
+<View
+  animation="bouncy"
+  scale={1.5}
+  rotate="45deg"
+  x={100}
+  y={50}
+  skewX="5deg"
+/>
+```
+
+### Color Animations
+
+Smooth color interpolation:
+
+```tsx
+<View
+  animation="medium"
+  backgroundColor="$blue10"
+  borderColor="$red10"
+  color="$text"
+/>
+```
+
+### Layout Animations
+
+Unlike React Native Animated, Reanimated can animate layout properties:
+
+```tsx
+<View
+  animation="smooth"
+  width={expanded ? 300 : 100}
+  height={expanded ? 200 : 100}
+  padding={expanded ? 20 : 10}
+/>
+```
+
+### Per-Property Animations
+
+Different animations for different properties:
+
+```tsx
+<View
+  animation={{
+    opacity: 'quick',
+    scale: 'bouncy',
+    width: { type: 'timing', duration: 500 },
+  }}
+  opacity={0.8}
+  scale={1.1}
+  width={200}
+/>
+```
+
+### Enter/Exit Animations
+
+Full AnimatePresence support with completion tracking:
+
+```tsx
+<AnimatePresence>
+  {visible && (
+    <View
+      key="item"
+      animation="medium"
+      enterStyle={{ opacity: 0, scale: 0.8 }}
+      exitStyle={{ opacity: 0, scale: 0.8 }}
+    >
+      Content
+    </View>
+  )}
+</AnimatePresence>
+```
+
+### avoidReRenders Optimization
+
+The driver supports `avoidReRenders` mode for hover/press/focus states without re-renders:
+
+```tsx
+// No re-render on hover - updates via SharedValues
+<Button
+  animation="fast"
+  hoverStyle={{ scale: 1.1 }}
+>
+  Hover Me
+</Button>
+```
+
+## Implementation Details
+
+### Driver Configuration
+
+The driver returns:
+
+```typescript
+{
+  needsCustomComponent: true,
+  View: Animated.View,         // Reanimated's Animated.View
+  Text: Animated.Text,         // Reanimated's Animated.Text
+  isReactNative: true,
+  inputStyle: 'value',         // Expects numeric values
+  outputStyle: 'inline',       // Returns animated styles inline
+  avoidReRenders: true,        // Supports re-render optimization
+  animations,
+  usePresence,
+  ResetPresence,
+}
+```
+
+### Dynamic Theme Values
+
+Automatically resolves dynamic theme values:
+
+```tsx
+// Handles { dynamic: { dark: '#000', light: '#fff' } }
+<View backgroundColor="$background" />
+```
+
+### Exit Animation Tracking
+
+For exit animations:
+
+1. Registers all animating properties at the start of exit cycle
+2. Tracks completion per property via worklet callbacks
+3. Calls `sendExitComplete` when all properties finish
+4. Handles interrupted exits (prevents stale callbacks)
+
+## Examples
+
+### Basic Spring
+
+```tsx
+import { createAnimations } from '@tamagui/animations-reanimated'
+
+const animations = createAnimations({
+  bouncy: {
+    damping: 10,
+    stiffness: 100,
+  },
+})
+
+<Button
+  animation="bouncy"
+  pressStyle={{ scale: 0.9 }}
+>
+  Press Me
+</Button>
+```
+
+### Timing with Easing
+
+```tsx
+import { Easing } from 'react-native-reanimated'
+import { createAnimations } from '@tamagui/animations-reanimated'
+
+const animations = createAnimations({
+  smooth: {
+    type: 'timing',
+    duration: 400,
+    easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+  },
+})
+```
+
+### Layout Animation
+
+```tsx
+<View
+  animation="smooth"
+  width={expanded ? 300 : 100}
+  height={expanded ? 200 : 100}
+  borderRadius={expanded ? 20 : 10}
+>
+  Expanding Content
+</View>
+```
+
+### Complex Multi-Property
+
+```tsx
+<View
+  animation={[
+    'bouncy',
+    {
+      opacity: { type: 'timing', duration: 200 },
+      scale: { damping: 15, stiffness: 200 },
+      width: { type: 'spring', damping: 20 },
+    }
+  ]}
+  opacity={0.8}
+  scale={1.2}
+  width={200}
+/>
+```
+
+### Delayed Animation
+
+```tsx
+const animations = createAnimations({
+  delayed: {
+    type: 'spring',
+    damping: 15,
+    stiffness: 150,
+    delay: 200,
+  },
+})
+```
+
+### Enter/Exit with Different Timings
+
+```tsx
+<View
+  animation={{
+    default: 'medium',
+    enter: 'bouncy',
+    exit: { type: 'timing', duration: 150 },
+  }}
+  enterStyle={{ opacity: 0, y: -20 }}
+  exitStyle={{ opacity: 0, y: 20 }}
+>
+  Content
+</View>
+```
+
+## Performance
+
+### UI Thread Benefits
+
+- **Smooth 60+ FPS** - Runs on UI thread
+- **No bridge overhead** - No JS ↔ Native communication during animation
+- **Layout animations** - Can animate layout properties smoothly
+- **Gesture-driven** - Perfect for pan/drag gestures
+
+### Web Performance
+
+On web, Reanimated uses:
+- **Worklets** for concurrent animations
+- **WAAPI** (Web Animations API) when possible
+- **Automatic batching** for style updates
+
+## Comparison with Other Drivers
+
+| Feature | Reanimated | React Native Animated | Motion |
+|---------|------------|----------------------|--------|
+| UI thread | ✅ | ✅ (limited) | ❌ (web only) |
+| Layout animations | ✅ | ❌ | ✅ |
+| Spring physics | ✅ | ✅ | ✅ |
+| Gesture integration | ✅ | ✅ | ❌ |
+| Web support | ✅ | ✅ | ✅ |
+| Performance | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+
+## Limitations
+
+- **Bundle size** - Larger than CSS or RN Animated drivers
+- **Babel plugin required** - Needs worklet transform
+- **Learning curve** - More complex than simple CSS animations
+
+## See Also
+
+- [Animations](/core/animations) - Animation system overview
+- [React Native Animated Driver](/api/animations-react-native)
+- [Motion Driver](/api/animations-motion)
+- [Reanimated Documentation](https://docs.swmansion.com/react-native-reanimated/)

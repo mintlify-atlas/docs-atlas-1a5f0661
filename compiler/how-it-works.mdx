@@ -1,0 +1,490 @@
+---
+title: How the Compiler Works
+description: Deep dive into Tamagui compiler internals, optimization strategies, and the extraction process
+---
+
+# How the Compiler Works
+
+The Tamagui compiler is a sophisticated build-time optimization system built on Babel. This guide explains the internal mechanics and optimization strategies.
+
+## Architecture Overview
+
+The compiler consists of several layers:
+
+```
+┌─────────────────────────────────────┐
+│   Bundler Plugin Layer              │
+│   (Vite, Next, Metro, Webpack)      │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│   Static Worker                     │
+│   (@tamagui/static-worker)          │
+│   - Manages worker pool             │
+│   - Coordinates compilation         │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│   Extractor                         │  
+│   (@tamagui/static)                 │
+│   - AST traversal                   │
+│   - Style extraction                │
+│   - Code transformation             │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│   Tamagui Core                      │
+│   - getSplitStyles()                │
+│   - getCSSStylesAtomic()            │
+│   - normalizeStyle()                │
+└─────────────────────────────────────┘
+```
+
+### Key Packages
+
+- **`@tamagui/static`**: Core extraction engine (code/compiler/static/)
+- **`@tamagui/static-worker`**: Worker pool management
+- **`@tamagui/vite-plugin`**: Vite integration
+- **`@tamagui/next-plugin`**: Next.js integration  
+- **`@tamagui/metro-plugin`**: React Native/Metro integration
+
+## Compilation Pipeline
+
+When a file is processed, it goes through these stages:
+
+### 1. Parse (Babel AST)
+
+The source code is parsed into an Abstract Syntax Tree:
+
+```ts
+// source/code/compiler/static/src/extractor/babelParse.ts
+import { parse } from '@babel/parser'
+
+const ast = parse(sourceCode, {
+  sourceType: 'module',
+  plugins: ['jsx', 'typescript'],
+})
+```
+
+This creates a traversable tree of your JSX:
+
+```tsx
+<YStack bg="red" padding={10} />
+
+// Becomes AST nodes:
+JSXElement {
+  openingElement: JSXOpeningElement {
+    name: JSXIdentifier { name: 'YStack' },
+    attributes: [
+      JSXAttribute { name: 'bg', value: StringLiteral { value: 'red' } },
+      JSXAttribute { name: 'padding', value: NumericLiteral { value: 10 } },
+    ]
+  }
+}
+```
+
+### 2. Validate Imports
+
+The extractor checks if the file imports Tamagui components:
+
+```ts
+// source/code/compiler/static/src/extractor/createExtractor.ts (line 429)
+for (const bodyPath of body) {
+  if (bodyPath.type !== 'ImportDeclaration') continue
+  const moduleName = node.source.value
+  
+  // Check if importing from 'tamagui' or other configured packages
+  const valid = isValidImport(propsWithFileInfo, moduleName)
+  if (valid) {
+    doesUseValidImport = true
+  }
+}
+
+if (!doesUseValidImport) {
+  return null // Skip this file
+}
+```
+
+### 3. Traverse JSX Elements
+
+The compiler walks the AST looking for JSX elements:
+
+```ts
+// source/code/compiler/static/src/extractor/createExtractor.ts (line 814)
+JSXElement(traversePath) {
+  const node = traversePath.node.openingElement
+  const componentName = node.name.name
+  
+  // Validate it's a Tamagui component
+  const component = getValidComponent(propsWithFileInfo, moduleName, componentName)
+  if (!component) return
+  
+  // Extract and optimize...
+}
+```
+
+### 4. Evaluate Props
+
+Each prop is evaluated to determine if it can be extracted:
+
+```ts
+// Props go through evaluation
+function evaluateAttribute(path: NodePath<t.JSXAttribute>) {
+  const name = attribute.name.name
+  const value = attribute.value
+  
+  // Try to statically evaluate the value
+  const styleValue = attemptEval(value)
+  
+  if (styleValue !== FAILED_EVAL) {
+    // Can be extracted!
+    return {
+      type: 'style',
+      value: { [name]: styleValue },
+      name,
+    }
+  }
+  
+  // Keep as runtime prop
+  return { type: 'attr', value: path.node }
+}
+```
+
+### 5. Generate Styles
+
+Extracted styles are converted to atomic CSS:
+
+```ts
+// source/code/compiler/static/src/extractor/extractToClassNames.ts (line 189)
+function addStyles(style: object) {
+  // Use core to generate atomic CSS
+  const cssStyles = getCSSStylesAtomic(style)
+  const classNames: string[] = []
+  
+  for (const style of cssStyles) {
+    const identifier = style[StyleObjectIdentifier]
+    const rules = style[StyleObjectRules]
+    
+    // Store CSS: ._bg-red { background-color: red; }
+    cssMap.set(`.${identifier}`, {
+      css: rules.join('\n'),
+    })
+    
+    classNames.push(identifier)
+  }
+  
+  return classNames
+}
+```
+
+### 6. Transform JSX
+
+The JSX is rewritten with optimized attributes:
+
+```ts
+// Original
+<YStack bg="red" padding={10} />
+
+// Transformed
+<div className="_bg-red _p-10" />
+```
+
+### 7. Generate Output
+
+Finally, code and CSS are generated:
+
+```ts
+// source/code/compiler/static/src/extractor/extractToClassNames.ts
+const js = generate(ast).code
+const styles = Array.from(cssMap.entries())
+  .map(([selector, { css }]) => `${selector}{${css}}`)
+  .join('\n')
+
+return {
+  js,      // Transformed JavaScript
+  styles,  // Generated CSS
+  map,     // Source map
+  ast,     // Transformed AST
+}
+```
+
+## Optimization Strategies
+
+### Component Flattening
+
+Tamagui components are replaced with native elements:
+
+```tsx
+// Before
+<YStack backgroundColor="red" />
+
+// After (web)
+<div className="_bg-red" />
+
+// After (native) 
+<View style={styles._bg_red} />
+```
+
+Flattening happens when:
+- All props can be statically extracted
+- No dynamic spreads are present
+- No animation props exist
+- Component accepts className (web)
+
+### Atomic CSS Generation
+
+Styles are converted to atomic (single-property) CSS classes:
+
+```ts
+// Input style object
+{ 
+  backgroundColor: 'red',
+  padding: 10,
+  borderRadius: 8 
+}
+
+// Generated atomic CSS
+._bg-red { background-color: red; }
+._p-10 { padding: 10px; }
+._br-8 { border-radius: 8px; }
+
+// Applied as
+className="_bg-red _p-10 _br-8"
+```
+
+Benefits:
+- Extreme CSS reuse across components
+- Tiny incremental cost for new components
+- Optimal gzip compression
+
+### Media Query Optimization
+
+Responsive props become CSS media queries:
+
+```tsx
+// Source
+<YStack padding="$4" $sm={{ padding: "$2" }} />
+
+// Generated CSS
+._p-4 { padding: var(--space-4); }
+
+@media (min-width: 768px) {
+  ._sm_p-2 { padding: var(--space-2); }
+}
+
+// Applied
+className="_p-4 _sm_p-2"
+```
+
+The compiler:
+1. Detects `$sm`, `$md`, etc. props
+2. Generates media query wrappers
+3. Merges rules with same breakpoint
+
+### Pseudo-State Extraction
+
+Hover, focus, and press states become CSS pseudo-classes:
+
+```tsx
+// Source  
+<Button 
+  bg="blue" 
+  hoverStyle={{ bg: "darkblue" }}
+  pressStyle={{ scale: 0.95 }}
+/>
+
+// Generated CSS
+._bg-blue { background-color: blue; }
+._bg-blue:hover { background-color: darkblue; }
+._scale-95:active { transform: scale(0.95); }
+```
+
+### Ternary Normalization
+
+Conditional styles are optimized:
+
+```tsx
+// Source
+<YStack {...(isSmall ? { padding: 10 } : { padding: 20 })} />
+
+// Compiled
+<div className={isSmall ? "_p-10" : "_p-20"} />
+```
+
+The compiler:
+1. Normalizes ternaries into simplified forms
+2. Evaluates both branches statically
+3. Generates className conditionals
+
+### Theme Variable Handling
+
+Theme tokens are converted to CSS variables:
+
+```tsx
+// Source
+<YStack bg="$background" />
+
+// Generated CSS
+._bg-var-background { 
+  background-color: var(--background); 
+}
+
+// Applied
+className="_bg-var-background"
+```
+
+At runtime, CSS variables update when themes change.
+
+## Caching Strategy
+
+The Vite plugin implements sophisticated caching:
+
+```ts
+// source/code/compiler/vite-plugin/src/plugin.ts (line 418)
+const cacheKey = getHash(`${code}${id}`)
+
+// Check cache first
+const cached = memoryCache[cacheKey]
+if (cached) {
+  return formatResult(cached)
+}
+
+// Check if another request is already extracting
+const pendingExtraction = pending.get(cacheKey)
+if (pendingExtraction) {
+  return await pendingExtraction
+}
+
+// Extract and cache
+const result = await extractToClassNames({ ... })
+memoryCache[cacheKey] = result
+```
+
+Caching is:
+- **Shared**: One cache across all Vite environments (SSR, client)
+- **Deduplicated**: Concurrent requests for same file share work
+- **Size-limited**: Cache clears at 64MB to prevent memory issues
+
+## Component Discovery
+
+The compiler can discover `styled()` components dynamically:
+
+```ts
+// Your code
+const Card = styled(YStack, {
+  backgroundColor: '$background',
+  padding: '$4',
+})
+
+// Compiler:
+// 1. Finds styled() call
+// 2. Extracts style definition
+// 3. Generates CSS rules
+// 4. Registers Card for JSX optimization
+```
+
+This works across files:
+
+```tsx
+// components.tsx
+export const Card = styled(YStack, { ... })
+
+// page.tsx
+import { Card } from './components'
+<Card /> // ← Compiler optimizes this!
+```
+
+## Debug Output
+
+In development, the compiler adds debug attributes:
+
+```ts
+// source/code/compiler/static/src/extractor/createExtractor.ts (line 962)
+if (shouldAddDebugProp && !disableDebugAttr) {
+  node.attributes.unshift(
+    t.jsxAttribute(t.jsxIdentifier('data-is'), t.stringLiteral(node.name.name)),
+    t.jsxAttribute(t.jsxIdentifier('data-in'), t.stringLiteral(componentName)),
+    t.jsxAttribute(
+      t.jsxIdentifier('data-at'),
+      t.stringLiteral(`${basename(filePath)}:${lineNumbers}`)
+    )
+  )
+}
+```
+
+This helps trace compiled components in DevTools.
+
+## Bailout Conditions
+
+The compiler skips optimization when:
+
+### Dynamic Spreads
+
+```tsx
+// Can't fully optimize
+<YStack {...dynamicProps} bg="red" />
+```
+
+### Complex Expressions
+
+```tsx
+// Too dynamic to evaluate
+<YStack padding={calculatePadding()} />
+```
+
+### Animation Props
+
+```tsx
+// Requires runtime
+<YStack animation="bouncy" x={position} />
+```
+
+### Group Styles
+
+```tsx
+// Needs runtime context
+<YStack $group-hover={{ bg: "red" }} />
+```
+
+When bailout occurs, the component falls back to runtime processing.
+
+## Platform Differences
+
+### Web Target
+
+- Generates atomic CSS classes
+- Outputs `.css` files
+- Uses `className` prop
+- Optimizes for bundle size
+
+### Native Target  
+
+- Generates StyleSheet objects
+- No className (uses style prop)
+- Variables stay as-is (no CSS vars)
+- Optimizes for runtime performance
+
+## Performance Metrics
+
+Typical improvements with compiler enabled:
+
+- **Bundle size**: 20-40% smaller
+- **Initial load**: 30-50% faster
+- **Runtime overhead**: 80-95% reduced
+- **CSS file size**: Atomic structure = high compression
+
+Actual results vary by application complexity.
+
+## Source Code Reference
+
+Key files to explore:
+
+- `code/compiler/static/src/extractor/createExtractor.ts` - Main extraction logic (~2000 lines)
+- `code/compiler/static/src/extractor/extractToClassNames.ts` - Web className generation  
+- `code/compiler/vite-plugin/src/plugin.ts` - Vite integration with caching
+- `code/compiler/next-plugin/src/withTamagui.ts` - Next.js webpack configuration
+
+## Next Steps
+
+- [Static Extraction](/compiler/static-extraction) - Learn what can be extracted and optimization patterns
+- [Installation](/compiler/installation) - Set up the compiler for your project

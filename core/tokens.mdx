@@ -1,0 +1,578 @@
+---
+title: Design Tokens
+description: Design tokens for consistent styling across your app
+---
+
+Design tokens are the building blocks of your design system. They provide named values for colors, spacing, sizes, and other design properties, ensuring consistency across your application.
+
+## Token Categories
+
+Tamagui organizes tokens into five core categories:
+
+- **color** - Color values (strings)
+- **space** - Spacing and positioning values (numbers)
+- **size** - Dimension values like width, height (numbers)
+- **radius** - Border radius values (numbers)
+- **zIndex** - Layering values (numbers)
+
+You can also define custom token categories for your specific needs.
+
+## Creating Tokens
+
+```tsx
+import { createTokens } from 'tamagui'
+
+const tokens = createTokens({
+  color: {
+    white: '#fff',
+    black: '#000',
+    blue1: '#e6f4ff',
+    blue10: '#0050b3',
+    gray1: '#fafafa',
+    gray12: '#1a1a1a',
+  },
+  space: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    true: 16,  // Used when prop is just boolean
+  },
+  size: {
+    sm: 32,
+    md: 48,
+    lg: 64,
+    xl: 80,
+  },
+  radius: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+  },
+  zIndex: {
+    0: 0,
+    1: 100,
+    2: 200,
+  },
+})
+```
+
+## Type Definition
+
+```typescript
+export function createTokens<T extends CreateTokens>(
+  tokens: T
+): MakeTokens<T>
+
+export type CreateTokens<Val extends VariableVal = VariableVal> = 
+  Record<string, { [key: GenericKey]: Val }> & {
+    color?: { [key: GenericKey]: Val }
+    space?: { [key: GenericKey]: Val }
+    size?: { [key: GenericKey]: Val }
+    radius?: { [key: GenericKey]: Val }
+    zIndex?: { [key: GenericKey]: Val }
+  }
+```
+
+## Token Variables
+
+Tokens are converted to CSS variables internally:
+
+```tsx
+const tokens = createTokens({
+  color: {
+    blue10: '#0050b3',
+  },
+  space: {
+    4: 16,
+  },
+})
+
+// Becomes:
+// --t-color-blue10: #0050b3
+// --t-space-4: 16px
+```
+
+### Variable Type
+
+```typescript
+export interface Variable<A = any> {
+  isVar: true
+  variable?: string  // CSS variable name
+  val: A            // Actual value
+  name: string      // Token name
+  key: string       // Full token key
+  needsPx?: boolean // Whether to add px units
+}
+```
+
+## Using Tokens
+
+### Direct Usage
+
+Prefix token names with `$` to use them:
+
+```tsx
+<View
+  backgroundColor="$blue10"
+  padding="$4"
+  borderRadius="$3"
+  margin="$2"
+/>
+```
+
+### In Styled Components
+
+```tsx
+const Card = styled(View, {
+  backgroundColor: '$background',
+  padding: '$4',
+  borderRadius: '$4',
+  shadowColor: '$shadowColor',
+  
+  variants: {
+    size: {
+      small: { padding: '$2' },
+      large: { padding: '$6' },
+    },
+  },
+})
+```
+
+### In Variant Functions
+
+```tsx
+const Button = styled(View, {
+  variants: {
+    color: {
+      '...color': (colorValue, { tokens }) => ({
+        backgroundColor: colorValue,
+        // Access raw token value
+        padding: tokens.space[4].val,
+      }),
+    },
+  },
+})
+```
+
+## Token Mapping
+
+Tamagui automatically maps tokens to appropriate style properties:
+
+### Color Tokens
+
+Applied to color-related properties:
+
+```tsx
+<View
+  backgroundColor="$blue10"
+  borderColor="$gray5"
+  shadowColor="$shadowColor"
+/>
+
+<Text 
+  color="$gray12"
+  textShadowColor="$shadowColor"
+/>
+```
+
+### Space Tokens
+
+Applied to spacing and positioning:
+
+```tsx
+<View
+  padding="$4"
+  paddingHorizontal="$6"
+  margin="$2"
+  gap="$3"
+  left="$2"
+  top="$4"
+/>
+```
+
+### Size Tokens
+
+Applied to dimensions:
+
+```tsx
+<View
+  width="$10"
+  height="$10"
+  minWidth="$8"
+  maxWidth="$20"
+/>
+```
+
+### Radius Tokens
+
+Applied to border radius:
+
+```tsx
+<View
+  borderRadius="$4"
+  borderTopLeftRadius="$2"
+  borderBottomRightRadius="$3"
+/>
+```
+
+### Z-Index Tokens
+
+Applied to layering:
+
+```tsx
+<View zIndex="$1" />
+<View zIndex="$2" />
+```
+
+## Custom Token Categories
+
+Define your own token categories:
+
+```tsx
+const tokens = createTokens({
+  // Built-in categories
+  color: { /* ... */ },
+  space: { /* ... */ },
+  
+  // Custom categories
+  opacity: {
+    subtle: 0.6,
+    medium: 0.8,
+    full: 1,
+  },
+  duration: {
+    fast: 150,
+    medium: 300,
+    slow: 500,
+  },
+})
+```
+
+To use custom tokens, configure the `accept` property in `styled()`:
+
+```tsx
+const FadeBox = styled(View, {
+  // ...
+}, {
+  accept: {
+    opacity: 'opacity',      // Map opacity prop to opacity tokens
+    duration: 'size',        // Reuse size token category
+  },
+})
+
+// Now you can use:
+<FadeBox opacity="$subtle" duration="$fast" />
+```
+
+## Token Scales
+
+### Numeric Scales
+
+Create consistent scales using numbers:
+
+```tsx
+const tokens = createTokens({
+  space: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    5: 20,
+    6: 24,
+    8: 32,
+    10: 40,
+    12: 48,
+    16: 64,
+  },
+})
+```
+
+### Named Scales
+
+Use semantic names for better clarity:
+
+```tsx
+const tokens = createTokens({
+  size: {
+    xs: 24,
+    sm: 32,
+    md: 48,
+    lg: 64,
+    xl: 80,
+  },
+})
+```
+
+### Boolean Tokens
+
+The special `true` key is used when a prop is boolean:
+
+```tsx
+const tokens = createTokens({
+  space: {
+    true: 16,  // Default value when prop={true}
+    1: 4,
+    2: 8,
+  },
+})
+
+const Spacer = styled(View, {
+  variants: {
+    gap: {
+      '...space': (space) => ({ gap: space }),
+    },
+  },
+})
+
+// Uses space.true token (16)
+<Spacer gap />
+
+// Uses space[2] token (8)
+<Spacer gap="$2" />
+```
+
+## Color Palettes
+
+Organize colors into scales:
+
+```tsx
+const tokens = createTokens({
+  color: {
+    // Blue scale
+    blue1: '#e6f4ff',
+    blue2: '#bae0ff',
+    blue3: '#91caff',
+    blue4: '#69b1ff',
+    blue5: '#4096ff',
+    blue6: '#1677ff',
+    blue7: '#0958d9',
+    blue8: '#003eb3',
+    blue9: '#002c8c',
+    blue10: '#001d66',
+    
+    // Gray scale
+    gray1: '#fafafa',
+    gray2: '#f5f5f5',
+    gray3: '#efefef',
+    // ...
+    gray12: '#1a1a1a',
+  },
+})
+```
+
+## Accessing Token Values
+
+### At Runtime
+
+```tsx
+import { getTokens } from 'tamagui'
+
+const tokens = getTokens()
+
+// Access value
+const blueValue = tokens.color.blue10.val  // '#0050b3'
+const spaceValue = tokens.space[4].val     // 16
+
+// Access variable name
+const cssVar = tokens.color.blue10.variable  // '--t-color-blue10'
+```
+
+### In Components
+
+```tsx
+import { useTokens } from 'tamagui'
+
+function MyComponent() {
+  const tokens = useTokens()
+  
+  return (
+    <View style={{ 
+      backgroundColor: tokens.color.blue10.val 
+    }} />
+  )
+}
+```
+
+### In Theme Functions
+
+```tsx
+import { createTheme } from '@tamagui/create-theme'
+
+const theme = createTheme(
+  ['#fff', '#000', ...],
+  {
+    background: 0,
+    color: 1,
+  },
+  {
+    nonInheritedValues: {
+      // Access tokens here
+      shadowColor: tokens.color.gray5,
+    },
+  }
+)
+```
+
+## Token References
+
+Tokens can reference other tokens:
+
+```tsx
+const tokens = createTokens({
+  space: {
+    1: 4,
+    2: 8,
+    4: 16,
+  },
+  size: {
+    // Reference space tokens
+    buttonSm: '$space.2',  // 8
+    buttonMd: '$space.4',  // 16
+  },
+})
+```
+
+## Units
+
+Tamagui automatically adds `px` units to numeric tokens where appropriate:
+
+```tsx
+const tokens = createTokens({
+  space: {
+    4: 16,  // Becomes '16px' in CSS
+  },
+  size: {
+    10: 40,  // Becomes '40px' in CSS
+  },
+})
+```
+
+Categories that receive `px` units:
+- `size`
+- `space`
+- `radius`
+
+Categories that remain unitless:
+- `color`
+- `zIndex`
+- Custom categories (by default)
+
+## TypeScript
+
+Tamagui generates types from your tokens:
+
+```tsx
+import { createTokens } from 'tamagui'
+
+const tokens = createTokens({
+  color: {
+    blue10: '#0050b3',
+  },
+})
+
+type Conf = typeof config
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+
+// Now TypeScript knows:
+<View backgroundColor="$blue10" /> // ✅ Valid
+<View backgroundColor="$red10" />  // ❌ Type error
+```
+
+## Best Practices
+
+<Tip>
+**Use consistent scale progressions**
+
+Follow a consistent pattern for scales (e.g., 4px increments):
+
+```tsx
+space: {
+  0: 0,
+  1: 4,
+  2: 8,
+  3: 12,
+  4: 16,
+  5: 20,
+  6: 24,
+  8: 32,
+}
+```
+</Tip>
+
+<Tip>
+**Align token keys across categories**
+
+Use the same key numbers for related sizes:
+
+```tsx
+space: { 4: 16, 6: 24, 8: 32 },
+size: { 4: 32, 6: 48, 8: 64 },
+radius: { 4: 16, 6: 24, 8: 32 },
+```
+</Tip>
+
+<Tip>
+**Provide a `true` token**
+
+Include a `true` key for boolean usage:
+
+```tsx
+space: {
+  true: 16,  // Default spacing
+  1: 4,
+  2: 8,
+}
+```
+</Tip>
+
+<Warning>
+**Avoid extremely large token sets**
+
+Too many tokens can:
+- Increase bundle size
+- Make CSS output larger
+- Reduce maintainability
+
+Prefer a well-chosen set of 10-20 tokens per category.
+</Warning>
+
+## Token Themes
+
+Some design systems use tokens in themes:
+
+```tsx
+const tokens = createTokens({
+  color: {
+    // Base colors
+    blue1: '#e6f4ff',
+    blue10: '#0050b3',
+  },
+})
+
+const themes = {
+  light: {
+    // References tokens
+    primary: tokens.color.blue10,
+    background: tokens.color.blue1,
+  },
+  dark: {
+    primary: tokens.color.blue5,
+    background: tokens.color.blue10,
+  },
+}
+```
+
+## Related
+
+- [Theme](/core/theme) - Using tokens in themes
+- [Configuration](/core/configuration) - Setting up tokens
+- [Variants](/core/variants) - Token-based variants
+- [styled()](/core/styled) - Using tokens in styled components

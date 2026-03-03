@@ -1,0 +1,473 @@
+---
+title: 'Webpack Integration'
+description: 'Configure Tamagui with Webpack using the loader for optimized builds'
+---
+
+<Info>
+  **Prerequisites**:
+  - Webpack 5 or higher
+  - Node.js 18 or higher
+  - A Webpack-based project (or use with custom setups)
+</Info>
+
+The Tamagui loader enables style extraction and optimization in Webpack-based projects, including custom React applications and frameworks.
+
+## Installation
+
+<Steps>
+<Step title="Install dependencies">
+
+<CodeGroup>
+```bash npm
+npm install tamagui tamagui-loader
+```
+
+```bash yarn
+yarn add tamagui tamagui-loader
+```
+
+```bash pnpm
+pnpm add tamagui tamagui-loader
+```
+</CodeGroup>
+
+</Step>
+
+<Step title="Configure Webpack">
+
+Add the Tamagui loader to your `webpack.config.js`:
+
+```js webpack.config.js
+const TamaguiPlugin = require('tamagui-loader').TamaguiPlugin
+
+module.exports = {
+  // ... other config
+  
+  module: {
+    rules: [
+      {
+        test: /\.(tsx|ts|jsx|js)$/,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: 'tamagui-loader',
+            options: {
+              config: './tamagui.config.ts',
+              components: ['tamagui'],
+              platform: 'web',
+            },
+          },
+          // Other loaders (babel-loader, etc.)
+        ],
+      },
+      {
+        test: /\.tamagui\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+    ],
+  },
+  
+  plugins: [
+    new TamaguiPlugin({
+      config: './tamagui.config.ts',
+      components: ['tamagui'],
+      platform: 'web',
+    }),
+  ],
+}
+```
+
+</Step>
+
+<Step title="Create Tamagui config">
+
+Create `tamagui.config.ts`:
+
+```ts tamagui.config.ts
+import { config } from '@tamagui/config/v3'
+import { createTamagui } from 'tamagui'
+
+const tamaguiConfig = createTamagui(config)
+
+export default tamaguiConfig
+
+export type Conf = typeof tamaguiConfig
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+```
+
+</Step>
+
+<Step title="Add TamaguiProvider">
+
+Wrap your app:
+
+```tsx src/index.tsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { TamaguiProvider } from 'tamagui'
+import config from './tamagui.config'
+import App from './App'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <TamaguiProvider config={config}>
+    <App />
+  </TamaguiProvider>
+)
+```
+
+</Step>
+</Steps>
+
+## Loader Configuration
+
+The `tamagui-loader` accepts these options:
+
+```ts
+type TamaguiOptions = {
+  // Path to your Tamagui config
+  config?: string
+  
+  // Component packages to process
+  components?: string[]
+  
+  // Platform target
+  platform?: 'web' | 'native'
+  
+  // Disable style extraction
+  disableExtraction?: boolean
+  
+  // Enable debug logging
+  logTimings?: boolean
+  
+  // Force production mode
+  forceExtraction?: boolean
+  
+  // Custom imports whitelist
+  importsWhitelist?: string[]
+}
+```
+
+## Plugin Configuration
+
+The `TamaguiPlugin` manages component modules:
+
+```js
+new TamaguiPlugin({
+  config: './tamagui.config.ts',
+  components: ['tamagui', '@my-org/design-system'],
+  platform: 'web',
+  isServer: false, // Set to true for SSR builds
+})
+```
+
+## How It Works
+
+The loader processes your components:
+
+1. **Checks file**: Skips `node_modules` and non-component files
+2. **Reads pragmas**: Looks for `@tamagui-disable` or `@tamagui-debug` comments
+3. **Extracts styles**: Calls `@tamagui/static-worker` to extract styles
+4. **Generates CSS**: Creates virtual `.tamagui.css` files
+5. **Injects imports**: Adds `require()` for generated CSS
+
+```ts
+// Original component
+export const MyButton = styled(Button, {
+  backgroundColor: '$blue',
+  padding: '$4',
+})
+
+// After loader processing
+// + CSS file created with optimized styles
+// + Component modified to use class names
+// + require('./MyButton.tsx.123.tamagui.css') injected
+```
+
+## Project Structure
+
+```
+my-webpack-app/
+├── src/
+│   ├── index.tsx             # Entry point with provider
+│   ├── App.tsx               # Your components
+│   └── components/
+├── tamagui.config.ts         # Tamagui configuration
+├── webpack.config.js         # Webpack with loader
+└── package.json
+```
+
+## SSR Configuration
+
+For server-side rendering, create separate configs:
+
+```js webpack.server.js
+const TamaguiPlugin = require('tamagui-loader').TamaguiPlugin
+
+module.exports = {
+  target: 'node',
+  
+  module: {
+    rules: [
+      {
+        test: /\.(tsx|ts)$/,
+        use: [
+          {
+            loader: 'tamagui-loader',
+            options: {
+              config: './tamagui.config.ts',
+              components: ['tamagui'],
+              platform: 'web',
+              // Server doesn't need CSS injection
+            },
+          },
+        ],
+      },
+    ],
+  },
+  
+  plugins: [
+    new TamaguiPlugin({
+      config: './tamagui.config.ts',
+      components: ['tamagui'],
+      platform: 'web',
+      isServer: true, // Important for SSR
+    }),
+  ],
+}
+```
+
+## Optimization
+
+### Production Builds
+
+Enable extraction in production:
+
+```js
+const isProduction = process.env.NODE_ENV === 'production'
+
+module.exports = {
+  module: {
+    rules: [
+      {
+        loader: 'tamagui-loader',
+        options: {
+          config: './tamagui.config.ts',
+          components: ['tamagui'],
+          forceExtraction: isProduction,
+          disableExtraction: !isProduction,
+        },
+      },
+    ],
+  },
+}
+```
+
+### Caching
+
+Enable Webpack caching for faster rebuilds:
+
+```js
+module.exports = {
+  cache: {
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename, './tamagui.config.ts'],
+    },
+  },
+}
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Loader not processing files">
+    Ensure the loader is applied before other JS loaders:
+    
+    ```js
+    use: [
+      'tamagui-loader', // Must come first
+      'babel-loader',
+    ]
+    ```
+    
+    Also check that files aren't excluded:
+    
+    ```js
+    exclude: /node_modules/, // Don't exclude your source files
+    ```
+  </Accordion>
+
+  <Accordion title="CSS not loading">
+    Ensure you have CSS loaders configured:
+    
+    ```js
+    {
+      test: /\.tamagui\.css$/,
+      use: ['style-loader', 'css-loader'],
+    }
+    ```
+    
+    Install if missing:
+    ```bash
+    npm install style-loader css-loader
+    ```
+  </Accordion>
+
+  <Accordion title="Error: Cannot create proxy">
+    This usually means components aren't loading correctly. Check:
+    
+    1. Plugin is instantiated: `new TamaguiPlugin()`
+    2. `components` array includes your packages
+    3. Config path is correct
+    
+    Enable debug logging:
+    ```js
+    loader: 'tamagui-loader',
+    options: {
+      logTimings: true,
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Build performance issues">
+    Disable extraction in development:
+    
+    ```js
+    options: {
+      disableExtraction: process.env.NODE_ENV === 'development',
+    }
+    ```
+    
+    Or use file-level pragma:
+    ```tsx
+    // @tamagui-disable
+    export function MyComponent() {}
+    ```
+  </Accordion>
+
+  <Accordion title="Module resolution errors">
+    Ensure Webpack resolves TypeScript:
+    
+    ```js
+    resolve: {
+      extensions: ['.tsx', '.ts', '.jsx', '.js'],
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Features
+
+### File-Level Pragmas
+
+Control extraction per file:
+
+```tsx MyComponent.tsx
+// @tamagui-disable
+// Skips extraction for this entire file
+
+export function MyComponent() {
+  return <View>...</View>
+}
+```
+
+```tsx DebugComponent.tsx
+// @tamagui-debug
+// Logs extraction details for this file
+
+export function DebugComponent() {
+  return <View>...</View>
+}
+```
+
+### Custom Component Packages
+
+Process your own design system:
+
+```js
+new TamaguiPlugin({
+  config: './tamagui.config.ts',
+  components: [
+    'tamagui',
+    '@my-org/ui-kit',
+    '@my-org/design-system',
+  ],
+})
+```
+
+### Imports Whitelist
+
+Allow specific imports to be processed:
+
+```js
+{
+  loader: 'tamagui-loader',
+  options: {
+    config: './tamagui.config.ts',
+    components: ['tamagui'],
+    importsWhitelist: [
+      'constants.js',
+      'theme.js',
+      'tokens.js',
+    ],
+  },
+}
+```
+
+## Integration with Other Tools
+
+### With Babel
+
+```js
+use: [
+  {
+    loader: 'tamagui-loader',
+    options: { /* ... */ },
+  },
+  {
+    loader: 'babel-loader',
+    options: {
+      presets: ['@babel/preset-react', '@babel/preset-typescript'],
+    },
+  },
+]
+```
+
+### With ESBuild Loader
+
+```js
+use: [
+  {
+    loader: 'tamagui-loader',
+    options: { /* ... */ },
+  },
+  {
+    loader: 'esbuild-loader',
+    options: {
+      target: 'es2020',
+      loader: 'tsx',
+    },
+  },
+]
+```
+
+### With TypeScript
+
+```js
+module.exports = {
+  resolve: {
+    extensions: ['.tsx', '.ts', '.jsx', '.js'],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: ['tamagui-loader', 'ts-loader'],
+      },
+    ],
+  },
+}
+```

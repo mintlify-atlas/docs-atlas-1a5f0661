@@ -1,0 +1,507 @@
+---
+title: createTheme()
+description: Create themes from color palettes with powerful template system
+---
+
+The `createTheme()` and `createThemeWithPalettes()` functions provide a powerful way to generate themes from color palettes using template-based definitions. This enables systematic theme generation with consistent patterns.
+
+## Function Signatures
+
+```typescript
+function createTheme<
+  Definition extends ThemeMask,
+  Extras extends GenericTheme = {}
+>(
+  palette: CreateThemePalette,
+  definition: Definition,
+  options?: CreateThemeOptions,
+  name?: string,
+  skipCache?: boolean
+): Theme
+
+function createThemeWithPalettes<
+  Definition extends ThemeMask,
+  Extras extends GenericTheme = {}
+>(
+  palettes: Record<string, CreateThemePalette>,
+  defaultPalette: string,
+  definition: Definition,
+  options?: CreateThemeOptions,
+  name?: string,
+  skipCache?: boolean
+): Theme
+```
+
+## Parameters
+
+### createTheme
+
+<ParamField path="palette" type="CreateThemePalette" required>
+  Array of color values to use for theme generation.
+  
+  ```typescript
+  const palette = [
+    '#ffffff', // 0
+    '#f8f9fa', // 1
+    '#e9ecef', // 2
+    // ... more colors
+    '#000000', // -1 (last item)
+  ]
+  ```
+</ParamField>
+
+<ParamField path="definition" type="ThemeMask" required>
+  Template object mapping theme keys to palette indices or custom values.
+  
+  ```typescript
+  const definition = {
+    background: 0,      // Use palette[0]
+    color: -1,          // Use palette[palette.length - 1]
+    primary: '#0070f3', // Custom value
+  }
+  ```
+</ParamField>
+
+<ParamField path="options" type="CreateThemeOptions">
+  Additional configuration options.
+  
+  <ParamField path="options.nonInheritedValues" type="object">
+    Values to add to theme that don't come from palette.
+  </ParamField>
+</ParamField>
+
+<ParamField path="name" type="string">
+  Theme name for debugging and tracking.
+</ParamField>
+
+<ParamField path="skipCache" type="boolean" default="false">
+  Skip theme caching (useful for dynamic theme generation).
+</ParamField>
+
+### createThemeWithPalettes
+
+<ParamField path="palettes" type="Record<string, CreateThemePalette>" required>
+  Named collection of color palettes.
+  
+  ```typescript
+  const palettes = {
+    light: ['#ffffff', '#f8f9fa', ..., '#000000'],
+    dark: ['#000000', '#111111', ..., '#ffffff'],
+    blue: ['#e3f2fd', '#bbdefb', ..., '#0d47a1'],
+  }
+  ```
+</ParamField>
+
+<ParamField path="defaultPalette" type="string" required>
+  Name of the palette to use as the base.
+</ParamField>
+
+<ParamField path="definition" type="ThemeMask" required>
+  Theme definition that can reference alternate palettes.
+  
+  ```typescript
+  const definition = {
+    background: 0,
+    color: -1,
+    primary: '$blue.5', // Use palette 'blue', index 5
+  }
+  ```
+</ParamField>
+
+## Return Type
+
+<ResponseField name="Theme" type="object">
+  Generated theme object with all defined keys mapped to color values:
+  
+  ```typescript
+  {
+    background: '#ffffff',
+    color: '#000000',
+    primary: '#0070f3',
+    // ... all other defined keys
+  }
+  ```
+</ResponseField>
+
+## Basic Usage
+
+### Simple Theme from Palette
+
+```tsx
+import { createTheme } from '@tamagui/create-theme'
+
+const grayPalette = [
+  '#ffffff',
+  '#f8f9fa',
+  '#e9ecef',
+  '#dee2e6',
+  '#ced4da',
+  '#adb5bd',
+  '#868e96',
+  '#495057',
+  '#343a40',
+  '#212529',
+  '#000000',
+]
+
+const lightTheme = createTheme(
+  grayPalette,
+  {
+    background: 0,        // #ffffff
+    backgroundHover: 1,   // #f8f9fa
+    backgroundPress: 2,   // #e9ecef
+    backgroundFocus: 2,
+    color: -1,            // #000000 (last item)
+    colorHover: -2,       // #212529 (second to last)
+    borderColor: 3,       // #dee2e6
+  },
+  { nonInheritedValues: {} },
+  'light'
+)
+```
+
+### Dark Theme (Same Template)
+
+```tsx
+const darkPalette = [
+  '#000000',
+  '#111111',
+  '#1a1a1a',
+  '#2a2a2a',
+  '#3a3a3a',
+  '#4a4a4a',
+  '#666666',
+  '#888888',
+  '#aaaaaa',
+  '#dddddd',
+  '#ffffff',
+]
+
+const darkTheme = createTheme(
+  darkPalette,
+  {
+    background: 0,        // #000000
+    backgroundHover: 1,   // #111111
+    backgroundPress: 2,   // #1a1a1a
+    backgroundFocus: 2,
+    color: -1,            // #ffffff
+    colorHover: -2,       // #dddddd
+    borderColor: 3,       // #2a2a2a
+  },
+  { nonInheritedValues: {} },
+  'dark'
+)
+```
+
+## Multi-Palette Themes
+
+### Using Multiple Palettes
+
+```tsx
+import { createThemeWithPalettes } from '@tamagui/create-theme'
+
+const palettes = {
+  light: [
+    '#ffffff', '#f8f9fa', '#e9ecef', '#dee2e6',
+    '#ced4da', '#adb5bd', '#868e96', '#495057',
+    '#343a40', '#212529', '#000000',
+  ],
+  
+  blue: [
+    '#e3f2fd', '#bbdefb', '#90caf9', '#64b5f6',
+    '#42a5f5', '#2196f3', '#1e88e5', '#1976d2',
+    '#1565c0', '#0d47a1', '#0a3d8f',
+  ],
+  
+  red: [
+    '#ffebee', '#ffcdd2', '#ef9a9a', '#e57373',
+    '#ef5350', '#f44336', '#e53935', '#d32f2f',
+    '#c62828', '#b71c1c', '#a31515',
+  ],
+}
+
+const theme = createThemeWithPalettes(
+  palettes,
+  'light',
+  {
+    background: 0,
+    color: -1,
+    
+    // Reference blue palette
+    primary: '$blue.5',      // palettes.blue[5]
+    primaryHover: '$blue.6',
+    
+    // Reference red palette
+    error: '$red.5',
+    errorHover: '$red.6',
+  },
+  undefined,
+  'myTheme'
+)
+```
+
+### Parent Palette Resolution
+
+```tsx
+const palettes = {
+  light: [...],
+  dark: [...],
+  
+  // These inherit from parent when using '$palette.index'
+  light_blue: [...],
+  dark_blue: [...],
+}
+
+const theme = createThemeWithPalettes(
+  palettes,
+  'light_blue',
+  {
+    background: 0,
+    // References 'blue' palette automatically
+    // Looks for: blue -> light_blue
+    accent: '$blue.5',
+  }
+)
+```
+
+## Template Patterns
+
+### Complete UI Theme Template
+
+```tsx
+const themeDefinition = {
+  // Background layers
+  background: 0,
+  backgroundHover: 1,
+  backgroundPress: 2,
+  backgroundFocus: 1,
+  backgroundStrong: 2,
+  backgroundTransparent: 0,
+  
+  // Foreground/text
+  color: -1,
+  colorHover: -2,
+  colorPress: -1,
+  colorFocus: -2,
+  colorTransparent: -1,
+  
+  // Borders
+  borderColor: 4,
+  borderColorHover: 5,
+  borderColorFocus: 6,
+  borderColorPress: 4,
+  
+  // Semantic colors (from other palettes)
+  primary: '$blue.6',
+  primaryHover: '$blue.7',
+  
+  secondary: '$gray.6',
+  secondaryHover: '$gray.7',
+  
+  success: '$green.6',
+  warning: '$yellow.6',
+  error: '$red.6',
+  
+  // Component-specific
+  placeholderColor: 5,
+  outlineColor: 6,
+}
+```
+
+### Responsive Palette Scale
+
+```tsx
+const createResponsivePalette = (baseColor: string) => {
+  // Generate 11-step palette from base color
+  return [
+    lighten(baseColor, 0.5),
+    lighten(baseColor, 0.4),
+    lighten(baseColor, 0.3),
+    lighten(baseColor, 0.2),
+    lighten(baseColor, 0.1),
+    baseColor,                    // 5 - base
+    darken(baseColor, 0.1),
+    darken(baseColor, 0.2),
+    darken(baseColor, 0.3),
+    darken(baseColor, 0.4),
+    darken(baseColor, 0.5),
+  ]
+}
+
+const bluePalette = createResponsivePalette('#2196f3')
+```
+
+## Advanced Usage
+
+### Non-Inherited Values
+
+```tsx
+const theme = createTheme(
+  palette,
+  definition,
+  {
+    nonInheritedValues: {
+      // Values not from palette
+      shadowColor: 'rgba(0,0,0,0.1)',
+      shadowColorHover: 'rgba(0,0,0,0.2)',
+      
+      // Component-specific overrides
+      buttonTextTransform: 'uppercase',
+    },
+  },
+  'themed'
+)
+```
+
+### Dynamic Theme Generation
+
+```tsx
+function generateThemeFromBrand(brandColor: string) {
+  const palette = createResponsivePalette(brandColor)
+  
+  return createTheme(
+    palette,
+    themeDefinition,
+    undefined,
+    `brand-${brandColor.slice(1)}`,
+    true // skip cache for dynamic themes
+  )
+}
+
+// Generate on-demand
+const customerTheme = generateThemeFromBrand('#ff6b6b')
+```
+
+### Theme Families
+
+```tsx
+import { addChildren } from '@tamagui/create-theme'
+
+const baseThemes = {
+  light: createTheme(...),
+  dark: createTheme(...),
+}
+
+// Automatically create component sub-themes
+const allThemes = addChildren(
+  baseThemes,
+  (name, theme) => ({
+    Button: {
+      ...theme,
+      background: theme.primary,
+      color: '#ffffff',
+    },
+    Card: {
+      ...theme,
+      background: theme.backgroundStrong,
+    },
+  })
+)
+
+// Results in:
+// light, dark, light_Button, dark_Button, light_Card, dark_Card
+```
+
+## Palette Index Reference
+
+```typescript
+// Positive indices (from start)
+palette[0]  // First color
+palette[1]  // Second color
+palette[5]  // Sixth color
+
+// Negative indices (from end)
+palette[-1] // Last color
+palette[-2] // Second to last
+palette[-5] // Fifth from end
+
+// Special handling for -0
+-0 !== 0    // Treated differently
+```
+
+## Integration with createTamagui
+
+```tsx
+import { createTamagui } from 'tamagui'
+import { createTheme } from '@tamagui/create-theme'
+
+const lightTheme = createTheme(lightPalette, definition)
+const darkTheme = createTheme(darkPalette, definition)
+
+const config = createTamagui({
+  themes: {
+    light: lightTheme,
+    dark: darkTheme,
+  },
+  // ... other config
+})
+```
+
+## Theme Info Access
+
+```tsx
+import { getThemeInfo } from '@tamagui/create-theme'
+
+const theme = createTheme(palette, definition, options, 'myTheme')
+const info = getThemeInfo(theme)
+
+console.log(info.palette)    // Original palette
+console.log(info.definition) // Theme definition
+console.log(info.options)    // Options passed
+console.log(info.name)       // 'myTheme'
+```
+
+## Best Practices
+
+1. **Consistent Palette Size**: Use 11-step palettes (0-10) for consistency
+2. **Semantic Indices**: Reserve specific indices for semantic meanings
+   - `0` - Lightest background
+   - `5` - Base/brand color  
+   - `-1` - Text/foreground
+3. **Reusable Definitions**: Share theme definitions across palettes
+4. **Named Palettes**: Use descriptive palette names (light, dark, blue, etc.)
+5. **Cache Wisely**: Only skip cache for truly dynamic themes
+
+## Common Palette Scales
+
+### 11-Step Gray Scale
+
+```typescript
+const grayPalette = [
+  'hsl(0, 0%, 100%)',  // 0 - white
+  'hsl(0, 0%, 97%)',   // 1
+  'hsl(0, 0%, 92%)',   // 2
+  'hsl(0, 0%, 87%)',   // 3
+  'hsl(0, 0%, 81%)',   // 4
+  'hsl(0, 0%, 68%)',   // 5 - mid gray
+  'hsl(0, 0%, 53%)',   // 6
+  'hsl(0, 0%, 29%)',   // 7
+  'hsl(0, 0%, 21%)',   // 8
+  'hsl(0, 0%, 13%)',   // 9
+  'hsl(0, 0%, 0%)',    // 10 - black
+]
+```
+
+### Brand Color Scale
+
+```typescript
+const brandPalette = [
+  'hsl(210, 100%, 95%)', // Lightest tint
+  'hsl(210, 100%, 90%)',
+  'hsl(210, 100%, 80%)',
+  'hsl(210, 100%, 70%)',
+  'hsl(210, 100%, 60%)',
+  'hsl(210, 100%, 50%)', // Base brand color
+  'hsl(210, 100%, 45%)',
+  'hsl(210, 100%, 40%)',
+  'hsl(210, 100%, 30%)',
+  'hsl(210, 100%, 20%)',
+  'hsl(210, 100%, 10%)', // Darkest shade
+]
+```
+
+## See Also
+
+- [createTamagui()](/api/create-tamagui) - Using themes in configuration
+- [createTokens()](/api/create-tokens) - Creating design tokens
+- [Theme Guide](/core/theme) - Complete theming system

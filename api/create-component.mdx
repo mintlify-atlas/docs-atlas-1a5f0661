@@ -1,0 +1,428 @@
+---
+title: createComponent()
+description: Low-level API for creating custom Tamagui components
+---
+
+The `createComponent()` function is Tamagui's low-level API for creating components with full control over static configuration. Most users should use `styled()` instead, but `createComponent()` is useful for advanced use cases and building custom abstractions.
+
+## Function Signature
+
+```typescript
+function createComponent<
+  ComponentPropTypes extends Record<string, any> = {},
+  Ref extends TamaguiElement = TamaguiElement,
+  BaseProps = never,
+  BaseStyles extends object = never
+>(staticConfig: StaticConfig): TamaguiComponent
+```
+
+## Parameters
+
+<ParamField path="staticConfig" type="StaticConfig" required>
+  Static configuration object defining component behavior.
+
+  <ParamField path="staticConfig.Component" type="string | React.ComponentType">
+    The underlying component to render (e.g., 'div', View, or custom component).
+  </ParamField>
+
+  <ParamField path="staticConfig.componentName" type="string">
+    Name for debugging and dev tools.
+  </ParamField>
+
+  <ParamField path="staticConfig.variants" type="VariantDefinitions">
+    Variant definitions for the component.
+  </ParamField>
+
+  <ParamField path="staticConfig.defaultProps" type="object">
+    Default props applied to the component.
+  </ParamField>
+
+  <ParamField path="staticConfig.defaultVariants" type="object">
+    Default variant values.
+  </ParamField>
+
+  <ParamField path="staticConfig.isText" type="boolean">
+    Whether this is a text component (affects style inheritance).
+  </ParamField>
+
+  <ParamField path="staticConfig.isReactNative" type="boolean">
+    Whether this is a React Native component.
+  </ParamField>
+
+  <ParamField path="staticConfig.acceptsClassName" type="boolean">
+    Whether the component accepts className prop.
+  </ParamField>
+
+  <ParamField path="staticConfig.isHOC" type="boolean">
+    Whether this is a higher-order component.
+  </ParamField>
+
+  <ParamField path="staticConfig.context" type="React.Context">
+    React context for sharing state with children.
+  </ParamField>
+
+  <ParamField path="staticConfig.neverFlatten" type="boolean">
+    Prevent component optimization/flattening.
+  </ParamField>
+</ParamField>
+
+## Return Type
+
+<ResponseField name="TamaguiComponent" type="React.ForwardRefExoticComponent">
+  A fully-featured Tamagui component with:
+  - Style prop support
+  - Variant prop support  
+  - Pseudo-prop support (hoverStyle, pressStyle, etc.)
+  - Media query support
+  - Theme integration
+  - Animation support
+</ResponseField>
+
+## Basic Usage
+
+### Simple Component
+
+```tsx
+import { createComponent } from 'tamagui'
+
+const MyComponent = createComponent({
+  Component: 'div',
+  componentName: 'MyComponent',
+  
+  defaultProps: {
+    backgroundColor: '$background',
+    padding: '$4',
+  },
+})
+
+// Usage
+<MyComponent>Content</MyComponent>
+```
+
+### With Variants
+
+```tsx
+import { createComponent } from 'tamagui'
+
+const Button = createComponent({
+  Component: 'button',
+  componentName: 'Button',
+  acceptsClassName: true,
+  
+  defaultProps: {
+    backgroundColor: '$blue10',
+    color: 'white',
+    paddingHorizontal: '$4',
+    paddingVertical: '$2',
+    borderRadius: '$2',
+    border: 'none',
+    cursor: 'pointer',
+  },
+  
+  variants: {
+    variant: {
+      primary: {
+        backgroundColor: '$blue10',
+      },
+      secondary: {
+        backgroundColor: '$gray10',
+      },
+      ghost: {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: '$borderColor',
+      },
+    },
+    
+    size: {
+      small: {
+        paddingHorizontal: '$2',
+        paddingVertical: '$1',
+        fontSize: '$2',
+      },
+      medium: {
+        paddingHorizontal: '$4',
+        paddingVertical: '$2',
+        fontSize: '$4',
+      },
+      large: {
+        paddingHorizontal: '$6',
+        paddingVertical: '$3',
+        fontSize: '$6',
+      },
+    },
+    
+    disabled: {
+      true: {
+        opacity: 0.5,
+        cursor: 'not-allowed',
+      },
+    },
+  },
+  
+  defaultVariants: {
+    variant: 'primary',
+    size: 'medium',
+  },
+})
+```
+
+### Text Component
+
+```tsx
+import { createComponent } from 'tamagui'
+
+const Paragraph = createComponent({
+  Component: 'p',
+  componentName: 'Paragraph',
+  isText: true,
+  acceptsClassName: true,
+  
+  defaultProps: {
+    color: '$color',
+    fontSize: '$4',
+    lineHeight: '$4',
+  },
+})
+```
+
+## Advanced Usage
+
+### With Context
+
+```tsx
+import { createComponent, createStyledContext } from 'tamagui'
+
+const CardContext = createStyledContext({
+  size: '$4',
+})
+
+const CardFrame = createComponent({
+  Component: 'div',
+  componentName: 'CardFrame',
+  context: CardContext,
+  acceptsClassName: true,
+  
+  defaultProps: {
+    backgroundColor: '$background',
+    borderRadius: '$4',
+    padding: '$4',
+  },
+  
+  variants: {
+    size: {
+      '$3': { padding: '$3' },
+      '$4': { padding: '$4' },
+      '$5': { padding: '$5' },
+    },
+  },
+})
+
+const CardTitle = createComponent({
+  Component: 'h3',
+  componentName: 'CardTitle',
+  isText: true,
+  context: CardContext,
+  acceptsClassName: true,
+  
+  variants: {
+    size: {
+      '$3': { fontSize: '$5' },
+      '$4': { fontSize: '$6' },
+      '$5': { fontSize: '$7' },
+    },
+  },
+})
+
+// CardTitle inherits size from CardFrame
+<CardFrame size="$5">
+  <CardTitle>Title gets size $5</CardTitle>
+</CardFrame>
+```
+
+### Wrapping React Native Components
+
+```tsx
+import { createComponent } from 'tamagui'
+import { TextInput } from 'react-native'
+
+const Input = createComponent({
+  Component: TextInput,
+  componentName: 'Input',
+  isReactNative: true,
+  
+  defaultProps: {
+    backgroundColor: '$background',
+    color: '$color',
+    borderWidth: 1,
+    borderColor: '$borderColor',
+    borderRadius: '$2',
+    padding: '$2',
+  },
+  
+  variants: {
+    error: {
+      true: {
+        borderColor: '$red10',
+      },
+    },
+  },
+})
+```
+
+### Higher-Order Component
+
+```tsx
+import { createComponent } from 'tamagui'
+
+const withSpacing = (Component) => {
+  return createComponent({
+    Component,
+    componentName: `WithSpacing(${Component.displayName})`,
+    isHOC: true,
+    
+    defaultProps: {
+      margin: '$2',
+    },
+    
+    variants: {
+      spacing: {
+        small: { margin: '$2' },
+        medium: { margin: '$4' },
+        large: { margin: '$6' },
+      },
+    },
+  })
+}
+```
+
+## Component Configuration Properties
+
+### isText
+
+Set to `true` for text components. This affects:
+- Style inheritance (text components inherit certain styles)
+- Default component type (uses appropriate base component)
+- Context behavior
+
+```tsx
+const Text = createComponent({
+  Component: 'span',
+  isText: true,
+  // ...
+})
+```
+
+### isReactNative
+
+Set to `true` when wrapping React Native components:
+
+```tsx
+import { View } from 'react-native'
+
+const Stack = createComponent({
+  Component: View,
+  isReactNative: true,
+  // ...
+})
+```
+
+### acceptsClassName
+
+Controls whether the component accepts and uses className prop:
+
+```tsx
+const WebDiv = createComponent({
+  Component: 'div',
+  acceptsClassName: true, // Outputs optimized className
+  // ...
+})
+```
+
+### neverFlatten
+
+Prevents Tamagui from optimizing away the component:
+
+```tsx
+const AlwaysRendered = createComponent({
+  Component: 'div',
+  neverFlatten: true, // Always renders, never optimized away
+  // ...
+})
+```
+
+## Static Config Access
+
+Created components expose their static config:
+
+```tsx
+const Button = createComponent({ /* ... */ })
+
+// Access static config
+const config = Button.staticConfig
+console.log(config.componentName) // 'Button'
+console.log(config.variants) // variant definitions
+```
+
+## Comparison with styled()
+
+| Feature | createComponent() | styled() |
+|---------|------------------|----------|
+| **Use Case** | Low-level, custom abstractions | General component styling |
+| **Component Input** | String or React component | Must be a stylable component |
+| **Inheritance** | Manual via staticConfig | Automatic from parent |
+| **Ease of Use** | More verbose | More concise |
+| **Type Safety** | Manual typing needed | Automatic type inference |
+| **Flexibility** | Maximum control | Opinionated defaults |
+
+### When to use createComponent():
+
+1. Building custom component libraries
+2. Wrapping third-party components with specific configs
+3. Creating specialized HOCs
+4. Need fine-grained control over static configuration
+5. Building framework integrations
+
+### When to use styled():
+
+1. Styling existing Tamagui components
+2. Creating styled variants of components
+3. General application component styling
+4. Need automatic type inference
+5. Standard use cases
+
+## Performance Considerations
+
+1. **Static Configuration**: Configuration is processed once at component definition time
+2. **Variant Resolution**: Variants are optimized at build time when possible
+3. **Component Flattening**: Set `neverFlatten: true` only when necessary
+4. **Context Usage**: Context adds overhead; use sparingly
+
+## TypeScript Usage
+
+```tsx
+import { createComponent, TamaguiComponent, StackProps } from 'tamagui'
+
+type ButtonProps = StackProps & {
+  variant?: 'primary' | 'secondary'
+  size?: 'small' | 'medium' | 'large'
+}
+
+const Button: TamaguiComponent<
+  ButtonProps,
+  HTMLButtonElement
+> = createComponent({
+  Component: 'button',
+  componentName: 'Button',
+  // ...
+}) as any
+
+export { Button }
+export type { ButtonProps }
+```
+
+## See Also
+
+- [styled()](/api/styled) - Higher-level component styling
+- [createTamagui()](/api/create-tamagui) - Configuration setup
+- [View and Text](/core/view-and-text) - Component system overview

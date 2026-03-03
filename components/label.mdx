@@ -1,0 +1,329 @@
+---
+title: Label
+description: A label component for associating text with form inputs
+---
+
+## Installation
+
+```bash
+npm install @tamagui/label
+```
+
+## Import
+
+```tsx
+import { Label } from '@tamagui/label'
+```
+
+## Usage
+
+### Basic Example
+
+```tsx
+import { Label } from '@tamagui/label'
+import { Input } from '@tamagui/input'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <YStack space>
+      <Label htmlFor="email">Email Address</Label>
+      <Input id="email" type="email" />
+    </YStack>
+  )
+}
+```
+
+### Wrapping Input
+
+```tsx
+import { Label } from '@tamagui/label'
+import { Input } from '@tamagui/input'
+
+function Demo() {
+  return (
+    <Label>
+      Username
+      <Input />
+    </Label>
+  )
+}
+```
+
+### With Checkbox
+
+```tsx
+import { Label } from '@tamagui/label'
+import { Checkbox } from '@tamagui/checkbox'
+import { XStack } from '@tamagui/stacks'
+import { Check } from '@tamagui/lucide-icons'
+
+function Demo() {
+  return (
+    <XStack space alignItems="center">
+      <Checkbox id="terms">
+        <Checkbox.Indicator>
+          <Check />
+        </Checkbox.Indicator>
+      </Checkbox>
+      <Label htmlFor="terms">
+        I agree to the terms and conditions
+      </Label>
+    </XStack>
+  )
+}
+```
+
+### With RadioGroup
+
+```tsx
+import { Label } from '@tamagui/label'
+import { RadioGroup } from '@tamagui/radio-group'
+import { YStack, XStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <RadioGroup defaultValue="1">
+      <YStack space>
+        <XStack space alignItems="center">
+          <RadioGroup.Item value="1" id="option-1">
+            <RadioGroup.Indicator />
+          </RadioGroup.Item>
+          <Label htmlFor="option-1">Option 1</Label>
+        </XStack>
+        
+        <XStack space alignItems="center">
+          <RadioGroup.Item value="2" id="option-2">
+            <RadioGroup.Indicator />
+          </RadioGroup.Item>
+          <Label htmlFor="option-2">Option 2</Label>
+        </XStack>
+      </YStack>
+    </RadioGroup>
+  )
+}
+```
+
+### With Switch
+
+```tsx
+import { Label } from '@tamagui/label'
+import { Switch } from '@tamagui/switch'
+import { XStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <XStack space alignItems="center">
+      <Switch id="notifications">
+        <Switch.Thumb />
+      </Switch>
+      <Label htmlFor="notifications">Enable notifications</Label>
+    </XStack>
+  )
+}
+```
+
+### Sizes
+
+```tsx
+import { Label } from '@tamagui/label'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <YStack space>
+      <Label size="$2">Small Label</Label>
+      <Label size="$3">Medium Label</Label>
+      <Label size="$4">Large Label</Label>
+      <Label size="$5">Extra Large Label</Label>
+    </YStack>
+  )
+}
+```
+
+### Required Field Indicator
+
+```tsx
+import { Label } from '@tamagui/label'
+import { Input } from '@tamagui/input'
+import { YStack, Text } from '@tamagui/core'
+
+function Demo() {
+  return (
+    <YStack space>
+      <Label htmlFor="name">
+        Name <Text color="$red10">*</Text>
+      </Label>
+      <Input id="name" required />
+    </YStack>
+  )
+}
+```
+
+### Form Layout
+
+```tsx
+import { Label } from '@tamagui/label'
+import { Input } from '@tamagui/input'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <YStack space="$4">
+      <YStack space="$2">
+        <Label htmlFor="first-name">First Name</Label>
+        <Input id="first-name" />
+      </YStack>
+      
+      <YStack space="$2">
+        <Label htmlFor="last-name">Last Name</Label>
+        <Input id="last-name" />
+      </YStack>
+      
+      <YStack space="$2">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" />
+      </YStack>
+    </YStack>
+  )
+}
+```
+
+### With Helper Text
+
+```tsx
+import { Label } from '@tamagui/label'
+import { Input } from '@tamagui/input'
+import { YStack, Text } from '@tamagui/core'
+
+function Demo() {
+  return (
+    <YStack space>
+      <Label htmlFor="username">Username</Label>
+      <Input id="username" />
+      <Text fontSize="$2" color="$gray11">
+        Choose a unique username for your account
+      </Text>
+    </YStack>
+  )
+}
+```
+
+### Disabled State
+
+```tsx
+import { Label } from '@tamagui/label'
+import { Input } from '@tamagui/input'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <YStack space opacity={0.5}>
+      <Label htmlFor="disabled-input">Disabled Field</Label>
+      <Input id="disabled-input" disabled />
+    </YStack>
+  )
+}
+```
+
+## API Reference
+
+### Label Props
+
+<ParamField path="htmlFor" type="string">
+  ID of the form control this label is associated with. Sets `aria-labelledby` on the target element.
+</ParamField>
+
+<ParamField path="size" type="SizeTokens">
+  Size of the label text. Matches button sizing for consistent form layouts.
+</ParamField>
+
+<ParamField path="id" type="string">
+  ID attribute for the label element.
+</ParamField>
+
+<ParamField path="onPress" type="(event) => void">
+  Callback when label is pressed/clicked.
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  Label text or child elements.
+</ParamField>
+
+## Theming
+
+Label responds to the following theme tokens:
+
+- `$color` - Text color
+- `$colorPress` - Text color when pressed
+
+```tsx
+import { Label } from '@tamagui/label'
+
+function Demo() {
+  return (
+    <Label theme="blue" htmlFor="input">
+      Themed Label
+    </Label>
+  )
+}
+```
+
+## Accessibility
+
+- Renders as a semantic `<label>` element
+- Automatically associates with form controls via `htmlFor`
+- Sets `aria-labelledby` on the associated control
+- Clicking label focuses the associated control
+- Supports wrapping controls for implicit association
+- Prevents text selection on double-click
+- `cursor: default` for proper cursor styling
+- Works with screen readers to announce form controls
+
+## Behavior
+
+### With `htmlFor`
+
+When using `htmlFor`, the label must reference a control by ID:
+
+```tsx
+<Label htmlFor="email">Email</Label>
+<Input id="email" />
+```
+
+The label will:
+- Set `aria-labelledby` on the input
+- Focus the input when clicked
+- Work with all form controls (Input, Checkbox, Switch, etc.)
+
+### Wrapping Controls
+
+Labels can wrap controls for implicit association:
+
+```tsx
+<Label>
+  Email
+  <Input />
+</Label>
+```
+
+In this case:
+- No `htmlFor` or `id` needed
+- Clicking the label text focuses the input
+- Clicking the input itself doesn't trigger label click handler
+
+### Native Platform
+
+On React Native:
+- Uses `focusFocusable()` to programmatically focus controls
+- Requires `htmlFor` to match the control's `id`
+- Focusable controls must be registered (automatically done by Tamagui form components)
+
+## Notes
+
+- Size automatically matches button sizing for consistent form layouts
+- Line height calculated to align with button heights
+- Default cursor is `default`, not `pointer` (follows native label behavior)
+- Prevents text selection when double-clicking
+- `userSelect: none` prevents dragging selection
+- `display: flex` and `alignItems: center` for easy icon inclusion

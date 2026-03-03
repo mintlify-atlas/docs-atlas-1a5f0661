@@ -1,0 +1,369 @@
+---
+title: Checkbox
+description: A checkbox component for multi-select forms with indeterminate state support
+---
+
+## Installation
+
+```bash
+npm install @tamagui/checkbox
+```
+
+## Import
+
+```tsx
+import { Checkbox } from '@tamagui/checkbox'
+import { Check } from '@tamagui/lucide-icons'
+```
+
+## Usage
+
+### Basic Example
+
+```tsx
+import { Checkbox } from '@tamagui/checkbox'
+import { Check } from '@tamagui/lucide-icons'
+import { Label, XStack } from '@tamagui/core'
+
+function Demo() {
+  return (
+    <XStack space alignItems="center">
+      <Checkbox id="agree">
+        <Checkbox.Indicator>
+          <Check />
+        </Checkbox.Indicator>
+      </Checkbox>
+      <Label htmlFor="agree">I agree to the terms</Label>
+    </XStack>
+  )
+}
+```
+
+### Controlled Checkbox
+
+```tsx
+import { useState } from 'react'
+import { Checkbox } from '@tamagui/checkbox'
+import { Check } from '@tamagui/lucide-icons'
+
+function Demo() {
+  const [checked, setChecked] = useState(false)
+
+  return (
+    <>
+      <Checkbox
+        checked={checked}
+        onCheckedChange={setChecked}
+      >
+        <Checkbox.Indicator>
+          <Check />
+        </Checkbox.Indicator>
+      </Checkbox>
+      <p>Checked: {checked.toString()}</p>
+    </>
+  )
+}
+```
+
+### Uncontrolled Checkbox
+
+```tsx
+import { Checkbox } from '@tamagui/checkbox'
+import { Check } from '@tamagui/lucide-icons'
+
+function Demo() {
+  return (
+    <Checkbox
+      defaultChecked={true}
+      onCheckedChange={(checked) => console.log('Changed to:', checked)}
+    >
+      <Checkbox.Indicator>
+        <Check />
+      </Checkbox.Indicator>
+    </Checkbox>
+  )
+}
+```
+
+### Indeterminate State
+
+```tsx
+import { useState } from 'react'
+import { Checkbox } from '@tamagui/checkbox'
+import { Check, Minus } from '@tamagui/lucide-icons'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  const [items, setItems] = useState({
+    item1: false,
+    item2: true,
+    item3: false,
+  })
+
+  const allChecked = Object.values(items).every(Boolean)
+  const someChecked = Object.values(items).some(Boolean)
+  const parentChecked = allChecked ? true : someChecked ? 'indeterminate' : false
+
+  return (
+    <YStack space>
+      <Checkbox
+        checked={parentChecked}
+        onCheckedChange={(checked) => {
+          const newValue = checked === true
+          setItems({
+            item1: newValue,
+            item2: newValue,
+            item3: newValue,
+          })
+        }}
+      >
+        <Checkbox.Indicator>
+          {parentChecked === 'indeterminate' ? <Minus /> : <Check />}
+        </Checkbox.Indicator>
+      </Checkbox>
+      
+      <YStack paddingLeft="$4" space>
+        <Checkbox
+          checked={items.item1}
+          onCheckedChange={(checked) => setItems({ ...items, item1: !!checked })}
+        >
+          <Checkbox.Indicator><Check /></Checkbox.Indicator>
+        </Checkbox>
+        <Checkbox
+          checked={items.item2}
+          onCheckedChange={(checked) => setItems({ ...items, item2: !!checked })}
+        >
+          <Checkbox.Indicator><Check /></Checkbox.Indicator>
+        </Checkbox>
+        <Checkbox
+          checked={items.item3}
+          onCheckedChange={(checked) => setItems({ ...items, item3: !!checked })}
+        >
+          <Checkbox.Indicator><Check /></Checkbox.Indicator>
+        </Checkbox>
+      </YStack>
+    </YStack>
+  )
+}
+```
+
+### Sizes
+
+```tsx
+import { Checkbox } from '@tamagui/checkbox'
+import { Check } from '@tamagui/lucide-icons'
+import { XStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <XStack space>
+      <Checkbox size="$2">
+        <Checkbox.Indicator><Check /></Checkbox.Indicator>
+      </Checkbox>
+      <Checkbox size="$3">
+        <Checkbox.Indicator><Check /></Checkbox.Indicator>
+      </Checkbox>
+      <Checkbox size="$4">
+        <Checkbox.Indicator><Check /></Checkbox.Indicator>
+      </Checkbox>
+      <Checkbox size="$5">
+        <Checkbox.Indicator><Check /></Checkbox.Indicator>
+      </Checkbox>
+    </XStack>
+  )
+}
+```
+
+### Disabled State
+
+```tsx
+import { Checkbox } from '@tamagui/checkbox'
+import { Check } from '@tamagui/lucide-icons'
+
+function Demo() {
+  return (
+    <>
+      <Checkbox disabled>
+        <Checkbox.Indicator><Check /></Checkbox.Indicator>
+      </Checkbox>
+      <Checkbox disabled checked>
+        <Checkbox.Indicator><Check /></Checkbox.Indicator>
+      </Checkbox>
+    </>
+  )
+}
+```
+
+### Form Integration
+
+```tsx
+import { Checkbox } from '@tamagui/checkbox'
+import { Form } from '@tamagui/form'
+import { Check } from '@tamagui/lucide-icons'
+import { YStack, Button } from '@tamagui/core'
+
+function Demo() {
+  const handleSubmit = () => {
+    console.log('Form submitted')
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <YStack space>
+        <Checkbox id="newsletter" name="newsletter" defaultChecked>
+          <Checkbox.Indicator><Check /></Checkbox.Indicator>
+        </Checkbox>
+        
+        <Checkbox id="terms" name="terms" required>
+          <Checkbox.Indicator><Check /></Checkbox.Indicator>
+        </Checkbox>
+        
+        <Button type="submit">Submit</Button>
+      </YStack>
+    </Form>
+  )
+}
+```
+
+### Native Style
+
+```tsx
+import { Checkbox } from '@tamagui/checkbox'
+
+function Demo() {
+  return (
+    <Checkbox native="web" />
+  )
+}
+```
+
+## API Reference
+
+### Checkbox Props
+
+<ParamField path="checked" type="boolean | 'indeterminate'">
+  Controlled checked state. Can be `true`, `false`, or `'indeterminate'`.
+</ParamField>
+
+<ParamField path="defaultChecked" type="boolean | 'indeterminate'">
+  Default uncontrolled checked state.
+</ParamField>
+
+<ParamField path="onCheckedChange" type="(checked: boolean | 'indeterminate') => void">
+  Callback when checked state changes.
+</ParamField>
+
+<ParamField path="size" type="SizeTokens">
+  Size of the checkbox. Can use size tokens like `$2`, `$3`, `$4`, etc.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disable the checkbox and prevent interactions.
+</ParamField>
+
+<ParamField path="required" type="boolean">
+  Mark the checkbox as required for form validation.
+</ParamField>
+
+<ParamField path="name" type="string">
+  Name attribute for form submission.
+</ParamField>
+
+<ParamField path="value" type="string">
+  Value attribute for form submission.
+</ParamField>
+
+<ParamField path="id" type="string">
+  ID attribute for label association.
+</ParamField>
+
+<ParamField path="scaleSize" type="number" default="0.45">
+  Scale multiplier for checkbox size relative to parent.
+</ParamField>
+
+<ParamField path="sizeAdjust" type="number" default="0">
+  Adjustment value for size calculation.
+</ParamField>
+
+<ParamField path="scaleIcon" type="number" default="1">
+  Scale multiplier for icon size within indicator.
+</ParamField>
+
+<ParamField path="native" type="'web'">
+  Render as native HTML checkbox when set to `'web'`.
+</ParamField>
+
+<ParamField path="unstyled" type="boolean">
+  Remove all default styling.
+</ParamField>
+
+### Checkbox.Indicator Props
+
+<ParamField path="forceMount" type="boolean">
+  Force the indicator to always mount (useful for animation libraries).
+</ParamField>
+
+<ParamField path="disablePassStyles" type="boolean">
+  Prevent passing styles to child icon components.
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  Icon or content to show when checked. Typically a Check or Minus icon.
+</ParamField>
+
+## Theming
+
+Checkbox responds to the following theme tokens:
+
+- `$background` - Default background color
+- `$backgroundPress` - Background when pressed
+- `$backgroundActive` - Background when checked
+- `$borderColor` - Default border color
+- `$borderColorHover` - Border color on hover
+- `$borderColorPress` - Border color when pressed
+- `$borderColorFocus` - Border color when focused
+- `$outlineColor` - Focus outline color
+- `$color` - Icon color in indicator
+
+```tsx
+import { Checkbox } from '@tamagui/checkbox'
+import { Check } from '@tamagui/lucide-icons'
+
+function Demo() {
+  return (
+    <Checkbox theme="blue">
+      <Checkbox.Indicator>
+        <Check />
+      </Checkbox.Indicator>
+    </Checkbox>
+  )
+}
+```
+
+## Accessibility
+
+- Renders as a semantic `<button>` with `role="checkbox"`
+- Supports keyboard interaction (Space to toggle)
+- Sets `aria-checked` attribute reflecting state
+- Supports `aria-disabled` when disabled
+- Focus visible styles with outline
+- Works with Label component for click target expansion
+- Native checkbox hidden but submitted with forms
+- Announces state changes to screen readers
+
+## States
+
+### Checked States
+
+- `false` - Unchecked
+- `true` - Checked  
+- `'indeterminate'` - Partially checked (useful for parent checkboxes)
+
+### Visual States
+
+- Default
+- Hover
+- Focus
+- Pressed
+- Disabled
+- Checked + Disabled

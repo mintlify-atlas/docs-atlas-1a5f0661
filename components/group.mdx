@@ -1,0 +1,387 @@
+---
+title: 'Group'
+description: 'Composite component for visually connected elements'
+icon: 'object-group'
+---
+
+## Overview
+
+The Group component creates visually connected collections of components by automatically managing border radii on interior sides. Perfect for button groups, list items, or any components that should appear joined together.
+
+## Import
+
+```tsx
+import { Group, XGroup, YGroup } from 'tamagui'
+// or from individual package
+import { Group, XGroup, YGroup } from '@tamagui/group'
+```
+
+## Basic Usage
+
+### Horizontal Group
+
+```tsx
+import { XGroup, Button } from 'tamagui'
+
+export function ButtonGroup() {
+  return (
+    <XGroup>
+      <XGroup.Item>
+        <Button>First</Button>
+      </XGroup.Item>
+      <XGroup.Item>
+        <Button>Second</Button>
+      </XGroup.Item>
+      <XGroup.Item>
+        <Button>Third</Button>
+      </XGroup.Item>
+    </XGroup>
+  )
+}
+```
+
+### Vertical Group
+
+```tsx
+import { YGroup, ListItem } from 'tamagui'
+
+export function VerticalList() {
+  return (
+    <YGroup>
+      <YGroup.Item>
+        <ListItem>Item 1</ListItem>
+      </YGroup.Item>
+      <YGroup.Item>
+        <ListItem>Item 2</ListItem>
+      </YGroup.Item>
+      <YGroup.Item>
+        <ListItem>Item 3</ListItem>
+      </YGroup.Item>
+    </YGroup>
+  )
+}
+```
+
+## Props
+
+### Group Props
+
+<ParamField path="orientation" type="'horizontal' | 'vertical'">
+  Controls the direction of the group. `Group` and `YGroup` default to `"vertical"`, `XGroup` defaults to `"horizontal"`.
+  
+  ```tsx
+  <Group orientation="horizontal">
+    {/* Horizontal layout */}
+  </Group>
+  ```
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables all children in the group (children can still override individually).
+  
+  ```tsx
+  <YGroup disabled>
+    <YGroup.Item>
+      <Button>Disabled by group</Button>
+    </YGroup.Item>
+    <YGroup.Item>
+      <Button disabled={false}>Enabled override</Button>
+    </YGroup.Item>
+  </YGroup>
+  ```
+</ParamField>
+
+<ParamField path="size" type="SizeTokens">
+  Controls border radius of the group container.
+  
+  ```tsx
+  <YGroup size="$4">
+    {/* Border radius from $4 token */}
+  </YGroup>
+  ```
+</ParamField>
+
+<ParamField path="unstyled" type="boolean">
+  Removes default styling from the group container.
+</ParamField>
+
+The Group component also accepts all [YStack props](/components/stacks#props) like `padding`, `gap`, `backgroundColor`, etc.
+
+### Group.Item Props
+
+<ParamField path="forcePlacement" type="'first' | 'center' | 'last'">
+  Forces the item to be styled as a specific position, regardless of actual position.
+  
+  ```tsx
+  <XGroup>
+    <XGroup.Item forcePlacement="first">
+      <Button>Always styled as first</Button>
+    </XGroup.Item>
+    <XGroup.Item forcePlacement="last">
+      <Button>Always styled as last</Button>
+    </XGroup.Item>
+  </XGroup>
+  ```
+</ParamField>
+
+<ParamField path="children" type="React.ReactNode" required>
+  A single React element. The child component will receive modified border radius props.
+</ParamField>
+
+## Examples
+
+### Button Group with Icons
+
+```tsx
+import { Activity, Airplay, Anchor } from '@tamagui/lucide-icons'
+import { XGroup, Button } from 'tamagui'
+
+export function IconButtonGroup() {
+  return (
+    <XGroup>
+      <XGroup.Item>
+        <Button icon={Activity}>Dashboard</Button>
+      </XGroup.Item>
+      <XGroup.Item>
+        <Button icon={Airplay}>Display</Button>
+      </XGroup.Item>
+      <XGroup.Item>
+        <Button icon={Anchor}>Links</Button>
+      </XGroup.Item>
+    </XGroup>
+  )
+}
+```
+
+### List with Separators
+
+```tsx
+import { YGroup, ListItem, Separator } from 'tamagui'
+
+export function SeparatedList() {
+  return (
+    <YGroup
+      bordered
+      size="$4"
+      backgroundColor="$background"
+    >
+      <YGroup.Item>
+        <ListItem 
+          title="First Item"
+          subTitle="Description of first item"
+        />
+      </YGroup.Item>
+      
+      <Separator />
+      
+      <YGroup.Item>
+        <ListItem 
+          title="Second Item"
+          subTitle="Description of second item"
+        />
+      </YGroup.Item>
+      
+      <Separator />
+      
+      <YGroup.Item>
+        <ListItem 
+          title="Third Item"
+          subTitle="Description of third item"
+        />
+      </YGroup.Item>
+    </YGroup>
+  )
+}
+```
+
+### Responsive Size
+
+```tsx
+import { Activity, Airplay } from '@tamagui/lucide-icons'
+import { XGroup, Button } from 'tamagui'
+
+export function ResponsiveGroup() {
+  return (
+    <XGroup>
+      <XGroup.Item>
+        <Button 
+          size="$3" 
+          $gtSm={{ size: '$5' }} 
+          icon={Activity}
+        >
+          First
+        </Button>
+      </XGroup.Item>
+      <XGroup.Item>
+        <Button 
+          size="$3" 
+          $gtSm={{ size: '$5' }} 
+          icon={Airplay}
+        >
+          Second
+        </Button>
+      </XGroup.Item>
+    </XGroup>
+  )
+}
+```
+
+### Segmented Control
+
+```tsx
+import { XGroup, Button } from 'tamagui'
+import { useState } from 'react'
+
+export function SegmentedControl() {
+  const [selected, setSelected] = useState('option1')
+  
+  return (
+    <XGroup backgroundColor="$background">
+      <XGroup.Item>
+        <Button
+          flex={1}
+          theme={selected === 'option1' ? 'active' : undefined}
+          onPress={() => setSelected('option1')}
+        >
+          Option 1
+        </Button>
+      </XGroup.Item>
+      <XGroup.Item>
+        <Button
+          flex={1}
+          theme={selected === 'option2' ? 'active' : undefined}
+          onPress={() => setSelected('option2')}
+        >
+          Option 2
+        </Button>
+      </XGroup.Item>
+      <XGroup.Item>
+        <Button
+          flex={1}
+          theme={selected === 'option3' ? 'active' : undefined}
+          onPress={() => setSelected('option3')}
+        >
+          Option 3
+        </Button>
+      </XGroup.Item>
+    </XGroup>
+  )
+}
+```
+
+### Disabled Group
+
+```tsx
+import { YGroup, Button } from 'tamagui'
+
+export function DisabledGroup() {
+  return (
+    <YGroup disabled>
+      <YGroup.Item>
+        <Button>Can't click me</Button>
+      </YGroup.Item>
+      <YGroup.Item>
+        <Button>Or me</Button>
+      </YGroup.Item>
+      <YGroup.Item>
+        <Button disabled={false}>But I'm enabled!</Button>
+      </YGroup.Item>
+    </YGroup>
+  )
+}
+```
+
+## How It Works
+
+The Group component automatically manages border radii based on item position:
+
+### Horizontal Groups (XGroup)
+- **First item**: Keeps left border radius, removes right border radius
+- **Middle items**: Removes both left and right border radius
+- **Last item**: Removes left border radius, keeps right border radius
+
+### Vertical Groups (YGroup)
+- **First item**: Keeps top border radius, removes bottom border radius
+- **Middle items**: Removes both top and bottom border radius
+- **Last item**: Removes top border radius, keeps bottom border radius
+
+This creates a seamless, connected appearance while preserving the outer border radius defined by the group's `size` prop.
+
+## useGroupItem Hook
+
+For building custom components that work with Group:
+
+```tsx
+import { useGroupItem } from '@tamagui/group'
+import { Button } from 'tamagui'
+
+function CustomGroupButton(props) {
+  const groupProps = useGroupItem(props)
+  
+  return (
+    <Button {...groupProps} {...props}>
+      {props.children}
+    </Button>
+  )
+}
+
+// Usage
+<YGroup>
+  <YGroup.Item>
+    <CustomGroupButton>Custom Button</CustomGroupButton>
+  </YGroup.Item>
+</YGroup>
+```
+
+## Accessibility
+
+- Group renders as a semantic container (YStack/XStack)
+- Child components maintain their accessibility features
+- Disabled state propagates to children appropriately
+- Use proper ARIA roles when creating navigation or toolbar groups
+
+```tsx
+<XGroup role="toolbar" aria-label="Text formatting">
+  <XGroup.Item>
+    <Button aria-label="Bold">B</Button>
+  </XGroup.Item>
+  <XGroup.Item>
+    <Button aria-label="Italic">I</Button>
+  </XGroup.Item>
+  <XGroup.Item>
+    <Button aria-label="Underline">U</Button>
+  </XGroup.Item>
+</XGroup>
+```
+
+## Type Definitions
+
+```tsx
+interface GroupProps extends YStackProps {
+  orientation?: 'horizontal' | 'vertical'
+  disabled?: boolean
+}
+
+interface GroupItemProps {
+  children: React.ReactNode
+  forcePlacement?: 'first' | 'center' | 'last'
+}
+
+type GroupComponent = React.ForwardRefExoticComponent<GroupProps> & {
+  Item: React.FC<GroupItemProps>
+}
+```
+
+## Variants
+
+- **Group** / **YGroup** - Vertical orientation by default
+- **XGroup** - Horizontal orientation by default
+
+Both accept `orientation` prop to override the default.
+
+## See Also
+
+- [Stacks](/components/stacks) - Base layout components
+- [Button](/components/button) - Common group child
+- [ListItem](/components/list-item) - For vertical lists
+- [Separator](/components/separator) - For dividing group items

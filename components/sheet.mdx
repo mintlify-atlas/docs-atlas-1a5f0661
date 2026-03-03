@@ -1,0 +1,475 @@
+---
+title: Sheet
+description: A draggable overlay that slides in from the edge of the screen.
+---
+
+# Sheet
+
+A bottom sheet component that slides up from the bottom of the screen. Supports dragging, snap points, and smooth animations. Perfect for mobile experiences.
+
+## Installation
+
+```bash
+npm install @tamagui/sheet
+```
+
+## Anatomy
+
+```tsx
+import { Sheet } from '@tamagui/sheet'
+
+export default () => (
+  <Sheet>
+    <Sheet.Overlay />
+    <Sheet.Handle />
+    <Sheet.Frame>
+      {/* Your content */}
+    </Sheet.Frame>
+  </Sheet>
+)
+```
+
+## Basic Usage
+
+```tsx
+import { Sheet, Button, YStack } from 'tamagui'
+import { useState } from 'react'
+
+export default function SheetExample() {
+  const [open, setOpen] = useState(false)
+  const [position, setPosition] = useState(0)
+
+  return (
+    <>
+      <Button onPress={() => setOpen(true)}>Open Sheet</Button>
+
+      <Sheet
+        modal
+        open={open}
+        onOpenChange={setOpen}
+        snapPoints={[85, 50, 25]}
+        position={position}
+        onPositionChange={setPosition}
+        dismissOnSnapToBottom
+      >
+        <Sheet.Overlay animation="lazy" enterStyle={{ opacity: 0 }} exitStyle={{ opacity: 0 }} />
+
+        <Sheet.Handle />
+
+        <Sheet.Frame
+          flex={1}
+          padding="$4"
+          justifyContent="center"
+          alignItems="center"
+          gap="$5"
+        >
+          <YStack gap="$3" alignItems="center">
+            <Button size="$6" circular onPress={() => setOpen(false)}>
+              Close
+            </Button>
+          </YStack>
+        </Sheet.Frame>
+      </Sheet>
+    </>
+  )
+}
+```
+
+## API Reference
+
+### Sheet
+
+Contains all the parts of a sheet.
+
+<ParamField path="open" type="boolean">
+  The controlled open state of the sheet.
+</ParamField>
+
+<ParamField path="defaultOpen" type="boolean" default="false">
+  The open state when initially rendered.
+</ParamField>
+
+<ParamField path="onOpenChange" type="(open: boolean) => void">
+  Event handler called when the open state changes.
+</ParamField>
+
+<ParamField path="position" type="number">
+  The controlled position index in the snapPoints array.
+</ParamField>
+
+<ParamField path="defaultPosition" type="number" default="0">
+  The initial position from the snapPoints array.
+</ParamField>
+
+<ParamField path="onPositionChange" type="(position: number) => void">
+  Event handler called when the position changes.
+</ParamField>
+
+<ParamField path="snapPoints" type="(number | string)[]" default="[80]">
+  Array of percentages (or pixels) the sheet will snap to when dragged. First is the topmost position.
+</ParamField>
+
+<ParamField path="snapPointsMode" type="'percent' | 'constant' | 'fit' | 'mixed'" default="'percent'">
+  How to interpret the snapPoints values.
+  - `percent`: Values are percentages of screen height
+  - `constant`: Values are absolute pixels
+  - `fit`: Sizes to fit content
+  - `mixed`: Mix of percent (string with %) and constant (number)
+</ParamField>
+
+<ParamField path="dismissOnSnapToBottom" type="boolean" default="false">
+  Whether to close the sheet when dragged to the last snap point.
+</ParamField>
+
+<ParamField path="dismissOnOverlayPress" type="boolean" default="true">
+  Whether clicking/tapping the overlay closes the sheet.
+</ParamField>
+
+<ParamField path="modal" type="boolean" default="false">
+  Whether the sheet is modal (blocks interaction with content behind).
+</ParamField>
+
+<ParamField path="disableRemoveScroll" type="boolean" default="false">
+  Disables the RemoveScroll behavior that prevents body scrolling while sheet is open.
+</ParamField>
+
+<ParamField path="disableDrag" type="boolean" default="false">
+  Disables dragging the sheet.
+</ParamField>
+
+<ParamField path="native" type="boolean | 'ios'[]">
+  Adapts the sheet to use native bottom sheet on the given platform (iOS ActionSheet).
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  The z-index of the sheet.
+</ParamField>
+
+<ParamField path="animation" type="string">
+  The animation preset to use.
+</ParamField>
+
+<ParamField path="moveOnKeyboardChange" type="boolean">
+  Native-only: Makes the sheet move up when the mobile keyboard opens.
+</ParamField>
+
+### Sheet.Overlay
+
+A layer that covers the inert portion of the view when the sheet is open.
+
+### Sheet.Handle
+
+A draggable handle that appears at the top of the sheet.
+
+### Sheet.Frame
+
+The container for your sheet content. Accepts all YStack props.
+
+<ParamField path="disableHideBottomOverflow" type="boolean">
+  By default, the sheet adds a view below its bottom that extends down. This prevents content from showing when the sheet bounces past the top.
+</ParamField>
+
+<ParamField path="adjustPaddingForOffscreenContent" type="boolean">
+  Adds padding for offscreen content, so flex elements always flex to the visible height.
+</ParamField>
+
+### Sheet.ScrollView
+
+A ScrollView that works seamlessly with the sheet's drag gestures.
+
+## Controlled vs Uncontrolled
+
+### Uncontrolled
+
+```tsx
+<Sheet defaultOpen={false} snapPoints={[85, 50]}>
+  {/* ... */}
+</Sheet>
+```
+
+### Controlled
+
+```tsx
+const [open, setOpen] = useState(false)
+const [position, setPosition] = useState(0)
+
+return (
+  <Sheet
+    open={open}
+    onOpenChange={setOpen}
+    position={position}
+    onPositionChange={setPosition}
+    snapPoints={[85, 50]}
+  >
+    {/* ... */}
+  </Sheet>
+)
+```
+
+## Snap Points
+
+### Percentage-based
+
+```tsx
+<Sheet snapPoints={[85, 50, 25]}>
+  {/* Snaps at 85%, 50%, and 25% of screen height */}
+</Sheet>
+```
+
+### Pixel-based
+
+```tsx
+<Sheet snapPoints={[600, 400, 200]} snapPointsMode="constant">
+  {/* Snaps at specific pixel heights */}
+</Sheet>
+```
+
+### Fit Content
+
+```tsx
+<Sheet snapPoints={[85]} snapPointsMode="fit">
+  {/* Sizes to fit content, up to 85% max */}
+</Sheet>
+```
+
+### Mixed Mode
+
+```tsx
+<Sheet snapPoints={['80%', 400]} snapPointsMode="mixed">
+  {/* First snap at 80%, second at 400px */}
+</Sheet>
+```
+
+## Animation
+
+```tsx
+<Sheet
+  animation="medium"
+  snapPoints={[85]}
+>
+  <Sheet.Overlay
+    animation="lazy"
+    enterStyle={{ opacity: 0 }}
+    exitStyle={{ opacity: 0 }}
+  />
+  
+  <Sheet.Frame
+    animation="medium"
+    enterStyle={{ y: '100%' }}
+  >
+    {/* content */}
+  </Sheet.Frame>
+</Sheet>
+```
+
+## Scrollable Content
+
+```tsx
+import { Sheet, YStack } from 'tamagui'
+
+<Sheet snapPoints={[90, 50]} modal>
+  <Sheet.Overlay />
+  <Sheet.Handle />
+  <Sheet.Frame>
+    <Sheet.ScrollView>
+      <YStack padding="$4" gap="$4">
+        {/* Long scrollable content */}
+        {Array.from({ length: 50 }).map((_, i) => (
+          <Button key={i}>Item {i}</Button>
+        ))}
+      </YStack>
+    </Sheet.ScrollView>
+  </Sheet.Frame>
+</Sheet>
+```
+
+The Sheet.ScrollView automatically coordinates with the sheet's drag gestures - dragging at the top of scroll content will move the sheet, while scrolling in the middle will scroll the content.
+
+## Native Platform Support
+
+On iOS, sheets can use the native action sheet:
+
+```tsx
+import { Sheet, Button } from 'tamagui'
+
+<Sheet native>
+  <Sheet.Frame>
+    <Button>Action 1</Button>
+    <Button>Action 2</Button>
+    <Button theme="red">Delete</Button>
+    <Button>Cancel</Button>
+  </Sheet.Frame>
+</Sheet>
+```
+
+## Accessibility
+
+### ARIA Attributes
+
+- Sheet.Frame receives appropriate ARIA attributes for modal behavior
+- Handle is keyboard accessible and can be activated
+
+### Keyboard Navigation
+
+- <kbd>Escape</kbd> - Closes the sheet
+- <kbd>Space</kbd> or <kbd>Enter</kbd> on Handle - Cycles through snap positions
+
+### Focus Management
+
+- When modal, focus is trapped within the sheet
+- When closed, focus returns to the trigger element
+
+## Composition Pattern
+
+```tsx
+import { Sheet, styled } from 'tamagui'
+
+const StyledSheetFrame = styled(Sheet.Frame, {
+  backgroundColor: '$background',
+  borderTopLeftRadius: '$6',
+  borderTopRightRadius: '$6',
+  padding: '$4',
+})
+
+export function BottomSheet({ children, ...props }) {
+  return (
+    <Sheet modal dismissOnSnapToBottom {...props}>
+      <Sheet.Overlay
+        animation="lazy"
+        enterStyle={{ opacity: 0 }}
+        exitStyle={{ opacity: 0 }}
+      />
+      <Sheet.Handle />
+      <StyledSheetFrame>{children}</StyledSheetFrame>
+    </Sheet>
+  )
+}
+```
+
+## Advanced Usage
+
+### Multi-step Sheet
+
+```tsx
+function MultiStepSheet() {
+  const [position, setPosition] = useState(0)
+  const [step, setStep] = useState(0)
+
+  const handleNext = () => {
+    if (step < 2) {
+      setStep(step + 1)
+      setPosition(Math.min(position, step + 1))
+    }
+  }
+
+  return (
+    <Sheet
+      snapPoints={[90, 60, 30]}
+      position={position}
+      onPositionChange={setPosition}
+    >
+      <Sheet.Frame>
+        {step === 0 && <Step1 onNext={handleNext} />}
+        {step === 1 && <Step2 onNext={handleNext} />}
+        {step === 2 && <Step3 />}
+      </Sheet.Frame>
+    </Sheet>
+  )
+}
+```
+
+### With Form
+
+```tsx
+function FormSheet() {
+  const [open, setOpen] = useState(false)
+  const [position, setPosition] = useState(0)
+
+  const handleSubmit = async (data) => {
+    await submitForm(data)
+    setOpen(false)
+  }
+
+  return (
+    <Sheet
+      modal
+      open={open}
+      onOpenChange={setOpen}
+      snapPoints={[85]}
+      position={position}
+      onPositionChange={setPosition}
+      dismissOnSnapToBottom
+      // Don't dismiss when tapping overlay while filling form
+      dismissOnOverlayPress={false}
+    >
+      <Sheet.Frame padding="$4">
+        <Form onSubmit={handleSubmit}>
+          {/* form fields */}
+        </Form>
+      </Sheet.Frame>
+    </Sheet>
+  )
+}
+```
+
+### Nested Sheets
+
+```tsx
+<Sheet snapPoints={[90]}>
+  <Sheet.Frame>
+    <Button>Open Nested</Button>
+    
+    <Sheet snapPoints={[60]} zIndex={100001}>
+      <Sheet.Frame>
+        <Paragraph>Nested sheet content</Paragraph>
+      </Sheet.Frame>
+    </Sheet>
+  </Sheet.Frame>
+</Sheet>
+```
+
+### Keyboard-Aware Sheet (React Native)
+
+```tsx
+<Sheet
+  modal
+  snapPoints={[85]}
+  moveOnKeyboardChange
+>
+  <Sheet.Frame>
+    <Input placeholder="Focus me" />
+    {/* Sheet moves up when keyboard opens */}
+  </Sheet.Frame>
+</Sheet>
+```
+
+## Platform Differences
+
+### Web
+
+- Uses mouse/touch drag gestures
+- Smooth CSS transforms
+- RemoveScroll prevents background scrolling
+
+### React Native
+
+- Uses React Native Gesture Handler for native feel
+- Reanimated for 60fps animations
+- Native keyboard avoidance on iOS/Android
+
+## Performance Tips
+
+1. Use `animation="lazy"` on overlay for better perceived performance
+2. Keep `snapPoints` array stable (memoize if computed)
+3. Use `unmountChildrenWhenHidden` for heavy content
+4. Avoid re-renders during drag with `React.memo`
+
+```tsx
+const snapPoints = useMemo(() => [85, 50], [])
+
+<Sheet snapPoints={snapPoints} unmountChildrenWhenHidden>
+  <Sheet.Frame>
+    <HeavyComponent />
+  </Sheet.Frame>
+</Sheet>
+```

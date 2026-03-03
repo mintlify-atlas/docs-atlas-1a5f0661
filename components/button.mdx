@@ -1,0 +1,283 @@
+---
+title: Button
+description: A pressable button component with variants, icons, and theming support
+---
+
+## Installation
+
+```bash
+npm install @tamagui/button
+```
+
+## Import
+
+```tsx
+import { Button } from '@tamagui/button'
+```
+
+## Usage
+
+### Basic Example
+
+```tsx
+import { Button } from '@tamagui/button'
+
+function Demo() {
+  return <Button>Click me</Button>
+}
+```
+
+### With Icons
+
+```tsx
+import { Button } from '@tamagui/button'
+import { Settings } from '@tamagui/lucide-icons'
+
+function Demo() {
+  return (
+    <>
+      <Button icon={Settings}>Settings</Button>
+      <Button iconAfter={Settings}>Next</Button>
+      <Button icon={Settings} scaleIcon={1.5}>Larger Icon</Button>
+    </>
+  )
+}
+```
+
+### Variants
+
+```tsx
+import { Button } from '@tamagui/button'
+
+function Demo() {
+  return (
+    <>
+      <Button>Default</Button>
+      <Button variant="outlined">Outlined</Button>
+      <Button chromeless>Chromeless</Button>
+      <Button circular>Round</Button>
+    </>
+  )
+}
+```
+
+### Sizes
+
+```tsx
+import { Button } from '@tamagui/button'
+
+function Demo() {
+  return (
+    <>
+      <Button size="$2">Small</Button>
+      <Button size="$3">Medium</Button>
+      <Button size="$4">Large</Button>
+      <Button size="$5">Extra Large</Button>
+    </>
+  )
+}
+```
+
+### Form Integration
+
+```tsx
+import { Button } from '@tamagui/button'
+import { Form } from '@tamagui/form'
+
+function Demo() {
+  const handleSubmit = () => {
+    console.log('Form submitted')
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <Button type="submit">Submit</Button>
+      <Button type="reset">Reset</Button>
+      <Button type="button">Cancel</Button>
+    </Form>
+  )
+}
+```
+
+### Disabled State
+
+```tsx
+import { Button } from '@tamagui/button'
+
+function Demo() {
+  return <Button disabled>Disabled Button</Button>
+}
+```
+
+### With Elevation
+
+```tsx
+import { Button } from '@tamagui/button'
+
+function Demo() {
+  return (
+    <>
+      <Button elevation="$2">Elevated</Button>
+      <Button elevation="$4">More Elevation</Button>
+    </>
+  )
+}
+```
+
+## API Reference
+
+### Button Props
+
+<ParamField path="size" type="SizeTokens">
+  Size of the button. Can use size tokens like `$2`, `$3`, `$4`, etc.
+</ParamField>
+
+<ParamField path="variant" type="'outlined'">
+  Button variant. `outlined` provides a transparent background with border.
+</ParamField>
+
+<ParamField path="icon" type="JSX.Element | FunctionComponent">
+  Icon to display before the button text. Automatically sized and colored.
+</ParamField>
+
+<ParamField path="iconAfter" type="JSX.Element | FunctionComponent">
+  Icon to display after the button text. Automatically sized and colored.
+</ParamField>
+
+<ParamField path="scaleIcon" type="number" default="1">
+  Scale multiplier for icon size.
+</ParamField>
+
+<ParamField path="iconSize" type="SizeTokens">
+  Override the icon size explicitly.
+</ParamField>
+
+<ParamField path="circular" type="boolean">
+  Make the button circular/pill-shaped.
+</ParamField>
+
+<ParamField path="chromeless" type="boolean">
+  Remove all background and border styling.
+</ParamField>
+
+<ParamField path="elevation" type="SizeTokens | number">
+  Add shadow/elevation to the button.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disable the button and prevent interactions.
+</ParamField>
+
+<ParamField path="type" type="'submit' | 'reset' | 'button'" default="'button'">
+  HTML button type for form handling.
+</ParamField>
+
+<ParamField path="form" type="string">
+  Associates the button with a form by ID.
+</ParamField>
+
+<ParamField path="formAction" type="string">
+  URL to submit form data to.
+</ParamField>
+
+<ParamField path="formEncType" type="string">
+  Form data encoding type.
+</ParamField>
+
+<ParamField path="formMethod" type="string">
+  HTTP method for form submission.
+</ParamField>
+
+<ParamField path="formNoValidate" type="boolean">
+  Bypass form validation on submit.
+</ParamField>
+
+<ParamField path="formTarget" type="string">
+  Where to display form response.
+</ParamField>
+
+<ParamField path="name" type="string">
+  Name of the button for form submission.
+</ParamField>
+
+<ParamField path="value" type="string | number">
+  Value of the button for form submission.
+</ParamField>
+
+<ParamField path="onPress" type="(event) => void">
+  Callback when button is pressed.
+</ParamField>
+
+## Theming
+
+Button responds to the following theme tokens:
+
+- `$background` - Default background color
+- `$backgroundHover` - Background on hover
+- `$backgroundPress` - Background when pressed
+- `$borderColor` - Border color
+- `$borderColorHover` - Border color on hover
+- `$borderColorPress` - Border color when pressed
+- `$color` - Text color
+- `$outlineColor` - Focus outline color
+
+```tsx
+import { Button } from '@tamagui/button'
+
+function Demo() {
+  return (
+    <Button theme="blue">
+      Themed Button
+    </Button>
+  )
+}
+```
+
+## Accessibility
+
+- Renders as a semantic `<button>` element
+- Supports keyboard navigation with Tab and Enter/Space
+- Includes `role="button"` and `tabIndex={0}` by default
+- Focus visible styles with outline
+- Disabled state sets `aria-disabled` and prevents interaction
+- Supports all ARIA attributes
+
+## Composition
+
+### Button.Text
+
+Customize the text component:
+
+```tsx
+import { Button } from '@tamagui/button'
+
+function Demo() {
+  return (
+    <Button>
+      <Button.Text fontSize="$6" fontWeight="bold">
+        Custom Text
+      </Button.Text>
+    </Button>
+  )
+}
+```
+
+### Button.Icon
+
+Customize icon rendering:
+
+```tsx
+import { Button } from '@tamagui/button'
+import { Heart } from '@tamagui/lucide-icons'
+
+function Demo() {
+  return (
+    <Button>
+      <Button.Icon scaleIcon={2}>
+        <Heart />
+      </Button.Icon>
+      Like
+    </Button>
+  )
+}
+```

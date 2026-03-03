@@ -1,122 +1,199 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Tamagui",
+  "theme": "willow",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#6252F8",
+    "light": "#6BCF1A",
+    "dark": "#1a1a1a"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/tamagui/tamagui"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/tamagui/tamagui"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
+              "introduction",
+              "installation",
               "quickstart",
-              "development"
+              "why-tamagui"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "core/styled",
+              "core/view-and-text",
+              "core/configuration",
+              "core/tokens",
+              "core/theme",
+              "core/variants",
+              "core/animations",
+              "core/server-rendering"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Compiler",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "compiler/introduction",
+              "compiler/installation",
+              "compiler/how-it-works",
+              "compiler/static-extraction"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Framework Guides",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "guides/next-js",
+              "guides/vite",
+              "guides/expo",
+              "guides/metro",
+              "guides/webpack"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/animations",
+              "advanced/design-systems",
+              "advanced/theme-builder",
+              "advanced/cli",
+              "advanced/create-styled-context"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Components",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Overview",
             "pages": [
-              "api-reference/introduction"
+              "components/introduction"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Layout",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "components/stacks",
+              "components/group",
+              "components/scroll-view",
+              "components/separator",
+              "components/spacer"
+            ]
+          },
+          {
+            "group": "Forms",
+            "pages": [
+              "components/button",
+              "components/inputs",
+              "components/checkbox",
+              "components/radio-group",
+              "components/switch",
+              "components/slider",
+              "components/label",
+              "components/form"
+            ]
+          },
+          {
+            "group": "Overlays",
+            "pages": [
+              "components/dialog",
+              "components/alert-dialog",
+              "components/popover",
+              "components/sheet",
+              "components/tooltip",
+              "components/toast"
+            ]
+          },
+          {
+            "group": "Navigation",
+            "pages": [
+              "components/tabs",
+              "components/accordion",
+              "components/menu",
+              "components/context-menu"
+            ]
+          },
+          {
+            "group": "Data Display",
+            "pages": [
+              "components/card",
+              "components/avatar",
+              "components/image",
+              "components/text",
+              "components/list-item",
+              "components/progress",
+              "components/spinner"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "components/portal",
+              "components/visually-hidden",
+              "components/focus-scope",
+              "components/linear-gradient"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core API",
+            "pages": [
+              "api/styled",
+              "api/create-tamagui",
+              "api/create-component",
+              "api/create-tokens",
+              "api/create-theme"
+            ]
+          },
+          {
+            "group": "Hooks",
+            "pages": [
+              "api/use-theme",
+              "api/use-media",
+              "api/use-controllable-state",
+              "api/use-debounce"
+            ]
+          },
+          {
+            "group": "Animation Drivers",
+            "pages": [
+              "api/animations-css",
+              "api/animations-react-native",
+              "api/animations-reanimated",
+              "api/animations-motion"
+            ]
+          },
+          {
+            "group": "Compiler Plugins",
+            "pages": [
+              "api/vite-plugin",
+              "api/next-plugin",
+              "api/metro-plugin",
+              "api/babel-plugin",
+              "api/webpack-loader"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

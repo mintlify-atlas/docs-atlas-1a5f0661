@@ -1,0 +1,509 @@
+---
+title: Theme Builder
+description: Complete guide to the ThemeBuilder API for creating complex theme systems
+---
+
+# Theme Builder
+
+The `ThemeBuilder` is Tamagui's powerful API for creating complex, hierarchical theme systems with full type safety.
+
+## Installation
+
+```bash
+npm install @tamagui/theme-builder @tamagui/create-theme
+```
+
+## Basic Usage
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:475-477`:
+
+```tsx
+import { createThemeBuilder } from '@tamagui/theme-builder'
+
+const builder = createThemeBuilder()
+```
+
+## API Methods
+
+### addPalettes
+
+Define color palettes used to generate themes.
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:111-123`:
+
+```tsx
+builder.addPalettes({
+  light: [
+    '#fff',
+    '#fafafa',
+    '#f5f5f5',
+    '#e5e5e5',
+    // ... 12 colors total
+  ],
+  dark: [
+    '#000',
+    '#1a1a1a',
+    '#262626',
+    '#404040',
+    // ... 12 colors total
+  ],
+  blue: [
+    '#e6f4ff',
+    '#bae7ff',
+    '#91d5ff',
+    // ... more blues
+  ],
+})
+```
+
+Palettes are arrays of color values. Each position maps to a semantic token via templates.
+
+### addTemplates
+
+Templates map semantic token names to palette positions.
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:125-137`:
+
+```tsx
+builder.addTemplates({
+  base: {
+    background: 0,        // Uses palette[0]
+    backgroundHover: 1,   // Uses palette[1]
+    backgroundPress: 2,
+    backgroundFocus: 3,
+    borderColor: 4,
+    borderColorHover: 5,
+    color: 11,           // Uses palette[11]
+    colorHover: 10,
+    colorPress: 11,
+    colorFocus: 11,
+  },
+  button: {
+    background: 5,
+    backgroundHover: 6,
+    backgroundPress: 7,
+    color: 11,
+  },
+})
+```
+
+### addThemes
+
+Create base themes using palettes and templates.
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:158-187`:
+
+```tsx
+builder.addThemes({
+  light: {
+    template: 'base',
+    palette: 'light',
+    nonInheritedValues: {
+      // Additional tokens not from template
+      shadowColor: 'rgba(0,0,0,0.1)',
+    },
+  },
+  dark: {
+    template: 'base',
+    palette: 'dark',
+    nonInheritedValues: {
+      shadowColor: 'rgba(0,0,0,0.5)',
+    },
+  },
+})
+```
+
+### addChildThemes
+
+Create nested themes that inherit from parent themes.
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:202-299`:
+
+```tsx
+builder.addChildThemes(
+  {
+    blue: {
+      template: 'base',
+      palette: 'blue',
+    },
+    red: {
+      template: 'base',
+      palette: 'red',
+    },
+  },
+  {
+    avoidNestingWithin: ['accent'],
+  }
+)
+
+// Generates these themes:
+// - light_blue (from light + blue)
+// - dark_blue (from dark + blue)
+// - light_red (from light + red)
+// - dark_red (from dark + red)
+```
+
+#### avoidNestingWithin
+
+Prevents nesting child themes into specific parent themes:
+
+```tsx
+builder.addChildThemes(
+  { blue: { template: 'base', palette: 'blue' } },
+  { avoidNestingWithin: ['accent'] }
+)
+
+// Creates: light_blue, dark_blue
+// Skips: light_accent_blue, dark_accent_blue
+```
+
+### addMasks
+
+Masks transform existing themes to create variants.
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:139-153`:
+
+```tsx
+import { createMask } from '@tamagui/create-theme'
+
+builder.addMasks({
+  inverse: {
+    name: 'inverse',
+    mask: (template, options) => {
+      return {
+        ...template,
+        background: template.color,
+        color: template.background,
+      }
+    },
+  },
+  strengthen: {
+    name: 'strengthen',
+    mask: (template, { palette }) => {
+      return {
+        ...template,
+        background: palette[2], // Stronger background
+      }
+    },
+  },
+})
+
+// Use masks in themes
+builder.addThemes({
+  inverse: { mask: 'inverse' },
+})
+```
+
+### addComponentThemes
+
+Create component-specific themes (deprecated but still supported).
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:190-200`:
+
+```tsx
+builder.addComponentThemes(
+  {
+    Button: { template: 'button' },
+    Input: { template: 'base' },
+    Card: { template: 'surface' },
+  },
+  {
+    avoidNestingWithin: ['blue', 'red'],
+  }
+)
+
+// Generates:
+// - light_Button, dark_Button
+// - light_Input, dark_Input
+// - light_Card, dark_Card
+```
+
+### getTheme
+
+Transform themes before building.
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:301-315`:
+
+```tsx
+builder.getTheme(({ name, theme, scheme, parentName, level }) => {
+  // Add custom properties
+  return {
+    ...theme,
+    // Add opacity variations
+    backgroundTransparent: `${theme.background}00`,
+    backgroundSubtle: `${theme.background}80`,
+    // Add computed values
+    isLight: scheme === 'light',
+    isDark: scheme === 'dark',
+    depth: level,
+  }
+})
+```
+
+### build
+
+Generate the final theme object.
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:317-472`:
+
+```tsx
+const themes = builder.build()
+
+// Result:
+// {
+//   light: { background: '#fff', color: '#000', ... },
+//   dark: { background: '#000', color: '#fff', ... },
+//   light_blue: { ... },
+//   dark_blue: { ... },
+//   ...
+// }
+```
+
+## Advanced Patterns
+
+### Multi-Parent Themes
+
+Child themes can specify multiple potential parents:
+
+```tsx
+builder.addChildThemes({
+  Button: [
+    {
+      parent: 'light',
+      template: 'button',
+      palette: 'blue',
+    },
+    {
+      parent: 'dark',
+      template: 'button',
+      palette: 'blue_dark',
+    },
+  ],
+})
+```
+
+### Avoiding Double Nesting
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:259-263`:
+
+```tsx
+// ThemeBuilder automatically prevents:
+// light_blue_blue (from light_blue + blue)
+// dark_accent_accent (from dark_accent + accent)
+
+// It detects when parent already ends with child name
+```
+
+### Theme Inheritance Chain
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:329-353`:
+
+```tsx
+// Theme: light_blue_accent
+// Inheritance: light_blue_accent -> light_blue -> light
+
+const themeDefinition = builder.state.themes['light_blue_accent']
+// Automatically resolves parent chain to get palette and template
+```
+
+## Helper Functions
+
+### createThemes (Simplified API)
+
+From `code/core/theme-builder/src/createThemes.ts:140-198`:
+
+```tsx
+import { createThemes } from '@tamagui/theme-builder'
+
+const themes = createThemes({
+  // Base theme (required)
+  base: {
+    palette: ['#fff', '#000'], // light, dark
+    template: 'base',
+    extra: {
+      light: { shadowColor: 'rgba(0,0,0,0.1)' },
+      dark: { shadowColor: 'rgba(0,0,0,0.5)' },
+    },
+  },
+  
+  // Accent theme (optional)
+  accent: {
+    palette: {
+      light: ['#e6f4ff', '#bae7ff', ...],
+      dark: ['#003a8c', '#002766', ...],
+    },
+  },
+  
+  // Child themes
+  childrenThemes: {
+    blue: { palette: [...] },
+    red: { palette: [...] },
+  },
+  
+  // Grandchild themes
+  grandChildrenThemes: {
+    accent: { template: 'base' },
+  },
+})
+```
+
+### getThemeSuitePalettes
+
+From `code/core/theme-builder/src/getThemeSuitePalettes.ts`:
+
+```tsx
+import { getThemeSuitePalettes } from '@tamagui/theme-builder'
+
+// Generates a 12-color palette with proper contrast
+const palettes = getThemeSuitePalettes({
+  name: 'blue',
+  anchors: [
+    { index: 0, hue: { light: 210, dark: 210 }, sat: { light: 100, dark: 100 }, lum: { light: 95, dark: 10 } },
+    { index: 11, hue: { light: 210, dark: 210 }, sat: { light: 100, dark: 100 }, lum: { light: 20, dark: 90 } },
+  ],
+})
+
+// Returns:
+// {
+//   light: ['#e6f4ff', ...12 colors],
+//   dark: ['#003a8c', ...12 colors]
+// }
+```
+
+## Type Safety
+
+### Typed Theme Access
+
+```tsx
+type State = {
+  palettes: typeof palettes
+  templates: typeof templates
+  themes: typeof themes
+}
+
+const builder = createThemeBuilder<State>()
+
+// Now fully typed!
+builder.addThemes({
+  light: {
+    template: 'base', // Autocomplete from templates
+    palette: 'light', // Autocomplete from palettes
+  },
+})
+```
+
+### Theme Result Types
+
+From `code/core/theme-builder/src/ThemeBuilder.ts:57-72`:
+
+```tsx
+type ThemeBuilderBuildResult<State> = {
+  [Key in keyof State['themes']]: GeneratedTheme
+}
+
+const themes = builder.build()
+// Type: { light: Theme, dark: Theme, light_blue: Theme, ... }
+```
+
+## Real-World Example
+
+```tsx
+import { createThemeBuilder } from '@tamagui/theme-builder'
+import { createTokens } from '@tamagui/core'
+
+// 1. Define palettes
+const palettes = {
+  light: ['#fff', '#fafafa', '#f5f5f5', '#e5e5e5', '#d4d4d4', '#a3a3a3', '#737373', '#525252', '#404040', '#262626', '#171717', '#000'],
+  dark: ['#000', '#171717', '#262626', '#404040', '#525252', '#737373', '#a3a3a3', '#d4d4d4', '#e5e5e5', '#f5f5f5', '#fafafa', '#fff'],
+  blue: ['#eff6ff', '#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554', '#0f1729'],
+}
+
+// 2. Define templates
+const templates = {
+  base: {
+    background: 0,
+    backgroundHover: 1,
+    backgroundPress: 2,
+    backgroundFocus: 3,
+    borderColor: 4,
+    borderColorHover: 5,
+    borderColorPress: 6,
+    borderColorFocus: 7,
+    color: 11,
+    colorHover: 10,
+    colorPress: 11,
+    colorFocus: 11,
+  },
+}
+
+// 3. Build themes
+const builder = createThemeBuilder()
+  .addPalettes(palettes)
+  .addTemplates(templates)
+  .addThemes({
+    light: { template: 'base', palette: 'light' },
+    dark: { template: 'base', palette: 'dark' },
+  })
+  .addChildThemes({
+    blue: { template: 'base', palette: 'blue' },
+  })
+  .getTheme(({ theme, scheme }) => ({
+    ...theme,
+    // Add custom properties
+    shadowColor: scheme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.5)',
+  }))
+
+const themes = builder.build()
+
+// 4. Use in config
+export default createTamagui({
+  themes,
+  tokens: createTokens({
+    color: palettes.light,
+    // ...
+  }),
+})
+```
+
+## Best Practices
+
+1. **Use 12-color palettes** - Provides enough contrast variations
+2. **Template semantic tokens** - Background, border, color, hover states
+3. **Leverage child themes** - Create variants systematically
+4. **Use masks sparingly** - Only for true transformations
+5. **Add type hints** - Better DX with TypeScript
+6. **Document your system** - Explain palette positions and templates
+7. **Test theme combinations** - Ensure all generated themes look good
+8. **Version carefully** - Theme changes can be breaking
+
+## Debugging
+
+### Inspect Generated Themes
+
+```tsx
+const builder = createThemeBuilder()
+  // ... setup
+
+console.log('Added themes:', builder._addedThemes)
+console.log('State:', builder.state)
+
+const themes = builder.build()
+console.log('Final themes:', Object.keys(themes))
+```
+
+### Common Issues
+
+**Missing palette**
+```
+Error: No palette for theme: light_blue
+```
+Solution: Ensure palette name matches theme definition.
+
+**Missing template**
+```
+Error: No template for theme: light
+```
+Solution: Add template to templates before using in themes.
+
+**Theme not generated**
+Check `avoidNestingWithin` - theme may be intentionally skipped.

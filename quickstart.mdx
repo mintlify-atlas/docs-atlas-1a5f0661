@@ -1,80 +1,409 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Build your first cross-platform component with Tamagui in minutes
 ---
 
-## Get started in three steps
+# Quick Start
 
-Get your documentation site running locally and make your first customization.
+This guide will walk you through creating a simple but functional Tamagui application from scratch. You'll learn the core concepts and build a working example that runs on both web and native.
 
-### Step 1: Set up your local environment
+## Prerequisites
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+Before starting, make sure you have:
+
+- Node.js 18 or later
+- A React or React Native project (or create one with `npm create tamagui@latest`)
+- Tamagui installed ([see installation guide](/installation))
+
+## Step-by-Step Guide
+
+<Steps>
+
+### Create Configuration
+
+First, create a `tamagui.config.ts` file in your project root:
+
+```tsx tamagui.config.ts
+import { defaultConfig } from '@tamagui/config/v5'
+import { createTamagui } from 'tamagui'
+
+export const config = createTamagui(defaultConfig)
+
+export default config
+
+export type Conf = typeof config
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+```
+
+This configuration includes everything you need: themes, tokens, fonts, and responsive breakpoints.
+
+### Set Up the Provider
+
+Create a `Provider.tsx` component to wrap your app:
+
+```tsx components/Provider.tsx
+import { useColorScheme } from 'react-native'
+import { TamaguiProvider, type TamaguiProviderProps } from 'tamagui'
+import { config } from '../tamagui.config'
+
+export function Provider({
+  children,
+  ...rest
+}: Omit<TamaguiProviderProps, 'config' | 'defaultTheme'>) {
+  const colorScheme = useColorScheme()
+
+  return (
+    <TamaguiProvider
+      config={config}
+      defaultTheme={colorScheme === 'dark' ? 'dark' : 'light'}
+      {...rest}
+    >
+      {children}
+    </TamaguiProvider>
+  )
+}
+```
+
+This provider:
+- Passes your configuration to all Tamagui components
+- Automatically switches between light and dark themes based on system preferences
+- Makes design tokens and themes available throughout your app
+
+### Build Your First Component
+
+Create a simple screen using Tamagui components:
+
+```tsx app/index.tsx
+import { ExternalLink } from '@tamagui/lucide-icons'
+import { Anchor, Button, H2, Paragraph, XStack, YStack } from 'tamagui'
+
+export default function HomeScreen() {
+  return (
+    <YStack
+      flex={1}
+      alignItems="center"
+      justifyContent="center"
+      gap="$4"
+      padding="$4"
+      backgroundColor="$background"
+    >
+      <H2>Welcome to Tamagui</H2>
+
+      <Paragraph textAlign="center" color="$gray11">
+        Build beautiful cross-platform apps with React
+      </Paragraph>
+
+      <XStack gap="$3" flexWrap="wrap" justifyContent="center">
+        <Button theme="accent" size="$5">
+          Get Started
+        </Button>
+        
+        <Button size="$5" variant="outlined">
+          Learn More
+        </Button>
+      </XStack>
+
+      <XStack
+        alignItems="center"
+        gap="$2"
+        paddingHorizontal="$3"
+        paddingVertical="$2"
+        borderRadius="$4"
+        backgroundColor="$blue3"
+        hoverStyle={{ backgroundColor: '$blue4' }}
+        pressStyle={{ backgroundColor: '$blue2' }}
+      >
+        <Anchor
+          href="https://tamagui.dev/docs"
+          textDecorationLine="none"
+          color="$blue11"
+        >
+          View Documentation
+        </Anchor>
+        <ExternalLink size="$1" color="$blue11" />
+      </XStack>
+    </YStack>
+  )
+}
+```
+
+This example demonstrates:
+- **Layout components**: `YStack` (vertical), `XStack` (horizontal)
+- **Typography**: `H2`, `Paragraph`
+- **Interactive components**: `Button`, `Anchor`
+- **Design tokens**: `$4` for spacing, `$blue3` for colors
+- **Pseudo-states**: `hoverStyle`, `pressStyle`
+- **Icons**: From `@tamagui/lucide-icons`
+
+### Add Animations
+
+Make it interactive with Tamagui's built-in animations:
+
+```tsx components/AnimatedCard.tsx
+import { Square } from 'tamagui'
+
+export function AnimatedCard() {
+  return (
+    <Square
+      size={120}
+      borderRadius="$6"
+      backgroundColor="$blue9"
+      borderWidth={1}
+      borderColor="$borderColor"
+      elevation="$4"
+      animation="bouncy"
+      hoverStyle={{
+        scale: 1.1,
+        backgroundColor: '$blue10',
+      }}
+      pressStyle={{
+        scale: 0.95,
+        backgroundColor: '$blue8',
+      }}
+    />
+  )
+}
+```
+
+The `animation="bouncy"` prop uses Tamagui's predefined spring animation. The component will smoothly animate when you hover or press it.
+
+### Create a Custom Styled Component
+
+Build reusable styled components using Tamagui's `styled` function:
+
+```tsx components/Card.tsx
+import { styled, YStack } from 'tamagui'
+
+export const Card = styled(YStack, {
+  padding: '$4',
+  borderRadius: '$4',
+  backgroundColor: '$background',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+  
+  variants: {
+    elevated: {
+      true: {
+        elevation: '$4',
+        shadowColor: '$shadowColor',
+      },
+    },
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    pressable: {
+      true: {
+        cursor: 'pointer',
+        hoverStyle: {
+          backgroundColor: '$backgroundHover',
+          borderColor: '$borderColorHover',
+        },
+        pressStyle: {
+          backgroundColor: '$backgroundPress',
+          scale: 0.98,
+        },
+      },
+    },
+  },
+})
+```
 
-### Step 2: Deploy your changes
+Use your custom component:
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+```tsx
+import { Card } from './components/Card'
+import { H3, Paragraph } from 'tamagui'
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+export function Example() {
+  return (
+    <Card elevated pressable>
+      <H3>Card Title</H3>
+      <Paragraph>This is a custom styled component with variants.</Paragraph>
+    </Card>
+  )
+}
+```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+### Build a Complete Example
 
-### Step 3: Go live
+Here's a more complete example combining everything:
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+```tsx app/demo.tsx
+import { useState } from 'react'
+import { Activity, Moon, Sun } from '@tamagui/lucide-icons'
+import { Button, H2, Paragraph, Separator, useTheme, XStack, YStack } from 'tamagui'
 
-## Next steps
+export default function DemoScreen() {
+  const [count, setCount] = useState(0)
+  const theme = useTheme()
 
-Now that you have your docs running, explore these key features:
+  return (
+    <YStack
+      flex={1}
+      alignItems="center"
+      justifyContent="center"
+      padding="$4"
+      gap="$4"
+      backgroundColor="$background"
+    >
+      <H2>Interactive Demo</H2>
+
+      <YStack
+        width="100%"
+        maxWidth={400}
+        padding="$5"
+        gap="$4"
+        borderRadius="$6"
+        backgroundColor="$gray2"
+        borderWidth={1}
+        borderColor="$borderColor"
+      >
+        <Paragraph textAlign="center" fontSize="$6" fontWeight="bold">
+          Count: {count}
+        </Paragraph>
+
+        <XStack gap="$3" justifyContent="center">
+          <Button
+            theme="accent"
+            icon={Activity}
+            onPress={() => setCount(count + 1)}
+          >
+            Increment
+          </Button>
+
+          <Button
+            variant="outlined"
+            onPress={() => setCount(0)}
+          >
+            Reset
+          </Button>
+        </XStack>
+
+        <Separator />
+
+        <YStack gap="$2">
+          <Paragraph fontSize="$3" color="$gray11">
+            Current theme: {theme.name}
+          </Paragraph>
+          
+          <XStack gap="$2">
+            <Button size="$3" theme="light" icon={Sun}>
+              Light
+            </Button>
+            <Button size="$3" theme="dark" icon={Moon}>
+              Dark
+            </Button>
+          </XStack>
+        </YStack>
+      </YStack>
+
+      <Paragraph textAlign="center" color="$gray10" maxWidth={300}>
+        This example works identically on web and native with zero platform-specific code.
+      </Paragraph>
+    </YStack>
+  )
+}
+```
+
+This demonstrates:
+- State management with `useState`
+- Theme access with `useTheme`
+- Button icons and interactions
+- Layout composition with stacks
+- Design tokens for consistent spacing and colors
+- Responsive design that adapts to any screen size
+
+</Steps>
+
+## Understanding Core Concepts
+
+### Stack Components
+
+Tamagui provides three core layout primitives:
+
+- **YStack** - Vertical flexbox container (`flexDirection: 'column'`)
+- **XStack** - Horizontal flexbox container (`flexDirection: 'row'`)
+- **ZStack** - Stacked positioning container (overlapping children)
+
+```tsx
+import { XStack, YStack, ZStack } from 'tamagui'
+
+// Horizontal layout
+<XStack gap="$2">
+  <YStack flex={1} />
+  <YStack flex={1} />
+</XStack>
+
+// Overlapping elements
+<ZStack width={200} height={200}>
+  <YStack fullscreen backgroundColor="$red9" />
+  <YStack fullscreen x={10} y={10} backgroundColor="$blue9" />
+</ZStack>
+```
+
+### Design Tokens
+
+All values starting with `$` are design tokens:
+
+- **Spacing**: `$1` through `$20` (plus `$0.25`, `$0.5`, `$0.75`)
+- **Sizes**: `$true`, `$1` through `$10`
+- **Colors**: `$red1` through `$red12`, `$blue1` through `$blue12`, etc.
+- **Radii**: `$1` through `$12`
+
+```tsx
+<YStack
+  padding="$4"        // Uses spacing token
+  gap="$2"           // Gap between children
+  backgroundColor="$blue3"  // Background color token
+  borderRadius="$4"  // Border radius token
+/>
+```
+
+### Responsive Props
+
+Make components responsive using media query props:
+
+```tsx
+<YStack
+  width="100%"
+  $sm={{ width: '80%' }}    // Small screens
+  $md={{ width: '60%' }}    // Medium screens
+  $lg={{ width: '40%' }}    // Large screens
+  padding="$2"
+  $gtSm={{ padding: '$4' }} // Greater than small
+/>
+```
+
+### Themes
+
+Switch themes dynamically:
+
+```tsx
+import { Theme, Button } from 'tamagui'
+
+<Theme name="dark">
+  <Button>I'm always dark</Button>
+</Theme>
+
+<Theme name="accent">
+  <Button>I use the accent theme</Button>
+</Theme>
+```
+
+## Next Steps
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Why Tamagui?" icon="lightbulb" href="/why-tamagui">
+    Learn about the benefits and when to use Tamagui
+  </Card>
+  <Card title="Styled Function" icon="code" href="/core/styled">
+    Deep dive into creating custom styled components
+  </Card>
+  <Card title="Components" icon="box" href="/components/button">
+    Explore the full component library
+  </Card>
+  <Card title="Themes" icon="palette" href="/core/themes">
+    Master the theming system
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

@@ -1,0 +1,361 @@
+---
+title: Babel Plugin
+description: Tamagui Babel transform plugin
+---
+
+The Babel plugin provides the core Tamagui compiler transform for use in Babel-based build systems.
+
+## Installation
+
+```bash
+npm install @tamagui/babel-plugin
+```
+
+## Usage
+
+```js
+// babel.config.js
+module.exports = {
+  plugins: [
+    [
+      '@tamagui/babel-plugin',
+      {
+        components: ['tamagui'],
+        config: './tamagui.config.ts',
+      },
+    ],
+  ],
+}
+```
+
+## Configuration Options
+
+<ParamField path="config" type="string" required>
+  Path to your Tamagui config file.
+  
+  ```js
+  config: './tamagui.config.ts'
+  ```
+</ParamField>
+
+<ParamField path="components" type="string[]" required>
+  Array of component packages to optimize.
+  
+  ```js
+  components: ['tamagui', '@my-org/ui']
+  ```
+</ParamField>
+
+<ParamField path="disableExtraction" type="boolean" default="false">
+  Disable the optimizing compiler.
+  
+  ```js
+  disableExtraction: process.env.NODE_ENV === 'development'
+  ```
+</ParamField>
+
+<ParamField path="platform" type="'web' | 'native'" default="'web'">
+  Target platform.
+  
+  ```js
+  platform: 'native'
+  ```
+</ParamField>
+
+<ParamField path="logTimings" type="boolean" default="false">
+  Log compilation timings.
+  
+  ```js
+  logTimings: true
+  ```
+</ParamField>
+
+<ParamField path="disableDebugAttr" type="boolean" default="false">
+  Disable data-* debug attributes in development.
+  
+  ```js
+  disableDebugAttr: false
+  ```
+</ParamField>
+
+## Examples
+
+### Basic Configuration
+
+```js
+// babel.config.js
+module.exports = {
+  presets: ['module:metro-react-native-babel-preset'],
+  plugins: [
+    [
+      '@tamagui/babel-plugin',
+      {
+        components: ['tamagui'],
+        config: './tamagui.config.ts',
+      },
+    ],
+  ],
+}
+```
+
+### Multiple Component Libraries
+
+```js
+plugins: [
+  [
+    '@tamagui/babel-plugin',
+    {
+      components: [
+        'tamagui',
+        '@my-org/ui',
+        '@my-org/design-system',
+      ],
+      config: './tamagui.config.ts',
+    },
+  ],
+]
+```
+
+### Development Mode
+
+```js
+const isDev = process.env.NODE_ENV === 'development'
+
+plugins: [
+  [
+    '@tamagui/babel-plugin',
+    {
+      components: ['tamagui'],
+      config: './tamagui.config.ts',
+      disableExtraction: isDev,  // Faster dev builds
+      logTimings: isDev,         // Debug slow files
+    },
+  ],
+]
+```
+
+### Native Platform
+
+```js
+plugins: [
+  [
+    '@tamagui/babel-plugin',
+    {
+      components: ['tamagui'],
+      config: './tamagui.config.ts',
+      platform: 'native',
+    },
+  ],
+]
+```
+
+### With React Native Reanimated
+
+```js
+module.exports = {
+  plugins: [
+    [
+      '@tamagui/babel-plugin',
+      {
+        components: ['tamagui'],
+        config: './tamagui.config.ts',
+      },
+    ],
+    // Reanimated plugin must come last
+    'react-native-reanimated/plugin',
+  ],
+}
+```
+
+## How It Works
+
+### Babel Transform
+
+The plugin is a Babel plugin that:
+
+1. **Analyzes** JSX elements for Tamagui components
+2. **Extracts** style props to static CSS classes
+3. **Transforms** AST to replace styles with classNames
+4. **Generates** CSS output
+5. **Optimizes** runtime bundle size
+
+### Example Transformation
+
+**Input:**
+```tsx
+<View backgroundColor="$blue10" padding="$4" />
+```
+
+**Output (web):**
+```tsx
+<div className="_bg_blue10 _p_4" />
+```
+
+**Output (native):**
+```tsx
+<View style={styles._bg_blue10_p_4} />
+```
+
+## Build Systems
+
+### Metro (React Native)
+
+Used automatically via `@tamagui/metro-plugin`:
+
+```js
+// metro.config.js
+const { withTamagui } = require('@tamagui/metro-plugin')
+module.exports = withTamagui(config, options)
+```
+
+### Webpack
+
+Used automatically via `@tamagui/loader`:
+
+```js
+// webpack.config.js
+const { TamaguiPlugin } = require('tamagui-loader')
+
+module.exports = {
+  plugins: [
+    new TamaguiPlugin({
+      components: ['tamagui'],
+      config: './tamagui.config.ts',
+    }),
+  ],
+}
+```
+
+### Vite
+
+Not needed - use `@tamagui/vite-plugin` instead (uses esbuild/swc).
+
+### Custom Setup
+
+For other build tools:
+
+```js
+// babel.config.js
+module.exports = {
+  plugins: [
+    [
+      '@tamagui/babel-plugin',
+      {
+        components: ['tamagui'],
+        config: './tamagui.config.ts',
+        platform: 'web',  // or 'native'
+      },
+    ],
+  ],
+}
+```
+
+## Performance
+
+### Compilation Speed
+
+The plugin is optimized for speed:
+
+- **Fast AST traversal** - Only visits JSX elements
+- **Incremental compilation** - Caches results per file
+- **Parallel processing** - Works with Babel's parallel mode
+
+Enable timing logs to identify slow files:
+
+```js
+{
+  logTimings: true,
+}
+```
+
+### Build Size Impact
+
+- **Smaller bundles** - Removes style logic from runtime
+- **Static CSS** - Styles extracted to CSS files
+- **Tree-shakeable** - Unused components are removed
+
+## Debug Mode
+
+### File-Level Debugging
+
+Enable debug mode for specific files:
+
+```tsx
+// At top of file
+// tamagui-debug
+
+// Or verbose mode
+// tamagui-debug-verbose
+
+export function MyComponent() {
+  return <View backgroundColor="$red10" />
+}
+```
+
+### Disable Extraction
+
+Disable extraction for a file:
+
+```tsx
+// tamagui-disable
+
+// Component will not be optimized
+export function MyComponent() {
+  return <View backgroundColor="$red10" />
+}
+```
+
+## Troubleshooting
+
+### "Module not found: @tamagui/babel-plugin"
+
+Install the plugin:
+
+```bash
+npm install @tamagui/babel-plugin
+```
+
+### Slow compilation
+
+Disable extraction in development:
+
+```js
+{
+  disableExtraction: process.env.NODE_ENV === 'development',
+}
+```
+
+### Styles not extracting
+
+Check:
+
+1. Component is in `components` array
+2. Config path is correct
+3. File is being processed by Babel
+4. No `// tamagui-disable` pragma
+
+Enable verbose debugging:
+
+```tsx
+// tamagui-debug-verbose
+```
+
+### Conflicts with other plugins
+
+Ensure plugin order:
+
+```js
+plugins: [
+  '@tamagui/babel-plugin',
+  // Other plugins...
+  'react-native-reanimated/plugin',  // Must be last
+]
+```
+
+## See Also
+
+- [Configuration](/core/configuration)
+- [Compiler](/compiler/introduction)
+- [Metro Plugin](/api/metro-plugin)
+- [Webpack Loader](/api/webpack-loader)
+- [Vite Plugin](/api/vite-plugin)

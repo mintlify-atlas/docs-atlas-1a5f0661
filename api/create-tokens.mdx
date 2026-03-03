@@ -1,0 +1,542 @@
+---
+title: createTokens()
+description: Create design tokens for your Tamagui theme system
+---
+
+The `createTokens()` function transforms your raw token definitions into Tamagui's internal variable system, enabling type-safe, optimized token usage throughout your application.
+
+## Function Signature
+
+```typescript
+function createTokens<T extends CreateTokens>(
+  tokens: T
+): MakeTokens<T>
+```
+
+## Parameters
+
+<ParamField path="tokens" type="CreateTokens" required>
+  Token definitions organized by category.
+
+  <ParamField path="tokens.color" type="Record<string, string>">
+    Color tokens (hex, rgb, hsl, etc.)
+    
+    ```typescript
+    color: {
+      white: '#ffffff',
+      black: '#000000',
+      blue10: '#0070f3',
+    }
+    ```
+  </ParamField>
+
+  <ParamField path="tokens.space" type="Record<string | number, number>">
+    Spacing tokens (converted to px)
+    
+    ```typescript
+    space: {
+      0: 0,
+      1: 4,
+      2: 8,
+      3: 12,
+      4: 16,
+    }
+    ```
+  </ParamField>
+
+  <ParamField path="tokens.size" type="Record<string | number, number>">
+    Size tokens for width, height, etc. (converted to px)
+    
+    ```typescript
+    size: {
+      0: 0,
+      1: 20,
+      2: 40,
+      3: 60,
+    }
+    ```
+  </ParamField>
+
+  <ParamField path="tokens.radius" type="Record<string | number, number>">
+    Border radius tokens (converted to px)
+    
+    ```typescript
+    radius: {
+      0: 0,
+      1: 4,
+      2: 8,
+      round: 999,
+    }
+    ```
+  </ParamField>
+
+  <ParamField path="tokens.zIndex" type="Record<string | number, number>">
+    Z-index tokens (unitless)
+    
+    ```typescript
+    zIndex: {
+      0: 0,
+      1: 100,
+      2: 200,
+      max: 999999,
+    }
+    ```
+  </ParamField>
+
+  <ParamField path="tokens[customCategory]" type="Record<string | number, any>">
+    Custom token categories (unitless by default)
+    
+    ```typescript
+    opacity: {
+      0: 0,
+      50: 0.5,
+      100: 1,
+    }
+    ```
+  </ParamField>
+</ParamField>
+
+## Return Type
+
+<ResponseField name="TokensParsed" type="object">
+  Processed tokens with Variable wrappers:
+  
+  ```typescript
+  {
+    color: { white: Variable, black: Variable, ... },
+    space: { 0: Variable, 1: Variable, ... },
+    size: { 0: Variable, 1: Variable, ... },
+    radius: { 0: Variable, 1: Variable, ... },
+    zIndex: { 0: Variable, 1: Variable, ... },
+  }
+  ```
+
+  Each token is converted to a Tamagui Variable object that:
+  - Provides CSS variable references
+  - Enables theme-aware token resolution
+  - Supports compiler optimization
+  - Includes the raw value for runtime access
+</ResponseField>
+
+## Basic Usage
+
+### Simple Token Set
+
+```tsx
+import { createTokens } from 'tamagui'
+
+const tokens = createTokens({
+  color: {
+    white: '#ffffff',
+    black: '#000000',
+    gray1: '#f8f9fa',
+    gray2: '#e9ecef',
+    blue10: '#0070f3',
+  },
+  
+  space: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    5: 20,
+    6: 24,
+  },
+  
+  size: {
+    0: 0,
+    1: 20,
+    2: 40,
+    3: 60,
+  },
+  
+  radius: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    round: 999,
+  },
+})
+
+export { tokens }
+```
+
+### Complete Token System
+
+```tsx
+import { createTokens } from 'tamagui'
+
+export const tokens = createTokens({
+  // Colors
+  color: {
+    // Grays
+    white: '#ffffff',
+    black: '#000000',
+    gray1: '#f8f9fa',
+    gray2: '#e9ecef',
+    gray3: '#dee2e6',
+    gray4: '#ced4da',
+    gray5: '#adb5bd',
+    gray6: '#868e96',
+    gray7: '#495057',
+    gray8: '#343a40',
+    gray9: '#212529',
+    
+    // Blues
+    blue1: '#e7f5ff',
+    blue2: '#d0ebff',
+    blue3: '#a5d8ff',
+    blue4: '#74c0fc',
+    blue5: '#4dabf7',
+    blue6: '#339af0',
+    blue7: '#228be6',
+    blue8: '#1c7ed6',
+    blue9: '#1971c2',
+    blue10: '#1864ab',
+    
+    // Semantic colors
+    primary: '#1864ab',
+    secondary: '#868e96',
+    success: '#2f9e44',
+    warning: '#f59f00',
+    error: '#c92a2a',
+  },
+  
+  // Spacing scale (4px base)
+  space: {
+    $0: 0,
+    $0_5: 2,
+    $1: 4,
+    $1_5: 6,
+    $2: 8,
+    $2_5: 10,
+    $3: 12,
+    $3_5: 14,
+    $4: 16,
+    $5: 20,
+    $6: 24,
+    $7: 28,
+    $8: 32,
+    $9: 36,
+    $10: 40,
+    $12: 48,
+    $16: 64,
+    $20: 80,
+  },
+  
+  // Size scale for components
+  size: {
+    $0: 0,
+    $1: 20,
+    $2: 40,
+    $3: 60,
+    $4: 80,
+    $5: 100,
+    $6: 120,
+    $7: 140,
+    $8: 160,
+    $9: 180,
+    $10: 200,
+    $true: 40, // default size
+  },
+  
+  // Border radius
+  radius: {
+    $0: 0,
+    $1: 4,
+    $2: 8,
+    $3: 12,
+    $4: 16,
+    $true: 8, // default radius
+    $round: 999,
+  },
+  
+  // Z-index
+  zIndex: {
+    $0: 0,
+    $1: 100,
+    $2: 200,
+    $3: 300,
+    $4: 400,
+    $5: 500,
+  },
+})
+```
+
+## Token Categories
+
+### Built-in Categories with Units
+
+These categories automatically get `px` units applied:
+
+- **space** - Padding, margin, gap
+- **size** - Width, height, minWidth, maxWidth, etc.
+- **radius** - Border radius values
+
+### Built-in Categories without Units
+
+- **color** - All color values
+- **zIndex** - Stacking order
+
+### Custom Categories
+
+Custom categories are unitless by default:
+
+```tsx
+const tokens = createTokens({
+  // ... standard categories
+  
+  // Custom: opacity
+  opacity: {
+    0: 0,
+    10: 0.1,
+    20: 0.2,
+    50: 0.5,
+    100: 1,
+  },
+  
+  // Custom: line heights
+  lineHeight: {
+    tight: 1.2,
+    normal: 1.5,
+    relaxed: 1.75,
+    loose: 2,
+  },
+  
+  // Custom: font weights
+  fontWeight: {
+    light: '300',
+    normal: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
+  },
+})
+```
+
+## Token Naming Strategies
+
+### Numeric Scale
+
+Good for systematic spacing and sizing:
+
+```tsx
+space: {
+  0: 0,
+  1: 4,
+  2: 8,
+  3: 12,
+  // ...
+}
+```
+
+### Semantic Names
+
+Good for colors and predefined values:
+
+```tsx
+color: {
+  primary: '#0070f3',
+  secondary: '#666',
+  success: '#0070f0',
+  error: '#ff0000',
+}
+```
+
+### Stepped Scale (T-shirt sizing)
+
+```tsx
+size: {
+  xs: 20,
+  sm: 40,
+  md: 60,
+  lg: 80,
+  xl: 100,
+}
+```
+
+### Default Values
+
+Use `$true` for default token in a category:
+
+```tsx
+size: {
+  1: 20,
+  2: 40,
+  3: 60,
+  true: 40, // Used when size={true}
+}
+
+// Usage
+<Stack size /> // Uses size: 40
+<Stack size="$2" /> // Uses size: 40
+```
+
+## Usage in Themes
+
+```tsx
+import { createTokens, createTamagui } from 'tamagui'
+
+const tokens = createTokens({
+  color: {
+    blue10: '#0070f3',
+    gray1: '#f8f9fa',
+  },
+  space: {
+    4: 16,
+  },
+})
+
+const config = createTamagui({
+  tokens,
+  
+  themes: {
+    light: {
+      background: tokens.color.gray1,
+      primary: tokens.color.blue10,
+    },
+  },
+})
+```
+
+## Usage in Components
+
+```tsx
+import { styled, Stack } from 'tamagui'
+
+const Card = styled(Stack, {
+  // Token references use $ prefix
+  backgroundColor: '$gray1',
+  padding: '$4',
+  borderRadius: '$2',
+  gap: '$2',
+  
+  // Tokens work in all style contexts
+  hoverStyle: {
+    backgroundColor: '$gray2',
+  },
+  
+  $md: {
+    padding: '$6',
+  },
+})
+```
+
+## Accessing Token Values
+
+### In JavaScript
+
+```tsx
+import { getTokens } from 'tamagui'
+
+const tokens = getTokens()
+
+// Get variable reference (for CSS)
+const colorVar = tokens.color.blue10.variable
+console.log(colorVar) // 'var(--blue10)'
+
+// Get raw value
+const colorValue = tokens.color.blue10.val
+console.log(colorValue) // '#0070f3'
+```
+
+### Dynamic Token Access
+
+```tsx
+import { getToken } from 'tamagui'
+
+function Component({ tokenPath }) {
+  const value = getToken(tokenPath)
+  // tokenPath can be '$color.blue10', '$space.4', etc.
+  
+  return <div style={{ color: value }} />
+}
+```
+
+## Token Prefix
+
+Customize the CSS variable prefix:
+
+```tsx
+// Set via environment variable
+process.env.TAMAGUI_TOKEN_PREFIX = 'my-app'
+
+const tokens = createTokens({
+  color: { blue: '#0070f3' },
+})
+
+// Generates CSS variables like:
+// --my-app-blue: #0070f3
+```
+
+## TypeScript
+
+Tokens are fully typed:
+
+```tsx
+import { createTokens } from 'tamagui'
+
+const tokens = createTokens({
+  color: {
+    primary: '#0070f3',
+  },
+  space: {
+    1: 4,
+    2: 8,
+  },
+})
+
+// TypeScript knows available tokens
+type ColorTokens = keyof typeof tokens.color // 'primary'
+type SpaceTokens = keyof typeof tokens.space // 1 | 2
+```
+
+## Best Practices
+
+1. **Consistent Naming**: Use a clear, consistent naming convention
+2. **Semantic Scales**: Prefer numeric scales (1-10) over arbitrary names
+3. **Default Values**: Use `$true` for sensible defaults
+4. **Custom Categories**: Add categories for recurring values (opacity, shadows, etc.)
+5. **Documentation**: Comment complex token values and rationale
+
+## Common Patterns
+
+### Color Palette from Design System
+
+```tsx
+const tokens = createTokens({
+  color: {
+    // Base colors
+    ...Object.fromEntries(
+      Array.from({ length: 12 }, (_, i) => [
+        `blue${i + 1}`,
+        blueScale[i],
+      ])
+    ),
+  },
+})
+```
+
+### Responsive Spacing Scale
+
+```tsx
+const baseSpacing = 4
+
+const tokens = createTokens({
+  space: Object.fromEntries(
+    Array.from({ length: 20 }, (_, i) => [
+      i,
+      i * baseSpacing,
+    ])
+  ),
+})
+```
+
+## See Also
+
+- [createTamagui()](/api/create-tamagui) - Using tokens in configuration
+- [createTheme()](/api/create-theme) - Creating themes with tokens
+- [Tokens Guide](/core/tokens) - Comprehensive token system guide
+- [Design Systems](/advanced/design-systems) - Design system best practices

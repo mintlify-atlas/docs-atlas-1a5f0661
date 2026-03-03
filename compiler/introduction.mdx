@@ -1,0 +1,175 @@
+---
+title: Compiler Introduction
+description: What the Tamagui compiler does and why it's essential for optimal performance
+---
+
+# Compiler Introduction
+
+The Tamagui compiler is a build-time optimization system that transforms your Tamagui components into highly optimized, atomic CSS with minimal runtime overhead.
+
+## What Does the Compiler Do?
+
+The Tamagui compiler analyzes your React components at build time and performs several critical optimizations:
+
+### 1. Static Style Extraction
+
+Converts component props into atomic CSS classes:
+
+```tsx
+// Before compilation
+<YStack backgroundColor="$background" padding="$4" />
+
+// After compilation
+<div className="_bg-var-background _p-4" />
+```
+
+The compiler extracts static styles and generates CSS rules that are inserted into your stylesheet.
+
+### 2. Component Flattening
+
+Flattens nested Tamagui components into native HTML elements when possible:
+
+```tsx
+// Source code
+<YStack backgroundColor="red" padding={10}>
+  <Text color="white">Hello</Text>
+</YStack>
+
+// Compiled output (web)
+<div className="_bg-red _p-10">
+  <span className="_c-white">Hello</span>
+</div>
+```
+
+### 3. Conditional Expression Optimization
+
+The compiler normalizes ternary expressions and conditional styles into optimized class name strings:
+
+```tsx
+// Source
+<YStack {...(isSmall ? { padding: 10 } : { padding: 20 })} />
+
+// Compiled
+<div className={isSmall ? "_p-10" : "_p-20"} />
+```
+
+### 4. Media Query Extraction
+
+Transforms responsive props into CSS media queries:
+
+```tsx
+// Source
+<YStack padding="$4" $sm={{ padding: "$2" }} />
+
+// Generates CSS
+._p-4 { padding: var(--space-4); }
+@media (min-width: 768px) {
+  ._sm_p-2 { padding: var(--space-2); }
+}
+```
+
+## Why Use the Compiler?
+
+### Performance Benefits
+
+The compiler provides dramatic performance improvements:
+
+- **Reduced Bundle Size**: Eliminates runtime style processing code
+- **Faster Rendering**: Styles are pre-computed at build time
+- **Atomic CSS**: Maximizes CSS reuse across your application
+- **Tree Shaking**: Removes unused theme values and components
+
+### Runtime to Build-Time
+
+Without the compiler, Tamagui processes styles at runtime using JavaScript. The compiler shifts this work to build time:
+
+| Aspect | Without Compiler | With Compiler |
+|--------|-----------------|---------------|
+| Style Processing | Runtime (JS) | Build time |
+| Bundle Impact | Larger runtime | Smaller runtime |
+| Initial Load | Slower | Faster |
+| Hydration | More JS execution | Minimal JS |
+
+### Developer Experience
+
+Despite being a build-time tool, the compiler preserves the full Tamagui DX:
+
+- ✅ Full TypeScript support
+- ✅ Theme variables work seamlessly  
+- ✅ Responsive props are optimized
+- ✅ Pseudo states (hover, focus) are extracted
+- ✅ Variants are type-safe and optimized
+
+## How It Works (High Level)
+
+The compilation process follows these steps:
+
+1. **Parse**: Babel parses your JSX into an AST (Abstract Syntax Tree)
+2. **Analyze**: The extractor identifies Tamagui components and their props
+3. **Evaluate**: Static values and expressions are evaluated at build time
+4. **Transform**: Components are flattened and props converted to classNames
+5. **Generate**: Atomic CSS rules are created and injected into stylesheets
+6. **Output**: Optimized JSX and CSS are written to your build
+
+```tsx
+// The compiler lives in: code/compiler/static/src/extractor/
+// Key files:
+// - createExtractor.ts: Main extraction logic (2000+ lines)
+// - extractToClassNames.ts: Web-specific className generation
+// - extractToNative.ts: React Native optimizations
+```
+
+## Platform Support
+
+The compiler optimizes for both web and native platforms:
+
+### Web (className extraction)
+- Generates atomic CSS classes
+- Outputs `.css` files with your styles
+- Works with Vite, Next.js, Webpack
+
+### React Native
+- Optimizes StyleSheet objects
+- Removes unnecessary style recalculations
+- Works with Metro bundler
+
+## When Compilation Happens
+
+The compiler is integrated into your bundler and runs automatically:
+
+- **Development**: Fast incremental compilation with HMR support
+- **Production**: Full optimization with all features enabled
+- **SSR**: Coordinates between server and client builds
+
+## Debug Attributes
+
+In development, the compiler adds helpful debug attributes:
+
+```tsx
+<YStack /> // Becomes:
+<div 
+  data-at="MyComponent.tsx:12"
+  data-in="MyComponent" 
+  data-is="YStack"
+  className="..."
+/>
+```
+
+These attributes help you trace compiled components back to source code.
+
+## Limitations
+
+The compiler has some constraints for optimal extraction:
+
+- Dynamic prop spreads may prevent full optimization
+- Styles using external functions may bail out to runtime
+- Some complex ternaries are kept as-is
+- Animations require runtime support
+
+See [How It Works](/compiler/how-it-works) for detailed compilation mechanics and [Static Extraction](/compiler/static-extraction) for extraction rules.
+
+## Next Steps
+
+- [Installation](/compiler/installation) - Set up the compiler for your bundler
+- [How It Works](/compiler/how-it-works) - Deep dive into compiler internals
+- [Static Extraction](/compiler/static-extraction) - Learn what can be optimized

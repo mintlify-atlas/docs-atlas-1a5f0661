@@ -1,0 +1,494 @@
+---
+title: Motion Driver
+description: Advanced web animations using Motion (Framer Motion)
+---
+
+The Motion driver uses Motion (formerly Framer Motion) to provide advanced, high-performance web animations with spring physics and layout animations.
+
+## Installation
+
+```bash
+npm install @tamagui/animations-motion motion
+```
+
+## Usage
+
+```tsx
+import { createAnimations } from '@tamagui/animations-motion'
+import { createTamagui } from '@tamagui/core'
+
+const animations = createAnimations({
+  fast: {
+    type: 'spring',
+    damping: 20,
+    stiffness: 300,
+  },
+  medium: {
+    type: 'spring',
+    damping: 15,
+    stiffness: 150,
+  },
+  slow: {
+    type: 'tween',
+    duration: 450,
+  },
+})
+
+const config = createTamagui({
+  animations,
+  // ... other config
+})
+```
+
+## Animation Types
+
+### Spring Animations
+
+Physics-based spring animations:
+
+```tsx
+const animations = createAnimations({
+  bouncy: {
+    type: 'spring',
+    damping: 10,
+    mass: 1,
+    stiffness: 100,
+  },
+})
+```
+
+<ParamField path="type" type="'spring'" default="'spring'">
+  Animation type
+</ParamField>
+
+<ParamField path="damping" type="number" default="10">
+  Strength of opposing force. Higher = less oscillation.
+</ParamField>
+
+<ParamField path="mass" type="number" default="1">
+  Mass of the moving object. Higher = more inertia.
+</ParamField>
+
+<ParamField path="stiffness" type="number" default="100">
+  Spring stiffness. Higher = faster/stiffer spring.
+</ParamField>
+
+<ParamField path="velocity" type="number" default="0">
+  Initial velocity.
+</ParamField>
+
+<ParamField path="restDelta" type="number" default="0.01">
+  End animation if distance to target is below this.
+</ParamField>
+
+<ParamField path="restSpeed" type="number" default="0.01">
+  End animation if speed is below this.
+</ParamField>
+
+<ParamField path="delay" type="number">
+  Delay in milliseconds before animation starts.
+</ParamField>
+
+### Tween Animations
+
+Duration-based animations with easing:
+
+```tsx
+const animations = createAnimations({
+  smooth: {
+    type: 'tween',
+    duration: 300,
+    ease: 'easeInOut',
+  },
+})
+```
+
+<ParamField path="type" type="'tween'" required>
+  Animation type
+</ParamField>
+
+<ParamField path="duration" type="number" default="300">
+  Animation duration in milliseconds.
+</ParamField>
+
+<ParamField path="ease" type="string | number[]">
+  Easing function. Can be:
+  - Named easing: `'linear'`, `'easeIn'`, `'easeOut'`, `'easeInOut'`, `'circIn'`, `'circOut'`, `'circInOut'`, `'backIn'`, `'backOut'`, `'backInOut'`, `'anticipate'`
+  - Cubic bezier array: `[0.17, 0.67, 0.83, 0.67]`
+</ParamField>
+
+<ParamField path="delay" type="number">
+  Delay in milliseconds before animation starts.
+</ParamField>
+
+## Configuration
+
+### Basic Configuration
+
+```tsx
+import { createAnimations } from '@tamagui/animations-motion'
+
+const animations = createAnimations({
+  // Quick spring (default type)
+  quick: {
+    damping: 20,
+    stiffness: 300,
+  },
+  
+  // Bouncy spring
+  bouncy: {
+    type: 'spring',
+    damping: 9,
+    stiffness: 150,
+  },
+  
+  // Tween animation
+  smooth: {
+    type: 'tween',
+    duration: 300,
+    ease: 'easeInOut',
+  },
+})
+```
+
+### Advanced Configuration
+
+```tsx
+const animations = createAnimations({
+  // Custom cubic bezier
+  custom: {
+    type: 'tween',
+    duration: 400,
+    ease: [0.25, 0.1, 0.25, 1],  // CSS cubic-bezier
+  },
+  
+  // Spring with velocity
+  flick: {
+    type: 'spring',
+    damping: 15,
+    stiffness: 200,
+    velocity: 50,  // Initial velocity
+  },
+})
+```
+
+## Features
+
+### WAAPI-Based Animation
+
+Uses Web Animations API for optimal performance:
+
+```tsx
+<View
+  animation="fast"
+  opacity={0.5}
+  x={100}
+/>
+// Uses WAAPI under the hood
+```
+
+### Transform Animations
+
+Full transform support with GPU acceleration:
+
+```tsx
+<View
+  animation="bouncy"
+  scale={1.5}
+  rotate="45deg"
+  x={100}
+  y={50}
+  skewX="5deg"
+/>
+```
+
+### Layout Animations
+
+Smooth layout property animations:
+
+```tsx
+<View
+  animation="smooth"
+  width={expanded ? 300 : 100}
+  height={expanded ? 200 : 100}
+  borderRadius={expanded ? 20 : 10}
+/>
+```
+
+### Color Animations
+
+Smooth color transitions:
+
+```tsx
+<View
+  animation="medium"
+  backgroundColor="$blue10"
+  borderColor="$red10"
+/>
+```
+
+### Per-Property Animations
+
+Different animations for different properties:
+
+```tsx
+<View
+  animation={{
+    opacity: 'quick',
+    scale: 'bouncy',
+    backgroundColor: { type: 'tween', duration: 500 },
+  }}
+  opacity={0.8}
+  scale={1.1}
+  backgroundColor="$blue10"
+/>
+```
+
+### Enter/Exit Animations
+
+Full AnimatePresence support:
+
+```tsx
+<AnimatePresence>
+  {visible && (
+    <View
+      key="item"
+      animation="medium"
+      enterStyle={{ opacity: 0, scale: 0.8 }}
+      exitStyle={{ opacity: 0, scale: 0.8 }}
+    >
+      Content
+    </View>
+  )}
+</AnimatePresence>
+```
+
+### avoidReRenders Optimization
+
+Supports re-render optimization for hover/press/focus states:
+
+```tsx
+// No re-render on hover - updates via WAAPI
+<Button
+  animation="fast"
+  hoverStyle={{ scale: 1.1 }}
+>
+  Hover Me
+</Button>
+```
+
+## Implementation Details
+
+### Driver Configuration
+
+The driver returns:
+
+```typescript
+{
+  View: MotionView,            // Custom animated component
+  Text: MotionText,            // Custom animated text
+  isReactNative: false,
+  inputStyle: 'css',           // Expects CSS values
+  outputStyle: 'inline',       // Returns inline styles
+  avoidReRenders: true,        // Supports re-render optimization
+  animations,
+  usePresence,
+  ResetPresence,
+  onMount,                     // Hydration handling
+}
+```
+
+### Duration Conversion
+
+The driver automatically converts milliseconds to seconds for Motion:
+
+```tsx
+// You write:
+const animations = createAnimations({
+  smooth: {
+    type: 'tween',
+    duration: 300,  // Milliseconds
+    delay: 100,     // Milliseconds
+  },
+})
+
+// Motion receives:
+// { type: 'tween', duration: 0.3, delay: 0.1 }
+```
+
+### Type Inference
+
+Automatically infers animation type:
+
+```tsx
+const animations = createAnimations({
+  // Inferred as 'tween' due to duration without spring params
+  auto: {
+    duration: 300,
+  },
+  
+  // Inferred as 'spring' (default)
+  spring: {
+    damping: 15,
+  },
+})
+```
+
+### Transform Interruption Handling
+
+Handles mid-flight animation interruptions smoothly:
+
+```tsx
+// When transform changes mid-animation, captures current value
+// via WAAPI commitStyles() to prevent jumps
+<View
+  animation="smooth"
+  x={position}  // Smoothly animates even when position changes rapidly
+/>
+```
+
+## Examples
+
+### Basic Spring
+
+```tsx
+import { createAnimations } from '@tamagui/animations-motion'
+
+const animations = createAnimations({
+  bouncy: {
+    damping: 10,
+    stiffness: 100,
+  },
+})
+
+<Button
+  animation="bouncy"
+  pressStyle={{ scale: 0.9 }}
+>
+  Press Me
+</Button>
+```
+
+### Tween with Custom Easing
+
+```tsx
+const animations = createAnimations({
+  smooth: {
+    type: 'tween',
+    duration: 400,
+    ease: [0.25, 0.1, 0.25, 1],  // Material Design standard
+  },
+})
+```
+
+### Layout Animation
+
+```tsx
+<View
+  animation="smooth"
+  width={expanded ? 300 : 100}
+  height={expanded ? 200 : 100}
+  padding={expanded ? 20 : 10}
+>
+  Expanding Content
+</View>
+```
+
+### Complex Multi-Property
+
+```tsx
+<View
+  animation={[
+    'bouncy',
+    {
+      opacity: { type: 'tween', duration: 200 },
+      scale: { damping: 15, stiffness: 200 },
+      width: { type: 'tween', duration: 500, ease: 'easeOut' },
+    }
+  ]}
+  opacity={0.8}
+  scale={1.2}
+  width={200}
+/>
+```
+
+### Delayed Animation
+
+```tsx
+const animations = createAnimations({
+  delayed: {
+    type: 'spring',
+    damping: 15,
+    stiffness: 150,
+    delay: 200,
+  },
+})
+```
+
+### Enter/Exit with Different Timings
+
+```tsx
+<View
+  animation={{
+    default: 'medium',
+    enter: 'bouncy',
+    exit: { type: 'tween', duration: 150 },
+  }}
+  enterStyle={{ opacity: 0, y: -20 }}
+  exitStyle={{ opacity: 0, y: 20 }}
+>
+  Content
+</View>
+```
+
+### Named Easing Functions
+
+```tsx
+const animations = createAnimations({
+  easeIn: { type: 'tween', duration: 300, ease: 'easeIn' },
+  easeOut: { type: 'tween', duration: 300, ease: 'easeOut' },
+  easeInOut: { type: 'tween', duration: 300, ease: 'easeInOut' },
+  circIn: { type: 'tween', duration: 300, ease: 'circIn' },
+  backOut: { type: 'tween', duration: 300, ease: 'backOut' },
+  anticipate: { type: 'tween', duration: 300, ease: 'anticipate' },
+})
+```
+
+## Performance
+
+### WAAPI Benefits
+
+- **GPU acceleration** - Transform and opacity animations run on GPU
+- **Efficient** - Uses browser's native animation engine
+- **Smooth** - Not affected by main thread blocking
+- **Composited** - Can run independently of layout/paint
+
+### Optimizations
+
+- **Batched updates** - Style changes are batched
+- **Transform caching** - Mid-flight values cached to prevent jumps
+- **Hydration support** - SSR-friendly with proper hydration handling
+
+## Comparison with Other Drivers
+
+| Feature | Motion | CSS | Reanimated |
+|---------|--------|-----|------------|
+| Spring physics | ✅ | ❌ | ✅ |
+| Layout animations | ✅ | ✅ | ✅ (native only) |
+| Web performance | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| Native support | ❌ | ❌ | ✅ |
+| Bundle size | Medium | Small | Large |
+| Spring quality | ⭐⭐⭐⭐⭐ | N/A | ⭐⭐⭐⭐ |
+
+## Limitations
+
+- **Web only** - Does not work on React Native
+- **Bundle size** - Larger than CSS driver (~40KB gzipped)
+- **Browser support** - Requires modern browsers with WAAPI
+
+## See Also
+
+- [Animations](/core/animations) - Animation system overview
+- [CSS Driver](/api/animations-css) - Lightweight CSS animations
+- [Reanimated Driver](/api/animations-reanimated) - For React Native
+- [Motion Documentation](https://motion.dev/)

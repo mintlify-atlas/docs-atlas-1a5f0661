@@ -1,0 +1,632 @@
+---
+title: Animation System
+description: Animate Tamagui components across web and native
+---
+
+Tamagui's animation system provides a unified API for animations that works across web and React Native. It supports multiple animation drivers with automatic optimization and compiler integration.
+
+## Animation Drivers
+
+Tamagui supports multiple animation backends:
+
+- **@tamagui/animations-css** - CSS transitions (web only, zero runtime)
+- **@tamagui/animations-motion** - Framer Motion (web) / Moti (native)
+- **@tamagui/animations-react-native** - React Native Animated API
+- **@tamagui/animations-reanimated** - Reanimated v2/v3
+
+## Setup
+
+### CSS Animations (Web)
+
+```tsx tamagui.config.ts
+import { createAnimations } from '@tamagui/animations-css'
+import { createTamagui } from 'tamagui'
+
+const animations = createAnimations({
+  quick: 'ease-in 150ms',
+  medium: 'ease-in-out 300ms',
+  slow: 'ease-out 500ms',
+  bouncy: 'cubic-bezier(0.68, -0.55, 0.265, 1.55) 400ms',
+})
+
+const config = createTamagui({
+  animations,
+  // ...
+})
+```
+
+### Motion Animations
+
+```tsx tamagui.config.ts
+import { createAnimations } from '@tamagui/animations-motion'
+
+const animations = createAnimations({
+  quick: {
+    type: 'spring',
+    damping: 20,
+    stiffness: 300,
+  },
+  bouncy: {
+    type: 'spring',
+    damping: 9,
+    mass: 0.9,
+    stiffness: 150,
+  },
+  lazy: {
+    type: 'spring',
+    damping: 18,
+    stiffness: 50,
+  },
+})
+```
+
+### Multi-Driver Setup
+
+Use different drivers for different components:
+
+```tsx tamagui.config.ts
+import { createAnimations as createCSSAnimations } from '@tamagui/animations-css'
+import { createAnimations as createMotionAnimations } from '@tamagui/animations-motion'
+
+const animations = {
+  // Default driver (CSS for performance)
+  default: createCSSAnimations({
+    quick: 'ease-in 150ms',
+    medium: 'ease-in-out 300ms',
+  }),
+  
+  // Motion for complex animations
+  motion: createMotionAnimations({
+    bouncy: {
+      type: 'spring',
+      damping: 10,
+      stiffness: 100,
+    },
+  }),
+}
+
+const config = createTamagui({
+  animations,
+  // ...
+})
+
+// Use specific driver
+<View animatedBy="motion" animation="bouncy" />
+```
+
+## Basic Animations
+
+### animation Prop
+
+Animate property changes:
+
+```tsx
+import { useState } from 'react'
+import { View, Button } from 'tamagui'
+
+function AnimatedBox() {
+  const [big, setBig] = useState(false)
+  
+  return (
+    <>
+      <View
+        animation="quick"
+        width={big ? 200 : 100}
+        height={big ? 200 : 100}
+        backgroundColor={big ? '$blue10' : '$red10'}
+      />
+      
+      <Button onPress={() => setBig(!big)}>
+        Toggle Size
+      </Button>
+    </>
+  )
+}
+```
+
+### Animatable Properties
+
+Most style properties are animatable:
+
+```tsx
+<View
+  animation="medium"
+  // Layout
+  width={100}
+  height={100}
+  // Position
+  x={50}
+  y={50}
+  // Transform
+  scale={1.5}
+  rotate="45deg"
+  // Visual
+  opacity={0.5}
+  backgroundColor="$blue10"
+/>
+```
+
+## Enter/Exit Animations
+
+### enterStyle and exitStyle
+
+Define initial and final states for mount/unmount:
+
+```tsx
+import { AnimatePresence, View } from 'tamagui'
+
+function FadeInOut({ show }: { show: boolean }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <View
+          animation="medium"
+          opacity={1}
+          scale={1}
+          
+          enterStyle={{
+            opacity: 0,
+            scale: 0.9,
+          }}
+          
+          exitStyle={{
+            opacity: 0,
+            scale: 0.9,
+          }}
+        >
+          Content
+        </View>
+      )}
+    </AnimatePresence>
+  )
+}
+```
+
+### AnimatePresence
+
+Handle exit animations:
+
+```tsx
+import { AnimatePresence, View } from 'tamagui'
+
+function List({ items }: { items: string[] }) {
+  return (
+    <AnimatePresence>
+      {items.map((item) => (
+        <View
+          key={item}
+          animation="quick"
+          opacity={1}
+          x={0}
+          
+          enterStyle={{
+            opacity: 0,
+            x: -20,
+          }}
+          
+          exitStyle={{
+            opacity: 0,
+            x: 20,
+          }}
+        >
+          {item}
+        </View>
+      ))}
+    </AnimatePresence>
+  )
+}
+```
+
+## Animation Configuration
+
+### Per-Property Animations
+
+Different animations for different properties:
+
+```tsx
+<View
+  animation={{
+    opacity: 'quick',
+    scale: 'bouncy',
+  }}
+  opacity={0.5}
+  scale={1.5}
+/>
+```
+
+### Animation Settings
+
+Customize animation behavior:
+
+```tsx
+<View
+  animation={{
+    default: 'quick',
+    // Custom duration override
+    config: {
+      duration: 500,
+    },
+    // Delay before animation starts
+    delay: 100,
+  }}
+  opacity={0.5}
+/>
+```
+
+### Selective Animation
+
+Animate only specific properties:
+
+```tsx
+<View
+  animation="quick"
+  animateOnly={['opacity', 'scale']}
+  // Only opacity and scale animate, width changes instantly
+  opacity={0.5}
+  scale={1.5}
+  width={200}
+/>
+```
+
+## Pseudo State Animations
+
+Pseudo states automatically animate:
+
+```tsx
+<View
+  animation="quick"
+  backgroundColor="$blue10"
+  scale={1}
+  
+  hoverStyle={{
+    backgroundColor: '$blue9',
+    scale: 1.05,
+  }}
+  
+  pressStyle={{
+    backgroundColor: '$blue11',
+    scale: 0.95,
+  }}
+  
+  focusStyle={{
+    borderColor: '$blue8',
+    borderWidth: 2,
+  }}
+/>
+```
+
+## CSS Animation Syntax
+
+For CSS driver, use CSS transition syntax:
+
+```tsx
+const animations = createAnimations({
+  // Duration and easing
+  quick: 'ease-in 150ms',
+  
+  // Cubic bezier
+  custom: 'cubic-bezier(0.4, 0, 0.2, 1) 300ms',
+  
+  // With delay
+  delayed: 'ease-out 300ms 100ms',
+  
+  // Multiple properties
+  complex: 'opacity ease-in 150ms, transform cubic-bezier(0.4, 0, 0.2, 1) 300ms',
+})
+```
+
+## Motion Animation Syntax
+
+For Motion driver, use spring or tween configurations:
+
+```tsx
+const animations = createAnimations({
+  // Spring physics
+  bouncy: {
+    type: 'spring',
+    damping: 10,
+    mass: 0.9,
+    stiffness: 100,
+  },
+  
+  // Tween
+  smooth: {
+    type: 'tween',
+    duration: 300,
+    ease: 'easeInOut',
+  },
+  
+  // Timing
+  timing: {
+    type: 'timing',
+    duration: 500,
+  },
+})
+```
+
+## Advanced Patterns
+
+### Staggered Animations
+
+```tsx
+function StaggeredList({ items }: { items: string[] }) {
+  return (
+    <AnimatePresence>
+      {items.map((item, i) => (
+        <View
+          key={item}
+          animation={{
+            default: 'quick',
+            delay: i * 50,  // Stagger by 50ms
+          }}
+          enterStyle={{ opacity: 0, y: -20 }}
+          opacity={1}
+          y={0}
+        >
+          {item}
+        </View>
+      ))}
+    </AnimatePresence>
+  )
+}
+```
+
+### Conditional Animations
+
+```tsx
+function ConditionalAnimation({ fast }: { fast: boolean }) {
+  return (
+    <View
+      animation={fast ? 'quick' : 'slow'}
+      scale={big ? 1.5 : 1}
+    />
+  )
+}
+```
+
+### Group Animations
+
+Animate children based on parent state:
+
+```tsx
+<View group="card" cursor="pointer">
+  <View
+    animation="quick"
+    $group-card-hover={{
+      scale: 1.05,
+    }}
+  >
+    Hover parent to animate this
+  </View>
+</View>
+```
+
+## Performance
+
+### CSS Animations (Web)
+
+<Note>
+CSS animations have **zero runtime overhead**. The compiler extracts them to pure CSS transitions, resulting in the best possible performance.
+</Note>
+
+```tsx
+// Compiles to CSS transition
+<View
+  animation="quick"
+  opacity={visible ? 1 : 0}
+/>
+
+// Generated CSS:
+// .transition-quick { transition: opacity 150ms ease-in; }
+```
+
+### Hardware Acceleration
+
+Tamagui automatically uses GPU-accelerated properties:
+
+```tsx
+// These use CSS transforms (GPU accelerated)
+<View
+  animation="quick"
+  x={100}      // translateX
+  y={50}       // translateY
+  scale={1.5}  // scale
+  rotate="45deg" // rotate
+/>
+```
+
+### AnimateOnly Optimization
+
+Limit animated properties for better performance:
+
+```tsx
+<View
+  animation="quick"
+  animateOnly={['opacity']}  // Only animate opacity
+  opacity={0.5}
+  width={200}  // Changes instantly
+  height={100} // Changes instantly
+/>
+```
+
+## Driver Comparison
+
+<CodeGroup>
+
+```tsx CSS (Web Only)
+import { createAnimations } from '@tamagui/animations-css'
+
+// Pros:
+// - Zero runtime overhead
+// - Best performance
+// - Compiler optimized
+
+// Cons:
+// - Web only
+// - Limited to CSS transitions
+
+const animations = createAnimations({
+  quick: 'ease-in 150ms',
+})
+```
+
+```tsx Motion (Universal)
+import { createAnimations } from '@tamagui/animations-motion'
+
+// Pros:
+// - Works on web and native
+// - Spring physics
+// - Advanced animations
+
+// Cons:
+// - Runtime overhead
+// - Requires Framer Motion (web) or Moti (native)
+
+const animations = createAnimations({
+  bouncy: {
+    type: 'spring',
+    damping: 10,
+    stiffness: 100,
+  },
+})
+```
+
+```tsx React Native
+import { createAnimations } from '@tamagui/animations-react-native'
+
+// Pros:
+// - No extra dependencies
+// - Native driver support
+
+// Cons:
+// - Native only
+// - More complex API
+
+const animations = createAnimations({
+  quick: {
+    duration: 150,
+    easing: 'ease-in',
+  },
+})
+```
+
+</CodeGroup>
+
+## Best Practices
+
+<Tip>
+**Use CSS driver for web when possible**
+
+For best performance on web, prefer CSS animations:
+
+```tsx
+const animations = {
+  default: createCSSAnimations({ /* ... */ }),
+  motion: createMotionAnimations({ /* ... */ }),
+}
+
+// Most components use CSS
+<View animation="quick" />
+
+// Complex animations use Motion
+<View animatedBy="motion" animation="bouncy" />
+```
+</Tip>
+
+<Tip>
+**Animate GPU-friendly properties**
+
+Prefer properties that use GPU acceleration:
+
+```tsx
+// ✅ Good (GPU accelerated)
+<View
+  animation="quick"
+  opacity={0.5}
+  scale={1.5}
+  x={100}
+  rotate="45deg"
+/>
+
+// ⚠️ Slower (triggers layout)
+<View
+  animation="quick"
+  width={200}
+  height={100}
+/>
+```
+</Tip>
+
+<Tip>
+**Use animateOnly for performance**
+
+Limit animated properties:
+
+```tsx
+<View
+  animation="quick"
+  animateOnly={['opacity', 'scale']}
+/>
+```
+</Tip>
+
+<Warning>
+**Don't over-animate**
+
+Excessive animations can:
+- Degrade performance
+- Distract users
+- Drain battery
+
+Use animations purposefully and sparingly.
+</Warning>
+
+## Debugging
+
+### Animation Events
+
+No direct animation events, but you can track state changes:
+
+```tsx
+function AnimatedBox() {
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [scale, setScale] = useState(1)
+  
+  const handlePress = () => {
+    setIsAnimating(true)
+    setScale(1.5)
+    
+    // Approximate animation duration
+    setTimeout(() => {
+      setIsAnimating(false)
+    }, 300)
+  }
+  
+  return (
+    <View
+      animation="medium"
+      scale={scale}
+      onPress={handlePress}
+    />
+  )
+}
+```
+
+### Debug Mode
+
+Enable verbose logging:
+
+```tsx
+<View
+  debug="verbose"
+  animation="quick"
+  opacity={0.5}
+/>
+```
+
+## Related
+
+- [Configuration](/core/configuration) - Setting up animations
+- [View and Text](/core/view-and-text) - Animating components
+- [styled()](/core/styled) - Animations in styled components
+- [Variants](/core/variants) - Animated variants

@@ -1,0 +1,163 @@
+---
+title: Card
+description: A container for grouping related content with optional header and footer.
+---
+
+# Card
+
+A container for grouping related content with optional header and footer.
+
+## Installation
+
+```bash
+npm install @tamagui/card
+```
+
+## Usage
+
+```tsx
+import { Card } from '@tamagui/card'
+import { H2, Paragraph } from '@tamagui/text'
+import { Button } from '@tamagui/button'
+
+export default function CardExample() {
+  return (
+    <Card width={300} height={200}>
+      <Card.Header>
+        <H2>Card Title</H2>
+      </Card.Header>
+      <Paragraph>This is the card content area.</Paragraph>
+      <Card.Footer>
+        <Button>Action</Button>
+      </Card.Footer>
+    </Card>
+  )
+}
+```
+
+## Anatomy
+
+```tsx
+import { Card } from '@tamagui/card'
+
+export default () => (
+  <Card>
+    <Card.Header />
+    <Card.Background />
+    <Card.Footer />
+  </Card>
+)
+```
+
+## API Reference
+
+### Card
+
+<ParamField path="size" type="SizeTokens" default="$true">
+  Controls the border radius of the card.
+</ParamField>
+
+<ParamField path="backgroundColor" type="string">
+  Background color of the card.
+</ParamField>
+
+### Card.Header
+
+<ParamField path="size" type="SizeTokens">
+  Controls the padding of the header. Inherits from parent Card size.
+</ParamField>
+
+The header section of the card, typically containing a title or metadata.
+
+### Card.Footer
+
+<ParamField path="size" type="SizeTokens">
+  Controls the padding of the footer. Inherits from parent Card size.
+</ParamField>
+
+The footer section of the card, typically containing actions or additional info.
+
+### Card.Background
+
+A fullscreen background component that sits behind card content. Useful for background images or gradients.
+
+## Examples
+
+### Card with Image
+
+```tsx
+import { Card } from '@tamagui/card'
+import { Image } from '@tamagui/image'
+import { H3, Paragraph } from '@tamagui/text'
+
+export default function ImageCard() {
+  return (
+    <Card width={300}>
+      <Card.Background>
+        <Image
+          src="https://picsum.photos/300/200"
+          width={300}
+          height={200}
+        />
+      </Card.Background>
+      <Card.Header padded>
+        <H3>Beautiful Image</H3>
+        <Paragraph>A description of the image</Paragraph>
+      </Card.Header>
+    </Card>
+  )
+}
+```
+
+### Interactive Card
+
+```tsx
+import { Card } from '@tamagui/card'
+import { H3, Paragraph } from '@tamagui/text'
+import { Button } from '@tamagui/button'
+
+export default function InteractiveCard() {
+  return (
+    <Card
+      size="$4"
+      bordered
+      pressStyle={{ scale: 0.97 }}
+      hoverStyle={{ borderColor: '$borderColorHover' }}
+      animation="bouncy"
+    >
+      <Card.Header>
+        <H3>Clickable Card</H3>
+      </Card.Header>
+      <Paragraph padding="$4">
+        This card has press and hover animations.
+      </Paragraph>
+      <Card.Footer>
+        <Button>Learn More</Button>
+      </Card.Footer>
+    </Card>
+  )
+}
+```
+
+### Grid of Cards
+
+```tsx
+import { Card } from '@tamagui/card'
+import { XStack, YStack } from '@tamagui/stacks'
+import { H4, Paragraph } from '@tamagui/text'
+
+export default function CardGrid() {
+  return (
+    <XStack flexWrap="wrap" gap="$4">
+      {[1, 2, 3, 4].map((i) => (
+        <Card key={i} width={200} height={150}>
+          <Card.Header>
+            <H4>Card {i}</H4>
+          </Card.Header>
+          <Paragraph>Content for card {i}</Paragraph>
+        </Card>
+      ))}
+    </XStack>
+  )
+}
+```

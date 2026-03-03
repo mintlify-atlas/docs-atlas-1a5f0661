@@ -1,0 +1,401 @@
+---
+title: RadioGroup
+description: A radio button group component for single-selection forms
+---
+
+## Installation
+
+```bash
+npm install @tamagui/radio-group
+```
+
+## Import
+
+```tsx
+import { RadioGroup } from '@tamagui/radio-group'
+```
+
+## Usage
+
+### Basic Example
+
+```tsx
+import { RadioGroup } from '@tamagui/radio-group'
+import { Label, XStack, YStack } from '@tamagui/core'
+
+function Demo() {
+  return (
+    <RadioGroup defaultValue="1">
+      <YStack space>
+        <XStack space alignItems="center">
+          <RadioGroup.Item value="1" id="option-1">
+            <RadioGroup.Indicator />
+          </RadioGroup.Item>
+          <Label htmlFor="option-1">Option 1</Label>
+        </XStack>
+        
+        <XStack space alignItems="center">
+          <RadioGroup.Item value="2" id="option-2">
+            <RadioGroup.Indicator />
+          </RadioGroup.Item>
+          <Label htmlFor="option-2">Option 2</Label>
+        </XStack>
+        
+        <XStack space alignItems="center">
+          <RadioGroup.Item value="3" id="option-3">
+            <RadioGroup.Indicator />
+          </RadioGroup.Item>
+          <Label htmlFor="option-3">Option 3</Label>
+        </XStack>
+      </YStack>
+    </RadioGroup>
+  )
+}
+```
+
+### Controlled RadioGroup
+
+```tsx
+import { useState } from 'react'
+import { RadioGroup } from '@tamagui/radio-group'
+import { Label, XStack, YStack, Text } from '@tamagui/core'
+
+function Demo() {
+  const [value, setValue] = useState('default')
+
+  return (
+    <YStack space>
+      <RadioGroup value={value} onValueChange={setValue}>
+        <YStack space>
+          <XStack space alignItems="center">
+            <RadioGroup.Item value="default" id="r1">
+              <RadioGroup.Indicator />
+            </RadioGroup.Item>
+            <Label htmlFor="r1">Default</Label>
+          </XStack>
+          
+          <XStack space alignItems="center">
+            <RadioGroup.Item value="comfortable" id="r2">
+              <RadioGroup.Indicator />
+            </RadioGroup.Item>
+            <Label htmlFor="r2">Comfortable</Label>
+          </XStack>
+          
+          <XStack space alignItems="center">
+            <RadioGroup.Item value="compact" id="r3">
+              <RadioGroup.Indicator />
+            </RadioGroup.Item>
+            <Label htmlFor="r3">Compact</Label>
+          </XStack>
+        </YStack>
+      </RadioGroup>
+      
+      <Text>Selected: {value}</Text>
+    </YStack>
+  )
+}
+```
+
+### Horizontal Orientation
+
+```tsx
+import { RadioGroup } from '@tamagui/radio-group'
+import { XStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <RadioGroup orientation="horizontal" defaultValue="1">
+      <XStack space>
+        <RadioGroup.Item value="1">
+          <RadioGroup.Indicator />
+        </RadioGroup.Item>
+        <RadioGroup.Item value="2">
+          <RadioGroup.Indicator />
+        </RadioGroup.Item>
+        <RadioGroup.Item value="3">
+          <RadioGroup.Indicator />
+        </RadioGroup.Item>
+      </XStack>
+    </RadioGroup>
+  )
+}
+```
+
+### Sizes
+
+```tsx
+import { RadioGroup } from '@tamagui/radio-group'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <YStack space>
+      <RadioGroup size="$2" defaultValue="1">
+        <RadioGroup.Item value="1">
+          <RadioGroup.Indicator />
+        </RadioGroup.Item>
+      </RadioGroup>
+      
+      <RadioGroup size="$3" defaultValue="1">
+        <RadioGroup.Item value="1">
+          <RadioGroup.Indicator />
+        </RadioGroup.Item>
+      </RadioGroup>
+      
+      <RadioGroup size="$4" defaultValue="1">
+        <RadioGroup.Item value="1">
+          <RadioGroup.Indicator />
+        </RadioGroup.Item>
+      </RadioGroup>
+      
+      <RadioGroup size="$5" defaultValue="1">
+        <RadioGroup.Item value="1">
+          <RadioGroup.Indicator />
+        </RadioGroup.Item>
+      </RadioGroup>
+    </YStack>
+  )
+}
+```
+
+### Disabled Items
+
+```tsx
+import { RadioGroup } from '@tamagui/radio-group'
+import { Label, XStack, YStack } from '@tamagui/core'
+
+function Demo() {
+  return (
+    <RadioGroup defaultValue="1">
+      <YStack space>
+        <XStack space alignItems="center">
+          <RadioGroup.Item value="1" id="r1">
+            <RadioGroup.Indicator />
+          </RadioGroup.Item>
+          <Label htmlFor="r1">Enabled</Label>
+        </XStack>
+        
+        <XStack space alignItems="center">
+          <RadioGroup.Item value="2" id="r2" disabled>
+            <RadioGroup.Indicator />
+          </RadioGroup.Item>
+          <Label htmlFor="r2">Disabled</Label>
+        </XStack>
+      </YStack>
+    </RadioGroup>
+  )
+}
+```
+
+### Disabled Group
+
+```tsx
+import { RadioGroup } from '@tamagui/radio-group'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <RadioGroup disabled defaultValue="1">
+      <YStack space>
+        <RadioGroup.Item value="1">
+          <RadioGroup.Indicator />
+        </RadioGroup.Item>
+        <RadioGroup.Item value="2">
+          <RadioGroup.Indicator />
+        </RadioGroup.Item>
+      </YStack>
+    </RadioGroup>
+  )
+}
+```
+
+### Form Integration
+
+```tsx
+import { RadioGroup } from '@tamagui/radio-group'
+import { Form } from '@tamagui/form'
+import { YStack, Button } from '@tamagui/core'
+
+function Demo() {
+  const handleSubmit = () => {
+    console.log('Form submitted')
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <YStack space>
+        <RadioGroup name="plan" defaultValue="free" required>
+          <YStack space>
+            <RadioGroup.Item value="free" id="free">
+              <RadioGroup.Indicator />
+            </RadioGroup.Item>
+            <RadioGroup.Item value="pro" id="pro">
+              <RadioGroup.Indicator />
+            </RadioGroup.Item>
+            <RadioGroup.Item value="enterprise" id="enterprise">
+              <RadioGroup.Indicator />
+            </RadioGroup.Item>
+          </YStack>
+        </RadioGroup>
+        
+        <Button type="submit">Submit</Button>
+      </YStack>
+    </Form>
+  )
+}
+```
+
+### Native Style
+
+```tsx
+import { RadioGroup } from '@tamagui/radio-group'
+
+function Demo() {
+  return (
+    <RadioGroup native defaultValue="1">
+      <RadioGroup.Item value="1" />
+      <RadioGroup.Item value="2" />
+    </RadioGroup>
+  )
+}
+```
+
+### With Custom Accent Color
+
+```tsx
+import { RadioGroup } from '@tamagui/radio-group'
+
+function Demo() {
+  return (
+    <RadioGroup native accentColor="#ff0000" defaultValue="1">
+      <RadioGroup.Item value="1" />
+      <RadioGroup.Item value="2" />
+    </RadioGroup>
+  )
+}
+```
+
+## API Reference
+
+### RadioGroup Props
+
+<ParamField path="value" type="string">
+  Controlled selected value.
+</ParamField>
+
+<ParamField path="defaultValue" type="string">
+  Default uncontrolled selected value.
+</ParamField>
+
+<ParamField path="onValueChange" type="(value: string) => void">
+  Callback when selected value changes.
+</ParamField>
+
+<ParamField path="orientation" type="'horizontal' | 'vertical'" default="'vertical'">
+  Layout direction of the radio group.
+</ParamField>
+
+<ParamField path="name" type="string">
+  Name attribute for form submission.
+</ParamField>
+
+<ParamField path="required" type="boolean">
+  Mark the radio group as required for form validation.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disable all radio items in the group.
+</ParamField>
+
+<ParamField path="native" type="boolean">
+  Render as native HTML radio inputs.
+</ParamField>
+
+<ParamField path="accentColor" type="string">
+  Accent color for native radio inputs.
+</ParamField>
+
+### RadioGroup.Item Props
+
+<ParamField path="value" type="string" required>
+  The value of this radio item.
+</ParamField>
+
+<ParamField path="id" type="string">
+  ID attribute for label association.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disable this specific radio item.
+</ParamField>
+
+<ParamField path="size" type="SizeTokens">
+  Size of the radio item. Inherits from RadioGroup if not specified.
+</ParamField>
+
+<ParamField path="labelledBy" type="string">
+  ID of element that labels this radio item.
+</ParamField>
+
+### RadioGroup.Indicator Props
+
+<ParamField path="forceMount" type="boolean">
+  Force the indicator to always mount (useful for animation libraries).
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disable the indicator.
+</ParamField>
+
+## Theming
+
+RadioGroup responds to the following theme tokens:
+
+- `$background` - Default background color of radio items
+- `$backgroundHover` - Background on hover
+- `$backgroundFocus` - Background when focused
+- `$borderColor` - Default border color
+- `$borderColorHover` - Border color on hover
+- `$borderColorFocus` - Border color when focused
+- `$outlineColor` - Focus outline color
+- `$color` - Indicator dot color
+
+```tsx
+import { RadioGroup } from '@tamagui/radio-group'
+
+function Demo() {
+  return (
+    <RadioGroup theme="blue" defaultValue="1">
+      <RadioGroup.Item value="1">
+        <RadioGroup.Indicator />
+      </RadioGroup.Item>
+    </RadioGroup>
+  )
+}
+```
+
+## Accessibility
+
+- Renders as semantic `<button>` elements with `role="radio"`
+- Implements roving focus for keyboard navigation (Arrow keys)
+- Space key toggles selection
+- Sets `aria-checked` on radio items
+- Supports `aria-disabled` when disabled
+- Works with Label component for click target expansion
+- Hidden native radio inputs for form submission
+- Announces state changes to screen readers
+- Group uses `role="radiogroup"`
+
+## Keyboard Navigation
+
+- **Tab** - Move focus into/out of the radio group
+- **Arrow Keys** - Move focus between radio items (roving focus)
+- **Space** - Select the focused radio item
+
+## Notes
+
+- Only one radio item can be selected at a time
+- RadioGroup manages selection state automatically
+- Use Checkbox for multi-select scenarios
+- Radio items are circular by default (borderRadius: 1000)
+- Indicator is 33% size of the item by default

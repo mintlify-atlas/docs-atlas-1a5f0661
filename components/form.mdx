@@ -1,0 +1,424 @@
+---
+title: Form
+description: A form component for handling form submission and validation
+---
+
+## Installation
+
+```bash
+npm install @tamagui/form
+```
+
+## Import
+
+```tsx
+import { Form } from '@tamagui/form'
+```
+
+## Usage
+
+### Basic Example
+
+```tsx
+import { Form } from '@tamagui/form'
+import { Input } from '@tamagui/input'
+import { Button } from '@tamagui/button'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  const handleSubmit = () => {
+    console.log('Form submitted')
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <YStack space>
+        <Input placeholder="Name" />
+        <Input placeholder="Email" type="email" />
+        <Button type="submit">Submit</Button>
+      </YStack>
+    </Form>
+  )
+}
+```
+
+### With Form.Trigger
+
+```tsx
+import { Form } from '@tamagui/form'
+import { Input } from '@tamagui/input'
+import { Button } from '@tamagui/button'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  const handleSubmit = () => {
+    console.log('Form submitted')
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <YStack space>
+        <Input placeholder="Username" />
+        <Input placeholder="Password" type="password" />
+        
+        <Form.Trigger asChild>
+          <Button>Login</Button>
+        </Form.Trigger>
+      </YStack>
+    </Form>
+  )
+}
+```
+
+### Complete Form Example
+
+```tsx
+import { useState } from 'react'
+import { Form } from '@tamagui/form'
+import { Input } from '@tamagui/input'
+import { Button } from '@tamagui/button'
+import { Label } from '@tamagui/label'
+import { Checkbox } from '@tamagui/checkbox'
+import { RadioGroup } from '@tamagui/radio-group'
+import { YStack, XStack, Text } from '@tamagui/core'
+import { Check } from '@tamagui/lucide-icons'
+
+function Demo() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    plan: 'free',
+    newsletter: false,
+  })
+
+  const handleSubmit = () => {
+    console.log('Submitting:', formData)
+    // Handle form submission
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <YStack space="$4" padding="$4">
+        <YStack space="$2">
+          <Label htmlFor="name">Name</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChangeText={(name) => setFormData({ ...formData, name })}
+            required
+          />
+        </YStack>
+
+        <YStack space="$2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChangeText={(email) => setFormData({ ...formData, email })}
+            required
+          />
+        </YStack>
+
+        <YStack space="$2">
+          <Label>Plan</Label>
+          <RadioGroup
+            value={formData.plan}
+            onValueChange={(plan) => setFormData({ ...formData, plan })}
+          >
+            <YStack space>
+              <XStack space alignItems="center">
+                <RadioGroup.Item value="free" id="free">
+                  <RadioGroup.Indicator />
+                </RadioGroup.Item>
+                <Label htmlFor="free">Free</Label>
+              </XStack>
+              
+              <XStack space alignItems="center">
+                <RadioGroup.Item value="pro" id="pro">
+                  <RadioGroup.Indicator />
+                </RadioGroup.Item>
+                <Label htmlFor="pro">Pro</Label>
+              </XStack>
+            </YStack>
+          </RadioGroup>
+        </YStack>
+
+        <XStack space alignItems="center">
+          <Checkbox
+            id="newsletter"
+            checked={formData.newsletter}
+            onCheckedChange={(newsletter) =>
+              setFormData({ ...formData, newsletter: !!newsletter })
+            }
+          >
+            <Checkbox.Indicator>
+              <Check />
+            </Checkbox.Indicator>
+          </Checkbox>
+          <Label htmlFor="newsletter">Subscribe to newsletter</Label>
+        </XStack>
+
+        <Button type="submit">Create Account</Button>
+      </YStack>
+    </Form>
+  )
+}
+```
+
+### With Validation
+
+```tsx
+import { useState } from 'react'
+import { Form } from '@tamagui/form'
+import { Input } from '@tamagui/input'
+import { Button } from '@tamagui/button'
+import { Label } from '@tamagui/label'
+import { YStack, Text } from '@tamagui/core'
+
+function Demo() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [errors, setErrors] = useState({})
+
+  const validate = () => {
+    const newErrors = {}
+    
+    if (!email) {
+      newErrors.email = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Invalid email address'
+    }
+    
+    if (!password) {
+      newErrors.password = 'Password is required'
+    } else if (password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = () => {
+    if (validate()) {
+      console.log('Form is valid, submitting...')
+      // Submit form
+    }
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <YStack space="$4" padding="$4">
+        <YStack space="$2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChangeText={setEmail}
+            onBlur={validate}
+          />
+          {errors.email && (
+            <Text color="$red10" fontSize="$2">
+              {errors.email}
+            </Text>
+          )}
+        </YStack>
+
+        <YStack space="$2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChangeText={setPassword}
+            onBlur={validate}
+          />
+          {errors.password && (
+            <Text color="$red10" fontSize="$2">
+              {errors.password}
+            </Text>
+          )}
+        </YStack>
+
+        <Button type="submit">Submit</Button>
+      </YStack>
+    </Form>
+  )
+}
+```
+
+### With Reset Button
+
+```tsx
+import { Form } from '@tamagui/form'
+import { Input } from '@tamagui/input'
+import { Button } from '@tamagui/button'
+import { XStack, YStack } from '@tamagui/stacks'
+
+function Demo() {
+  const handleSubmit = () => {
+    console.log('Form submitted')
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <YStack space>
+        <Input placeholder="Name" defaultValue="" />
+        <Input placeholder="Email" type="email" defaultValue="" />
+        
+        <XStack space>
+          <Button type="submit">Submit</Button>
+          <Button type="reset" chromeless>Reset</Button>
+        </XStack>
+      </YStack>
+    </Form>
+  )
+}
+```
+
+### Multi-Step Form
+
+```tsx
+import { useState } from 'react'
+import { Form } from '@tamagui/form'
+import { Input } from '@tamagui/input'
+import { Button } from '@tamagui/button'
+import { YStack, XStack } from '@tamagui/stacks'
+
+function Demo() {
+  const [step, setStep] = useState(1)
+
+  const handleSubmit = () => {
+    if (step < 3) {
+      setStep(step + 1)
+    } else {
+      console.log('Final submission')
+    }
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <YStack space>
+        {step === 1 && (
+          <>
+            <Input placeholder="First Name" />
+            <Input placeholder="Last Name" />
+          </>
+        )}
+        
+        {step === 2 && (
+          <>
+            <Input placeholder="Email" type="email" />
+            <Input placeholder="Phone" type="tel" />
+          </>
+        )}
+        
+        {step === 3 && (
+          <>
+            <Input placeholder="Address" />
+            <Input placeholder="City" />
+          </>
+        )}
+        
+        <XStack space justifyContent="space-between">
+          {step > 1 && (
+            <Button type="button" onPress={() => setStep(step - 1)}>
+              Back
+            </Button>
+          )}
+          <Button type="submit">
+            {step < 3 ? 'Next' : 'Submit'}
+          </Button>
+        </XStack>
+      </YStack>
+    </Form>
+  )
+}
+```
+
+## API Reference
+
+### Form Props
+
+<ParamField path="onSubmit" type="() => void">
+  Callback function when form is submitted. Automatically prevents default form submission.
+</ParamField>
+
+<ParamField path="scope" type="string">
+  Scope identifier for the form context.
+</ParamField>
+
+### Form.Trigger Props
+
+<ParamField path="scope" type="string">
+  Scope identifier to match the parent Form.
+</ParamField>
+
+<ParamField path="asChild" type="boolean">
+  Render as the child component instead of a wrapper.
+</ParamField>
+
+<ParamField path="onPress" type="(event) => void">
+  Additional press handler, called before triggering form submission.
+</ParamField>
+
+## Behavior
+
+### Form Submission
+
+Form automatically:
+- Prevents default browser form submission (no page reload)
+- Calls the `onSubmit` callback
+- Works with both `<Button type="submit">` and `<Form.Trigger>`
+
+### Form.Trigger
+
+Form.Trigger provides an alternative way to submit forms:
+- Can be used with any component via `asChild`
+- Calls the Form's `onSubmit` when pressed
+- Useful for custom submit buttons or actions
+
+```tsx
+<Form.Trigger asChild>
+  <Button icon={Send}>Send Message</Button>
+</Form.Trigger>
+```
+
+## Validation
+
+Form component provides the structure, but validation is handled by you:
+
+1. **HTML5 Validation** - Use `required`, `pattern`, `min`, `max` on inputs
+2. **Custom Validation** - Implement validation in `onSubmit` or field `onBlur` handlers
+3. **Schema Validation** - Use libraries like Zod, Yup, or Joi
+
+### HTML5 Validation Example
+
+```tsx
+<Form onSubmit={handleSubmit}>
+  <Input type="email" required />
+  <Input type="number" min={0} max={100} required />
+  <Input pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required />
+  <Button type="submit">Submit</Button>
+</Form>
+```
+
+## Accessibility
+
+- Renders as semantic `<form>` element
+- Supports native form submission prevention
+- Works with all native form controls
+- Compatible with screen readers
+- Supports keyboard navigation (Tab, Enter to submit)
+- Form.Trigger has `role="button"`
+
+## Notes
+
+- Form prevents default browser submission automatically
+- No built-in validation - use HTML5 attributes or custom logic
+- Works with all Tamagui form components (Input, Checkbox, Switch, etc.)
+- Form.Trigger can trigger submission from anywhere in the form
+- Multiple Form.Trigger components can exist in one form
+- Use `scope` to differentiate between nested forms (rare case)

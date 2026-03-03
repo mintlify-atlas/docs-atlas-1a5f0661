@@ -1,0 +1,455 @@
+---
+title: Popover
+description: Displays rich content in a floating panel anchored to an element.
+---
+
+# Popover
+
+Displays rich content in a portal, triggered by a button. Popovers are non-modal and allow interaction with the rest of the page while open.
+
+## Installation
+
+```bash
+npm install @tamagui/popover
+```
+
+## Anatomy
+
+```tsx
+import { Popover } from '@tamagui/popover'
+
+export default () => (
+  <Popover>
+    <Popover.Trigger />
+    <Popover.Content>
+      <Popover.Arrow />
+      <Popover.Close />
+    </Popover.Content>
+  </Popover>
+)
+```
+
+## Basic Usage
+
+```tsx
+import { Popover, Button, YStack, Label, Input } from 'tamagui'
+
+export default function PopoverExample() {
+  return (
+    <Popover>
+      <Popover.Trigger asChild>
+        <Button>Show Popover</Button>
+      </Popover.Trigger>
+
+      <Popover.Content
+        borderWidth={1}
+        borderColor="$borderColor"
+        enterStyle={{ y: -10, opacity: 0 }}
+        exitStyle={{ y: -10, opacity: 0 }}
+        elevate
+        animation={[
+          'quick',
+          {
+            opacity: {
+              overshootClamping: true,
+            },
+          },
+        ]}
+      >
+        <Popover.Arrow borderWidth={1} borderColor="$borderColor" />
+
+        <YStack gap="$3">
+          <Label htmlFor="name">Name</Label>
+          <Input id="name" placeholder="Enter name" />
+
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" placeholder="Enter email" />
+
+          <Popover.Close asChild>
+            <Button>Submit</Button>
+          </Popover.Close>
+        </YStack>
+      </Popover.Content>
+    </Popover>
+  )
+}
+```
+
+## API Reference
+
+### Popover
+
+Contains all the parts of a popover.
+
+<ParamField path="open" type="boolean">
+  The controlled open state of the popover.
+</ParamField>
+
+<ParamField path="defaultOpen" type="boolean" default="false">
+  The open state when initially rendered. Use when you do not need to control the open state.
+</ParamField>
+
+<ParamField path="onOpenChange" type="(open: boolean, via?: 'hover' | 'press') => void">
+  Event handler called when the open state changes. The second parameter indicates how the state change was triggered.
+</ParamField>
+
+<ParamField path="keepChildrenMounted" type="boolean | 'lazy'" default="false">
+  When true, children never unmount. When 'lazy', they mount inside a startTransition after first render.
+</ParamField>
+
+<ParamField path="hoverable" type="boolean | UseHoverProps">
+  Enable staying open while hovering over the content. Useful for menu-like popovers.
+</ParamField>
+
+<ParamField path="disableFocus" type="boolean">
+  Disable focusing behavior on open.
+</ParamField>
+
+<ParamField path="disableDismissable" type="boolean">
+  Disable the dismissable layer (escape key, outside click handling).
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  z-index for the popover portal. Use when popovers need to appear above other portaled content.
+</ParamField>
+
+<ParamField path="placement" type="Placement">
+  The preferred placement of the popover. Can be 'top', 'right', 'bottom', 'left' and their variants like 'top-start', 'top-end'.
+</ParamField>
+
+<ParamField path="allowFlip" type="boolean">
+  Whether to flip the popover to the opposite side if it doesn't fit.
+</ParamField>
+
+<ParamField path="offset" type="number | { mainAxis?: number; crossAxis?: number }">
+  The distance from the anchor element.
+</ParamField>
+
+### Popover.Trigger
+
+The button that toggles the popover.
+
+<ParamField path="asChild" type="boolean">
+  Change the component to a different HTML tag or custom component.
+</ParamField>
+
+### Popover.Anchor
+
+An optional element to position the popover against. If not provided, the trigger is used.
+
+### Popover.Content
+
+The component that pops out when the popover is open.
+
+<ParamField path="trapFocus" type="boolean">
+  Whether focus should be trapped within the popover.
+</ParamField>
+
+<ParamField path="disableFocusScope" type="boolean">
+  Whether popover should not focus contents on open.
+</ParamField>
+
+<ParamField path="onOpenAutoFocus" type="(event: Event) => void">
+  Event handler called when auto-focusing on open. Can be prevented.
+</ParamField>
+
+<ParamField path="onCloseAutoFocus" type="(event: Event) => void">
+  Event handler called when auto-focusing on close. Can be prevented.
+</ParamField>
+
+<ParamField path="onEscapeKeyDown" type="(event: KeyboardEvent) => void">
+  Event handler called when the escape key is pressed. Can be prevented.
+</ParamField>
+
+<ParamField path="onPointerDownOutside" type="(event: PointerDownOutsideEvent) => void">
+  Event handler called when a pointer event occurs outside the popover. Can be prevented.
+</ParamField>
+
+<ParamField path="onInteractOutside" type="(event: Event) => void">
+  Event handler called when an interaction happens outside the popover. Can be prevented.
+</ParamField>
+
+<ParamField path="enableRemoveScroll" type="boolean" default="false">
+  Whether to prevent scrolling outside the popover when it's open.
+</ParamField>
+
+<ParamField path="animatePosition" type="boolean | 'even-when-repositioning'">
+  Enable smooth animation when the content position changes (e.g., when flipping sides).
+</ParamField>
+
+### Popover.Close
+
+The button that closes the popover.
+
+<ParamField path="asChild" type="boolean">
+  Change the component to a different HTML tag or custom component.
+</ParamField>
+
+### Popover.Arrow
+
+An optional arrow element to point towards the trigger.
+
+<ParamField path="size" type="SizeTokens">
+  The size of the arrow.
+</ParamField>
+
+## Controlled vs Uncontrolled
+
+### Uncontrolled
+
+```tsx
+<Popover defaultOpen={false}>
+  {/* ... */}
+</Popover>
+```
+
+### Controlled
+
+```tsx
+const [open, setOpen] = useState(false)
+
+return (
+  <Popover open={open} onOpenChange={setOpen}>
+    {/* ... */}
+  </Popover>
+)
+```
+
+## Animation
+
+Popovers support rich animations:
+
+```tsx
+<Popover.Content
+  animation="bouncy"
+  enterStyle={{ y: -10, opacity: 0, scale: 0.9 }}
+  exitStyle={{ y: -10, opacity: 0, scale: 0.9 }}
+>
+  {/* content */}
+</Popover.Content>
+```
+
+### Animate Position Changes
+
+```tsx
+<Popover.Content
+  animatePosition
+  animation="quick"
+>
+  {/* Content smoothly animates when popover flips sides */}
+</Popover.Content>
+```
+
+## Positioning
+
+### Basic Placement
+
+```tsx
+<Popover placement="top">
+  {/* Popover appears above the trigger */}
+</Popover>
+```
+
+### With Offset
+
+```tsx
+<Popover
+  offset={{
+    mainAxis: 10,
+    crossAxis: 5,
+  }}
+>
+  {/* content */}
+</Popover>
+```
+
+### Custom Anchor
+
+```tsx
+<Popover>
+  <Popover.Trigger>
+    <Button>Trigger</Button>
+  </Popover.Trigger>
+  
+  <Popover.Anchor>
+    <View>Content is anchored to this element</View>
+  </Popover.Anchor>
+  
+  <Popover.Content>
+    {/* content */}
+  </Popover.Content>
+</Popover>
+```
+
+### Imperative Positioning
+
+```tsx
+function DynamicPopover() {
+  const popoverRef = useRef<Popover>(null)
+
+  const openAtPosition = () => {
+    popoverRef.current?.anchorTo({
+      x: 100,
+      y: 200,
+      width: 0,
+      height: 0,
+    })
+    popoverRef.current?.open()
+  }
+
+  return (
+    <>
+      <Button onPress={openAtPosition}>Open at (100, 200)</Button>
+      <Popover ref={popoverRef}>
+        <Popover.Content>{/* content */}</Popover.Content>
+      </Popover>
+    </>
+  )
+}
+```
+
+## Accessibility
+
+### ARIA Attributes
+
+- `Popover.Trigger` has `aria-expanded` set based on state
+- `Popover.Content` is automatically connected to the trigger
+- By default, focus is not trapped in popovers (unlike dialogs)
+
+### Keyboard Navigation
+
+- <kbd>Space</kbd> or <kbd>Enter</kbd> - Opens the popover when focus is on the trigger
+- <kbd>Escape</kbd> - Closes the popover
+- <kbd>Tab</kbd> - Moves focus to the next focusable element (not trapped by default)
+
+### Focus Management
+
+- When opened, the first focusable element receives focus (can be prevented)
+- When closed, focus returns to the trigger
+- Focus is **not** trapped by default (set `trapFocus` to enable)
+
+## Hoverable Popovers
+
+```tsx
+<Popover hoverable>
+  <Popover.Trigger>
+    <Button>Hover me</Button>
+  </Popover.Trigger>
+
+  <Popover.Content>
+    <YStack>
+      <Paragraph>This stays open while hovering</Paragraph>
+      <Button>Clickable content</Button>
+    </YStack>
+  </Popover.Content>
+</Popover>
+```
+
+## Composition Pattern
+
+```tsx
+import { Popover, styled } from 'tamagui'
+
+const StyledPopoverContent = styled(Popover.Content, {
+  backgroundColor: '$background',
+  borderRadius: '$4',
+  padding: '$4',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+  elevate: true,
+  gap: '$3',
+})
+
+export function MenuPopover({ children, items }) {
+  return (
+    <Popover>
+      <Popover.Trigger asChild>{children}</Popover.Trigger>
+
+      <StyledPopoverContent>
+        <Popover.Arrow />
+        <YStack>
+          {items.map((item) => (
+            <Button key={item.id} onPress={item.onPress}>
+              {item.label}
+            </Button>
+          ))}
+        </YStack>
+      </StyledPopoverContent>
+    </Popover>
+  )
+}
+```
+
+## Advanced Usage
+
+### Nested Popovers
+
+```tsx
+<Popover>
+  <Popover.Trigger>Open First</Popover.Trigger>
+  <Popover.Content>
+    <Popover>
+      <Popover.Trigger>Open Second</Popover.Trigger>
+      <Popover.Content>Nested content</Popover.Content>
+    </Popover>
+  </Popover.Content>
+</Popover>
+```
+
+### With ScrollView
+
+```tsx
+<Popover>
+  <Popover.Trigger>Open</Popover.Trigger>
+  <Popover.Content>
+    <Popover.ScrollView maxHeight={300}>
+      {/* Long scrollable content */}
+    </Popover.ScrollView>
+  </Popover.Content>
+</Popover>
+```
+
+### Adapt to Sheet on Mobile
+
+```tsx
+import { Popover, Sheet } from 'tamagui'
+
+<Popover>
+  <Popover.Adapt when="sm" platform="touch">
+    <Sheet modal dismissOnSnapToBottom>
+      <Sheet.Frame>
+        <Popover.Adapt.Contents />
+      </Sheet.Frame>
+      <Sheet.Overlay />
+    </Sheet>
+  </Popover.Adapt>
+
+  <Popover.Trigger>Open</Popover.Trigger>
+  <Popover.Content>{/* content */}</Popover.Content>
+</Popover>
+```
+
+### Close Other Popovers
+
+```tsx
+import { closeOpenPopovers } from '@tamagui/popover'
+
+function MyComponent() {
+  const handleAction = () => {
+    // Close all open popovers
+    closeOpenPopovers()
+  }
+
+  return <Button onPress={handleAction}>Close All</Button>
+}
+```
+
+## Popover vs Tooltip
+
+| Feature | Popover | Tooltip |
+|---------|---------|----------|
+| Trigger | Click/press | Hover/focus |
+| Interactive content | Yes | Limited |
+| Purpose | Rich content, forms | Brief descriptions |
+| Accessibility role | (none) | `tooltip` |
+| Focus trap | Optional | No |

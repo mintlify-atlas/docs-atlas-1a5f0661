@@ -1,0 +1,289 @@
+---
+title: 'Next.js Integration'
+description: 'Configure Tamagui with Next.js for optimized React Native web components'
+---
+
+<Info>
+  **Prerequisites**:
+  - Next.js 13 or higher
+  - Node.js 18 or higher
+  - A Next.js project initialized
+</Info>
+
+Tamagui provides first-class support for Next.js through `@tamagui/next-plugin`, enabling optimized React Native component rendering on the web with full SSR support.
+
+## Installation
+
+<Steps>
+<Step title="Install dependencies">
+
+<CodeGroup>
+```bash npm
+npm install tamagui @tamagui/next-plugin
+```
+
+```bash yarn
+yarn add tamagui @tamagui/next-plugin
+```
+
+```bash pnpm
+pnpm add tamagui @tamagui/next-plugin
+```
+</CodeGroup>
+
+</Step>
+
+<Step title="Configure Next.js">
+
+Update your `next.config.js` to use the Tamagui plugin:
+
+```js next.config.js
+const { withTamagui } = require('@tamagui/next-plugin')
+
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  outputCSS: './public/tamagui.generated.css',
+})(
+  {
+    // Your Next.js config
+    transpilePackages: [
+      'react-native',
+      'react-native-web',
+      'expo-linear-gradient',
+    ],
+  }
+)
+```
+
+<Note>
+The plugin automatically configures webpack loaders, CSS handling, and React Native web compatibility.
+</Note>
+
+</Step>
+
+<Step title="Create Tamagui config">
+
+Create `tamagui.config.ts` in your project root:
+
+```ts tamagui.config.ts
+import { config } from '@tamagui/config/v3'
+import { createTamagui } from 'tamagui'
+
+const tamaguiConfig = createTamagui(config)
+
+export default tamaguiConfig
+
+export type Conf = typeof tamaguiConfig
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+```
+
+</Step>
+
+<Step title="Add TamaguiProvider">
+
+Wrap your app with the `TamaguiProvider`:
+
+```tsx app/layout.tsx
+import { TamaguiProvider } from 'tamagui'
+import config from '../tamagui.config'
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <TamaguiProvider config={config}>
+          {children}
+        </TamaguiProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+</Step>
+</Steps>
+
+## Configuration Options
+
+The `withTamagui` function accepts comprehensive configuration:
+
+```ts
+type WithTamaguiProps = {
+  // Path to your Tamagui config file
+  config: string
+  
+  // Component packages to optimize
+  components: string[]
+  
+  // Output path for generated CSS
+  outputCSS?: string
+  
+  // App directory support
+  appDir?: boolean
+  
+  // Custom extraction logic
+  shouldExtract?: (path: string, projectRoot: string) => boolean
+  
+  // Disable theme bundle optimization
+  disableThemesBundleOptimize?: boolean
+  
+  // Disable Lucide icons tree-shaking
+  disableOptimizeLucideIcons?: boolean
+  
+  // Enable legacy font loading
+  enableLegacyFontSupport?: boolean
+}
+```
+
+## Build Configuration
+
+Create `tamagui.build.ts` for advanced build options:
+
+```ts tamagui.build.ts
+import type { TamaguiBuildOptions } from '@tamagui/core'
+
+const disableExtraction = 
+  process.env.NODE_ENV === 'development' &&
+  (process.env.DISABLE_EXTRACTION ? JSON.parse(process.env.DISABLE_EXTRACTION) : true)
+
+export default {
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  outputCSS: './public/tamagui.generated.css',
+  importsWhitelist: ['constants.js', 'colors.js'],
+  disableExtraction,
+  excludeReactNativeWebExports: [
+    'Switch',
+    'ProgressBar',
+    'Picker',
+    'CheckBox',
+    'Touchable',
+    'Modal',
+  ],
+} satisfies TamaguiBuildOptions
+```
+
+## Project Structure
+
+```
+my-next-app/
+├── app/
+│   ├── layout.tsx         # Add TamaguiProvider here
+│   └── page.tsx           # Your pages
+├── public/
+│   └── tamagui.generated.css  # Generated styles
+├── tamagui.config.ts      # Tamagui configuration
+├── tamagui.build.ts       # Build options (optional)
+├── next.config.js         # Next.js config with plugin
+└── package.json
+```
+
+## Server-Side Rendering
+
+The plugin automatically handles SSR by:
+
+1. Extracting styles during build
+2. Generating optimized CSS
+3. Properly externalizing React Native packages
+4. Configuring webpack for both client and server
+
+```ts
+// Plugin sets these automatically:
+process.env.TAMAGUI_TARGET = 'web'
+process.env.TAMAGUI_IS_SERVER = 'true' // on server
+process.env.TAMAGUI_ENVIRONMENT = 'ssr' // or 'client'
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Module not found: react-native">
+    The plugin automatically aliases `react-native` to `react-native-web`. Ensure you have both installed:
+    
+    ```bash
+    npm install react-native react-native-web
+    ```
+  </Accordion>
+
+  <Accordion title="CSS not loading in production">
+    Verify your `outputCSS` path is in the `public` directory and import it in your root layout:
+    
+    ```tsx
+    import '../public/tamagui.generated.css'
+    ```
+  </Accordion>
+
+  <Accordion title="Webpack build errors">
+    The plugin requires Next.js 13+. Check your version:
+    
+    ```bash
+    npm list next
+    ```
+    
+    If using app directory, set `appDir: true` in the plugin config.
+  </Accordion>
+
+  <Accordion title="Slow development builds">
+    Enable extraction disabling in development:
+    
+    ```ts tamagui.build.ts
+    export default {
+      disableExtraction: process.env.NODE_ENV === 'development',
+      // ... other options
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Server/client mismatch errors">
+    Ensure SSR is properly configured and CSS is generated before build:
+    
+    ```bash
+    # Generate CSS before build
+    tamagui generate
+    next build
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Features
+
+### Custom Server Exclusions
+
+Control which packages are externalized on the server:
+
+```js next.config.js
+withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  shouldExcludeFromServer: ({ context, request, fullPath }) => {
+    // Return true to externalize, false to bundle
+    if (fullPath.includes('my-package')) {
+      return false // bundle this package
+    }
+  },
+})
+```
+
+### Optimizing Lucide Icons
+
+The plugin automatically tree-shakes `@tamagui/lucide-icons` using Next.js modular imports. Disable if needed:
+
+```js
+withTamagui({
+  disableOptimizeLucideIcons: true,
+})
+```
+
+### Custom CSS Test Pattern
+
+Specify which CSS files to process:
+
+```js
+withTamagui({
+  includeCSSTest: /\.(tamagui|custom)\.css$/,
+})
+```

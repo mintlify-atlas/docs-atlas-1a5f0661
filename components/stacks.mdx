@@ -1,0 +1,414 @@
+---
+title: 'Stack Components'
+description: 'YStack, XStack, and ZStack for flexible layouts'
+icon: 'layer-group'
+---
+
+## Overview
+
+Stack components are the fundamental building blocks for layouts in Tamagui. They provide flexbox-based containers with three orientations:
+
+- **YStack** - Arranges children vertically (column)
+- **XStack** - Arranges children horizontally (row)
+- **ZStack** - Stacks children on top of each other (absolute positioning)
+
+## Import
+
+```tsx
+import { YStack, XStack, ZStack } from 'tamagui'
+// or from individual package
+import { YStack, XStack, ZStack } from '@tamagui/stacks'
+```
+
+## Basic Usage
+
+### YStack (Vertical)
+
+Arranges children in a vertical column:
+
+```tsx
+import { YStack, Text } from 'tamagui'
+
+export function VerticalLayout() {
+  return (
+    <YStack padding="$4" gap="$3" backgroundColor="$background">
+      <Text>First item</Text>
+      <Text>Second item</Text>
+      <Text>Third item</Text>
+    </YStack>
+  )
+}
+```
+
+### XStack (Horizontal)
+
+Arranges children in a horizontal row:
+
+```tsx
+import { XStack, Button } from 'tamagui'
+
+export function HorizontalLayout() {
+  return (
+    <XStack padding="$4" gap="$2" alignItems="center">
+      <Button>First</Button>
+      <Button>Second</Button>
+      <Button>Third</Button>
+    </XStack>
+  )
+}
+```
+
+### ZStack (Layered)
+
+Stacks children on top of each other:
+
+```tsx
+import { ZStack, YStack } from 'tamagui'
+
+export function LayeredLayout() {
+  return (
+    <ZStack width={200} height={200}>
+      <YStack fullscreen backgroundColor="$blue5" borderRadius="$4" />
+      <YStack 
+        fullscreen 
+        y={10} 
+        x={10} 
+        backgroundColor="$blue7" 
+        borderRadius="$4" 
+      />
+      <YStack 
+        fullscreen 
+        y={20} 
+        x={20} 
+        backgroundColor="$blue9" 
+        borderRadius="$4" 
+      />
+    </ZStack>
+  )
+}
+```
+
+## Props
+
+All Stack components accept the same props as they extend from `View`.
+
+### Stack-Specific Props
+
+<ParamField path="fullscreen" type="boolean" deprecated>
+  Makes the stack fill its container absolutely. **Deprecated**: Use `inset={0}` and `position="absolute"` instead.
+</ParamField>
+
+<ParamField path="elevation" type="number | SizeTokens">
+  Adds shadow/elevation effect. Can be a number or size token like `"$4"`.
+  
+  ```tsx
+  <YStack elevation="$4">
+    Elevated content
+  </YStack>
+  ```
+</ParamField>
+
+### Common Layout Props
+
+<ParamField path="gap" type="number | SizeTokens">
+  Spacing between children (uses CSS gap)
+  
+  ```tsx
+  <YStack gap="$4">
+    {/* Children will have $4 spacing between them */}
+  </YStack>
+  ```
+</ParamField>
+
+<ParamField path="padding" type="number | SizeTokens">
+  Inner spacing. Shorthand variants: `p`, `px`, `py`, `pt`, `pr`, `pb`, `pl`
+  
+  ```tsx
+  <YStack padding="$4" />
+  <YStack p="$4" />  {/* Shorthand */}
+  <YStack px="$4" py="$2" />  {/* Horizontal and vertical */}
+  ```
+</ParamField>
+
+<ParamField path="margin" type="number | SizeTokens">
+  Outer spacing. Shorthand variants: `m`, `mx`, `my`, `mt`, `mr`, `mb`, `ml`
+</ParamField>
+
+<ParamField path="flex" type="number">
+  Flex grow/shrink factor
+  
+  ```tsx
+  <XStack>
+    <YStack flex={1}>Takes available space</YStack>
+    <YStack width={200}>Fixed width</YStack>
+  </XStack>
+  ```
+</ParamField>
+
+<ParamField path="alignItems" type="FlexAlignType">
+  Cross-axis alignment: `'flex-start'` | `'center'` | `'flex-end'` | `'stretch'` | `'baseline'`
+</ParamField>
+
+<ParamField path="justifyContent" type="FlexJustifyContent">
+  Main-axis alignment: `'flex-start'` | `'center'` | `'flex-end'` | `'space-between'` | `'space-around'` | `'space-evenly'`
+</ParamField>
+
+<ParamField path="backgroundColor" type="string">
+  Background color, supports theme tokens
+  
+  ```tsx
+  <YStack backgroundColor="$background" />
+  <YStack backgroundColor="#ff0000" />
+  ```
+</ParamField>
+
+<ParamField path="borderRadius" type="number | SizeTokens">
+  Border radius, supports theme tokens. Shorthand: `rounded`
+  
+  ```tsx
+  <YStack borderRadius="$4" />
+  <YStack rounded="$4" />  {/* Shorthand */}
+  ```
+</ParamField>
+
+## Advanced Components
+
+### ThemeableStack
+
+Extends YStack with theming variants:
+
+```tsx
+import { ThemeableStack } from '@tamagui/stacks'
+
+<ThemeableStack
+  bordered
+  elevate
+  transparent
+  padding="$4"
+>
+  Themeable content
+</ThemeableStack>
+```
+
+**Variants:**
+
+<ParamField path="bordered" type="boolean">
+  Adds border with theme color
+</ParamField>
+
+<ParamField path="elevate" type="boolean">
+  Adds elevation based on size prop
+</ParamField>
+
+<ParamField path="transparent" type="boolean">
+  Makes background transparent
+</ParamField>
+
+<ParamField path="chromeless" type="boolean | 'all'">
+  Removes all background, border, and shadow. Use `"all"` to include hover/press/focus states.
+</ParamField>
+
+<ParamField path="circular" type="boolean">
+  Makes the stack circular (requires size prop)
+</ParamField>
+
+### SizableStack
+
+Extends ThemeableStack with size variants:
+
+```tsx
+import { SizableStack } from '@tamagui/stacks'
+
+<SizableStack
+  size="$4"
+  bordered
+  elevate
+  circular
+>
+  Sized content
+</SizableStack>
+```
+
+<ParamField path="size" type="SizeTokens">
+  Controls padding, gap, and other size-related properties. Examples: `"$1"`, `"$2"`, `"$3"`, `"$4"`, etc.
+</ParamField>
+
+<ParamField path="unstyled" type="boolean">
+  Removes default styling, useful for custom components
+</ParamField>
+
+## Examples
+
+### Responsive Layout
+
+```tsx
+import { YStack, XStack, Card, Text } from 'tamagui'
+
+export function ResponsiveGrid() {
+  return (
+    <YStack 
+      gap="$4" 
+      $gtSm={{ 
+        flexDirection: 'row',
+        flexWrap: 'wrap'
+      }}
+    >
+      <Card flex={1} minWidth={250}>
+        <Text>Card 1</Text>
+      </Card>
+      <Card flex={1} minWidth={250}>
+        <Text>Card 2</Text>
+      </Card>
+      <Card flex={1} minWidth={250}>
+        <Text>Card 3</Text>
+      </Card>
+    </YStack>
+  )
+}
+```
+
+### Centered Content
+
+```tsx
+import { YStack, Text } from 'tamagui'
+
+export function CenteredContent() {
+  return (
+    <YStack
+      flex={1}
+      alignItems="center"
+      justifyContent="center"
+      backgroundColor="$background"
+    >
+      <Text fontSize="$8" fontWeight="bold">
+        Centered Text
+      </Text>
+    </YStack>
+  )
+}
+```
+
+### Card with Elevation
+
+```tsx
+import { YStack, Text } from 'tamagui'
+
+export function ElevatedCard() {
+  return (
+    <YStack
+      padding="$4"
+      borderRadius="$4"
+      backgroundColor="$background"
+      elevation="$4"
+      maxWidth={400}
+    >
+      <Text fontSize="$6" fontWeight="bold" marginBottom="$2">
+        Card Title
+      </Text>
+      <Text color="$color11">
+        This card has elevation for a raised appearance.
+      </Text>
+    </YStack>
+  )
+}
+```
+
+### Split Layout
+
+```tsx
+import { XStack, YStack, Text } from 'tamagui'
+
+export function SplitLayout() {
+  return (
+    <XStack height="100vh">
+      <YStack 
+        flex={1} 
+        backgroundColor="$blue5" 
+        padding="$4"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Text>Left Pane</Text>
+      </YStack>
+      <YStack 
+        flex={2} 
+        backgroundColor="$background" 
+        padding="$4"
+      >
+        <Text>Right Pane (Wider)</Text>
+      </YStack>
+    </XStack>
+  )
+}
+```
+
+## Styling Tips
+
+### Use Gap Instead of Margins
+
+Prefer `gap` over margins for spacing between children:
+
+```tsx
+// ✅ Recommended
+<YStack gap="$4">
+  <Item />
+  <Item />
+</YStack>
+
+// ❌ Not recommended
+<YStack>
+  <Item marginBottom="$4" />
+  <Item />
+</YStack>
+```
+
+### Combine Stacks for Complex Layouts
+
+```tsx
+<YStack padding="$4" gap="$4">
+  <XStack justifyContent="space-between" alignItems="center">
+    <Text fontSize="$8" fontWeight="bold">Header</Text>
+    <Button>Action</Button>
+  </XStack>
+  <YStack gap="$2">
+    <Text>Content goes here</Text>
+  </YStack>
+</YStack>
+```
+
+## Accessibility
+
+Stacks render as semantic `<div>` elements on web and `<View>` on native.
+
+- Use appropriate ARIA roles when needed
+- Ensure proper heading hierarchy within stacks
+- Maintain sufficient color contrast for backgrounds
+- Use semantic HTML when appropriate
+
+```tsx
+<YStack role="navigation" aria-label="Main navigation">
+  <Button>Home</Button>
+  <Button>About</Button>
+  <Button>Contact</Button>
+</YStack>
+```
+
+## Type Definitions
+
+```tsx
+type YStackProps = GetProps<typeof YStack>
+type XStackProps = GetProps<typeof XStack>
+type ZStackProps = GetProps<typeof ZStack>
+
+interface StackVariants {
+  fullscreen?: boolean
+  elevation?: number | SizeTokens
+}
+```
+
+## See Also
+
+- [Group](/components/group) - For connected component groups
+- [Spacer](/components/spacer) - For flexible spacing
+- [Configuration](/core/configuration) - Setting up design tokens
+- [Theme](/core/theme) - Theming system

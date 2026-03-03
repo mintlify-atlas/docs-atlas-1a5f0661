@@ -1,0 +1,137 @@
+---
+title: Spinner
+description: A loading indicator component.
+---
+
+# Spinner
+
+A loading indicator component.
+
+## Installation
+
+```bash
+npm install tamagui
+```
+
+## Usage
+
+```tsx
+import { Spinner } from 'tamagui'
+
+export default function SpinnerExample() {
+  return <Spinner size="large" color="$blue10" />
+}
+```
+
+## API Reference
+
+### Spinner
+
+<ParamField path="size" type="'small' | 'large'">
+  The size of the spinner.
+</ParamField>
+
+<ParamField path="color" type="ColorTokens | ThemeTokens | string">
+  The color of the spinner. Can be a theme token (starting with $) or any valid color string.
+</ParamField>
+
+## Examples
+
+### Basic Spinner
+
+```tsx
+import { Spinner } from 'tamagui'
+import { YStack } from '@tamagui/stacks'
+
+export default function BasicSpinner() {
+  return (
+    <YStack gap="$4" alignItems="center">
+      <Spinner />
+      <Spinner size="small" />
+      <Spinner size="large" />
+    </YStack>
+  )
+}
+```
+
+### Colored Spinners
+
+```tsx
+import { Spinner } from 'tamagui'
+import { XStack } from '@tamagui/stacks'
+
+export default function ColoredSpinners() {
+  return (
+    <XStack gap="$4">
+      <Spinner color="$blue10" />
+      <Spinner color="$red10" />
+      <Spinner color="$green10" />
+      <Spinner color="$purple10" />
+    </XStack>
+  )
+}
+```
+
+### Loading State
+
+```tsx
+import { useState } from 'react'
+import { Spinner } from 'tamagui'
+import { Button } from '@tamagui/button'
+import { YStack } from '@tamagui/stacks'
+
+export default function LoadingState() {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleClick = () => {
+    setIsLoading(true)
+    setTimeout(() => setIsLoading(false), 2000)
+  }
+
+  return (
+    <YStack gap="$4" alignItems="center">
+      <Button onPress={handleClick} disabled={isLoading}>
+        {isLoading ? 'Loading...' : 'Load Data'}
+      </Button>
+      {isLoading && <Spinner />}
+    </YStack>
+  )
+}
+```
+
+### Centered Spinner
+
+```tsx
+import { Spinner } from 'tamagui'
+import { YStack } from '@tamagui/stacks'
+
+export default function CenteredSpinner() {
+  return (
+    <YStack
+      flex={1}
+      alignItems="center"
+      justifyContent="center"
+      minHeight={200}
+    >
+      <Spinner size="large" color="$blue10" />
+    </YStack>
+  )
+}
+```
+
+### With Text
+
+```tsx
+import { Spinner } from 'tamagui'
+import { YStack } from '@tamagui/stacks'
+import { SizableText } from '@tamagui/text'
+
+export default function SpinnerWithText() {
+  return (
+    <YStack gap="$3" alignItems="center">
+      <Spinner size="large" />
+      <SizableText>Loading your content...</SizableText>
+    </YStack>
+  )
+}
+```

@@ -1,0 +1,413 @@
+---
+title: 'ScrollView'
+description: 'Scrollable container component'
+icon: 'scroll'
+---
+
+## Overview
+
+ScrollView is a scrollable container component that wraps React Native's ScrollView with Tamagui's styling system. Use it to create scrollable areas when content exceeds the container size.
+
+## Import
+
+```tsx
+import { ScrollView } from 'tamagui'
+// or from individual package
+import { ScrollView } from '@tamagui/scroll-view'
+```
+
+## Basic Usage
+
+```tsx
+import { ScrollView, YStack, Card, Text } from 'tamagui'
+
+export function ScrollableContent() {
+  return (
+    <ScrollView 
+      maxHeight={400} 
+      backgroundColor="$background" 
+      padding="$4"
+    >
+      <YStack gap="$3">
+        <Card padding="$4">
+          <Text>Card 1</Text>
+        </Card>
+        <Card padding="$4">
+          <Text>Card 2</Text>
+        </Card>
+        <Card padding="$4">
+          <Text>Card 3</Text>
+        </Card>
+        {/* More cards... */}
+      </YStack>
+    </ScrollView>
+  )
+}
+```
+
+## Props
+
+### ScrollView-Specific Props
+
+<ParamField path="scrollEnabled" type="boolean" default="true">
+  Enables or disables scrolling.
+  
+  ```tsx
+  <ScrollView scrollEnabled={false}>
+    {/* Content won't scroll */}
+  </ScrollView>
+  ```
+</ParamField>
+
+<ParamField path="fullscreen" type="boolean">
+  Makes the ScrollView fill its container with absolute positioning.
+  
+  ```tsx
+  <ScrollView fullscreen>
+    {/* Fills parent container */}
+  </ScrollView>
+  ```
+</ParamField>
+
+<ParamField path="horizontal" type="boolean">
+  Enables horizontal scrolling instead of vertical.
+  
+  ```tsx
+  <ScrollView horizontal>
+    <XStack gap="$3">
+      <Card width={200} />
+      <Card width={200} />
+      <Card width={200} />
+    </XStack>
+  </ScrollView>
+  ```
+</ParamField>
+
+<ParamField path="showsVerticalScrollIndicator" type="boolean" default="true">
+  Controls visibility of vertical scrollbar.
+  
+  ```tsx
+  <ScrollView showsVerticalScrollIndicator={false}>
+    {/* No scrollbar shown */}
+  </ScrollView>
+  ```
+</ParamField>
+
+<ParamField path="showsHorizontalScrollIndicator" type="boolean" default="true">
+  Controls visibility of horizontal scrollbar.
+</ParamField>
+
+<ParamField path="contentContainerStyle" type="ViewStyle">
+  Styles applied to the inner content container. Accepts Tamagui style props.
+  
+  ```tsx
+  <ScrollView
+    contentContainerStyle={{
+      padding: '$4',
+      gap: '$3',
+    }}
+  >
+    {/* Content */}
+  </ScrollView>
+  ```
+</ParamField>
+
+<ParamField path="bounces" type="boolean" default="true" platform="iOS">
+  Whether the scroll view bounces when it reaches the end (iOS only).
+</ParamField>
+
+<ParamField path="alwaysBounceVertical" type="boolean" platform="iOS">
+  Enables vertical bounce even when content is smaller than scroll view (iOS only).
+</ParamField>
+
+<ParamField path="alwaysBounceHorizontal" type="boolean" platform="iOS">
+  Enables horizontal bounce even when content is smaller than scroll view (iOS only).
+</ParamField>
+
+<ParamField path="pagingEnabled" type="boolean">
+  Snaps to page boundaries when scrolling.
+</ParamField>
+
+<ParamField path="scrollEventThrottle" type="number" platform="iOS">
+  Controls frequency of scroll events (in ms). Lower = more events.
+</ParamField>
+
+<ParamField path="onScroll" type="(event) => void">
+  Callback fired during scrolling.
+  
+  ```tsx
+  <ScrollView
+    onScroll={(event) => {
+      console.log(event.nativeEvent.contentOffset.y)
+    }}
+  >
+    {/* Content */}
+  </ScrollView>
+  ```
+</ParamField>
+
+### Common Style Props
+
+ScrollView accepts all standard Tamagui style props:
+
+- `maxHeight`, `minHeight`, `height`
+- `maxWidth`, `minWidth`, `width`
+- `padding`, `margin`
+- `backgroundColor`
+- `borderRadius`, `borderWidth`, `borderColor`
+
+## Examples
+
+### Vertical Scrolling
+
+```tsx
+import { ScrollView, Circle, Square, XStack } from 'tamagui'
+
+export function VerticalScrollDemo() {
+  return (
+    <ScrollView 
+      maxHeight={250} 
+      width="75%" 
+      backgroundColor="$background" 
+      padding="$4" 
+      borderRadius="$4"
+    >
+      <XStack flexWrap="wrap" alignItems="center" justifyContent="center">
+        <Square margin="$4" size={120} backgroundColor="$blue7" />
+        <Circle margin="$4" size={120} backgroundColor="$green7" />
+        <Square margin="$4" size={120} backgroundColor="$red7" />
+        <Circle margin="$4" size={120} backgroundColor="$yellow7" />
+        <Square margin="$4" size={120} backgroundColor="$purple7" />
+        <Circle margin="$4" size={120} backgroundColor="$pink7" />
+      </XStack>
+    </ScrollView>
+  )
+}
+```
+
+### Horizontal Scrolling
+
+```tsx
+import { ScrollView, XStack, Card, Image, Text } from 'tamagui'
+
+export function HorizontalCarousel() {
+  return (
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false}
+    >
+      <XStack gap="$3" padding="$4">
+        <Card width={300} height={200}>
+          <Image source={{ uri: '/image1.jpg' }} width="100%" height={120} />
+          <Text padding="$3">Card 1</Text>
+        </Card>
+        <Card width={300} height={200}>
+          <Image source={{ uri: '/image2.jpg' }} width="100%" height={120} />
+          <Text padding="$3">Card 2</Text>
+        </Card>
+        <Card width={300} height={200}>
+          <Image source={{ uri: '/image3.jpg' }} width="100%" height={120} />
+          <Text padding="$3">Card 3</Text>
+        </Card>
+      </XStack>
+    </ScrollView>
+  )
+}
+```
+
+### Fullscreen Scrollable Page
+
+```tsx
+import { ScrollView, YStack, Text, Button } from 'tamagui'
+
+export function FullscreenPage() {
+  return (
+    <ScrollView fullscreen backgroundColor="$background">
+      <YStack padding="$4" gap="$4" paddingBottom="$8">
+        <Text fontSize="$8" fontWeight="bold">
+          Page Title
+        </Text>
+        <Text fontSize="$5" color="$color11">
+          Long scrollable content...
+        </Text>
+        {Array.from({ length: 20 }).map((_, i) => (
+          <Card key={i} padding="$4">
+            <Text>Section {i + 1}</Text>
+          </Card>
+        ))}
+        <Button>Bottom Action</Button>
+      </YStack>
+    </ScrollView>
+  )
+}
+```
+
+### Paging Carousel
+
+```tsx
+import { ScrollView, XStack, YStack, Text } from 'tamagui'
+import { Dimensions } from 'react-native'
+
+export function PagingCarousel() {
+  const { width } = Dimensions.get('window')
+  
+  return (
+    <ScrollView 
+      horizontal 
+      pagingEnabled 
+      showsHorizontalScrollIndicator={false}
+    >
+      <YStack width={width} height={300} backgroundColor="$blue5" alignItems="center" justifyContent="center">
+        <Text fontSize="$8">Slide 1</Text>
+      </YStack>
+      <YStack width={width} height={300} backgroundColor="$green5" alignItems="center" justifyContent="center">
+        <Text fontSize="$8">Slide 2</Text>
+      </YStack>
+      <YStack width={width} height={300} backgroundColor="$red5" alignItems="center" justifyContent="center">
+        <Text fontSize="$8">Slide 3</Text>
+      </YStack>
+    </ScrollView>
+  )
+}
+```
+
+### Chat Messages
+
+```tsx
+import { ScrollView, YStack, XStack, Text } from 'tamagui'
+import { useRef, useEffect } from 'react'
+
+export function ChatMessages({ messages }) {
+  const scrollRef = useRef<ScrollView>(null)
+  
+  useEffect(() => {
+    // Scroll to bottom when new message arrives
+    scrollRef.current?.scrollToEnd({ animated: true })
+  }, [messages])
+  
+  return (
+    <ScrollView 
+      ref={scrollRef}
+      flex={1} 
+      padding="$4"
+    >
+      <YStack gap="$2">
+        {messages.map((msg, i) => (
+          <XStack 
+            key={i}
+            justifyContent={msg.isOwn ? 'flex-end' : 'flex-start'}
+          >
+            <YStack
+              padding="$3"
+              borderRadius="$4"
+              backgroundColor={msg.isOwn ? '$blue9' : '$gray5'}
+              maxWidth="70%"
+            >
+              <Text color={msg.isOwn ? 'white' : '$color'}>
+                {msg.text}
+              </Text>
+            </YStack>
+          </XStack>
+        ))}
+      </YStack>
+    </ScrollView>
+  )
+}
+```
+
+## Scroll Methods
+
+Access scroll methods via ref:
+
+```tsx
+import { ScrollView, Button } from 'tamagui'
+import { useRef } from 'react'
+
+export function ScrollableWithControls() {
+  const scrollRef = useRef<ScrollView>(null)
+  
+  return (
+    <>
+      <XStack gap="$2" padding="$4">
+        <Button onPress={() => scrollRef.current?.scrollTo({ y: 0 })}>
+          Top
+        </Button>
+        <Button onPress={() => scrollRef.current?.scrollToEnd()}>
+          Bottom
+        </Button>
+      </XStack>
+      
+      <ScrollView ref={scrollRef} flex={1}>
+        {/* Content */}
+      </ScrollView>
+    </>
+  )
+}
+```
+
+### Available Methods
+
+- `scrollTo({ x?: number, y?: number, animated?: boolean })` - Scroll to position
+- `scrollToEnd({ animated?: boolean })` - Scroll to end
+- `flashScrollIndicators()` - Briefly show scroll indicators
+
+## Performance Tips
+
+### Use `removeClippedSubviews` for Long Lists
+
+```tsx
+<ScrollView removeClippedSubviews>
+  {/* Long list of items */}
+</ScrollView>
+```
+
+### Consider FlatList for Large Datasets
+
+For very long lists with many items, use React Native's FlatList instead:
+
+```tsx
+import { FlatList } from 'react-native'
+
+<FlatList
+  data={items}
+  renderItem={({ item }) => <Item {...item} />}
+  keyExtractor={item => item.id}
+/>
+```
+
+### Optimize contentContainerStyle
+
+Avoid changing `contentContainerStyle` frequently as it can trigger re-renders.
+
+## Accessibility
+
+- ScrollView is automatically scrollable via keyboard (Tab, Arrow keys) on web
+- Screen readers announce scrollable regions
+- Ensure scrollable content has sufficient contrast
+- Add `accessible` and `accessibilityLabel` props when needed
+
+```tsx
+<ScrollView 
+  accessible 
+  accessibilityLabel="List of products"
+  accessibilityRole="list"
+>
+  {/* Content */}
+</ScrollView>
+```
+
+## Type Definitions
+
+```tsx
+import type { GetProps, GetRef } from '@tamagui/web'
+import { ScrollView } from '@tamagui/scroll-view'
+
+type ScrollViewProps = GetProps<typeof ScrollView>
+type ScrollViewRef = GetRef<typeof ScrollView>
+```
+
+## See Also
+
+- [Stacks](/components/stacks) - For layout containers
+- [Sheet](/components/sheet) - For modal scrollable content
+- [React Native ScrollView](https://reactnative.dev/docs/scrollview) - Underlying component

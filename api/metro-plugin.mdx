@@ -1,0 +1,305 @@
+---
+title: Metro Plugin
+description: Tamagui configuration plugin for Metro bundler
+---
+
+The Metro plugin configures Metro for React Native projects using Tamagui. It enables CSS support and loads your Tamagui configuration.
+
+## Installation
+
+```bash
+npm install @tamagui/metro-plugin
+```
+
+## Usage
+
+```js
+// metro.config.js
+const { getDefaultConfig } = require('expo/metro-config')
+const { withTamagui } = require('@tamagui/metro-plugin')
+
+const config = getDefaultConfig(__dirname, {
+  isCSSEnabled: true,  // Enable CSS support
+})
+
+module.exports = withTamagui(config, {
+  components: ['tamagui'],
+  config: './tamagui.config.ts',
+})
+```
+
+## Configuration Options
+
+<ParamField path="config" type="string">
+  Path to your Tamagui config file.
+  
+  ```js
+  config: './tamagui.config.ts'
+  ```
+</ParamField>
+
+<ParamField path="components" type="string[]">
+  Array of component packages to load.
+  
+  ```js
+  components: ['tamagui', '@my-org/ui']
+  ```
+</ParamField>
+
+<ParamField path="cssInterop" type="boolean" deprecated>
+  **Deprecated.** CSS interop is no longer supported.
+  Use `tamagui generate` to pre-generate CSS instead.
+  
+  ```js
+  cssInterop: false  // No longer used
+  ```
+</ParamField>
+
+## Features
+
+### CSS Support
+
+The plugin automatically enables CSS file resolution:
+
+```js
+const config = withTamagui(metroConfig, {
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+})
+
+// Adds 'css' to resolver.sourceExts
+// You can now import CSS files
+```
+
+### Config Loading
+
+Loads your `tamagui.build.ts` if it exists:
+
+```ts
+// tamagui.build.ts
+import type { TamaguiOptions } from '@tamagui/static'
+
+export default {
+  components: ['tamagui'],
+  config: './tamagui.config.ts',
+  outputCSS: './tamagui.css',
+} satisfies TamaguiOptions
+```
+
+## Examples
+
+### Basic Configuration
+
+```js
+// metro.config.js
+const { getDefaultConfig } = require('expo/metro-config')
+const { withTamagui } = require('@tamagui/metro-plugin')
+
+const config = getDefaultConfig(__dirname, {
+  isCSSEnabled: true,
+})
+
+module.exports = withTamagui(config, {
+  components: ['tamagui'],
+  config: './tamagui.config.ts',
+})
+```
+
+### Multiple Component Libraries
+
+```js
+module.exports = withTamagui(config, {
+  components: [
+    'tamagui',
+    '@my-org/ui',
+    '@my-org/design-system',
+  ],
+  config: './tamagui.config.ts',
+})
+```
+
+### With Additional Metro Config
+
+```js
+const { getDefaultConfig } = require('expo/metro-config')
+const { withTamagui } = require('@tamagui/metro-plugin')
+
+const config = getDefaultConfig(__dirname, {
+  isCSSEnabled: true,
+})
+
+// Add your custom resolver config
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  // Custom resolution logic
+  return context.resolveRequest(context, moduleName, platform)
+}
+
+module.exports = withTamagui(config, {
+  components: ['tamagui'],
+  config: './tamagui.config.ts',
+})
+```
+
+## CSS Generation Workflow
+
+### 1. Create tamagui.build.ts
+
+```ts
+// tamagui.build.ts
+import type { TamaguiOptions } from '@tamagui/static'
+
+export default {
+  components: ['tamagui'],
+  config: './tamagui.config.ts',
+  outputCSS: './app/tamagui.css',  // Output path
+} satisfies TamaguiOptions
+```
+
+### 2. Generate CSS
+
+```bash
+npx tamagui generate
+```
+
+### 3. Import CSS in Your App
+
+```tsx
+// app/_layout.tsx
+import './tamagui.css'
+
+export default function RootLayout() {
+  return (
+    <TamaguiProvider config={config}>
+      {/* Your app */}
+    </TamaguiProvider>
+  )
+}
+```
+
+## Migration from CSS Interop
+
+If you were using the deprecated `cssInterop` option:
+
+```diff
+- module.exports = withTamagui(config, {
+-   components: ['tamagui'],
+-   config: './tamagui.config.ts',
+-   cssInterop: true,  // Deprecated
+- })
+
++ // 1. Create tamagui.build.ts with outputCSS option
++ // 2. Run: npx tamagui generate
++ // 3. Import the generated CSS in your app
++
++ module.exports = withTamagui(config, {
++   components: ['tamagui'],
++   config: './tamagui.config.ts',
++ })
+```
+
+## How It Works
+
+The Metro plugin:
+
+1. **Loads Configuration** - Reads `tamagui.build.ts` if it exists
+2. **Enables CSS** - Adds `'css'` to Metro's `resolver.sourceExts`
+3. **Stores Options** - Saves Tamagui options in `transformer.tamagui`
+
+It does NOT:
+- ❌ Extract styles at runtime
+- ❌ Transform components
+- ❌ Generate CSS during bundling
+
+For CSS generation, use the CLI:
+
+```bash
+npx tamagui generate
+```
+
+## Environment Support
+
+### Expo
+
+```js
+// metro.config.js
+const { getDefaultConfig } = require('expo/metro-config')
+const { withTamagui } = require('@tamagui/metro-plugin')
+
+module.exports = withTamagui(
+  getDefaultConfig(__dirname, { isCSSEnabled: true }),
+  {
+    components: ['tamagui'],
+    config: './tamagui.config.ts',
+  }
+)
+```
+
+### React Native CLI
+
+```js
+// metro.config.js
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config')
+const { withTamagui } = require('@tamagui/metro-plugin')
+
+const defaultConfig = getDefaultConfig(__dirname)
+
+const config = {
+  resolver: {
+    sourceExts: [...defaultConfig.resolver.sourceExts, 'css'],
+  },
+}
+
+module.exports = withTamagui(
+  mergeConfig(defaultConfig, config),
+  {
+    components: ['tamagui'],
+    config: './tamagui.config.ts',
+  }
+)
+```
+
+## Troubleshooting
+
+### "CSS file not found"
+
+Make sure you've generated the CSS:
+
+```bash
+npx tamagui generate
+```
+
+And imported it in your root layout:
+
+```tsx
+import './tamagui.css'
+```
+
+### "isCSSEnabled is required"
+
+Enable CSS support in Metro config:
+
+```js
+const config = getDefaultConfig(__dirname, {
+  isCSSEnabled: true,  // Required
+})
+```
+
+### Config not loading
+
+Ensure paths are relative to project root:
+
+```js
+withTamagui(config, {
+  config: './tamagui.config.ts',  // Relative to root
+  components: ['tamagui'],
+})
+```
+
+## See Also
+
+- [Configuration](/core/configuration)
+- [CLI](/advanced/cli)
+- [Metro Documentation](https://metrobundler.dev/)
+- [Expo Metro Config](https://docs.expo.dev/guides/customizing-metro/)
+- [Vite Plugin](/api/vite-plugin)
+- [Next.js Plugin](/api/next-plugin)

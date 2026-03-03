@@ -1,0 +1,501 @@
+---
+title: createTamagui()
+description: Initialize and configure your Tamagui design system
+---
+
+The `createTamagui()` function is the entry point for configuring your Tamagui design system. It processes your tokens, themes, fonts, and other configuration into an optimized runtime configuration.
+
+## Function Signature
+
+```typescript
+function createTamagui<Conf extends CreateTamaguiProps>(
+  configIn: Conf
+): InferTamaguiConfig<Conf>
+```
+
+## Parameters
+
+<ParamField path="configIn" type="CreateTamaguiProps" required>
+  Complete configuration object for your design system.
+
+  <ParamField path="configIn.tokens" type="TokensDefinition" required>
+    Design tokens for colors, sizes, spacing, and other design values.
+
+    ```typescript
+    tokens: {
+      color: { ... },
+      space: { ... },
+      size: { ... },
+      radius: { ... },
+      zIndex: { ... },
+    }
+    ```
+  </ParamField>
+
+  <ParamField path="configIn.themes" type="Record<string, Theme>" required>
+    Theme definitions mapping theme names to color and value mappings.
+
+    ```typescript
+    themes: {
+      light: { background: '#fff', color: '#000' },
+      dark: { background: '#000', color: '#fff' },
+    }
+    ```
+  </ParamField>
+
+  <ParamField path="configIn.fonts" type="Record<string, Font>">
+    Font definitions with size, weight, and face mappings.
+  </ParamField>
+
+  <ParamField path="configIn.media" type="Record<string, MediaQueryObject>">
+    Responsive breakpoint definitions.
+
+    ```typescript
+    media: {
+      sm: { maxWidth: 660 },
+      md: { maxWidth: 960 },
+      lg: { minWidth: 961 },
+    }
+    ```
+  </ParamField>
+
+  <ParamField path="configIn.shorthands" type="Record<string, string>">
+    Style property shorthands (e.g., `bg` for `backgroundColor`).
+  </ParamField>
+
+  <ParamField path="configIn.animations" type="AnimationDriver | Record<string, AnimationDriver>">
+    Animation driver(s) for handling component animations.
+
+    Can be a single driver or multi-driver configuration:
+    ```typescript
+    // Single driver
+    animations: createAnimations({ ... })
+
+    // Multi-driver (use animatedBy prop to select)
+    animations: {
+      default: createAnimations({ ... }),
+      css: createAnimationsCSS({ ... }),
+    }
+    ```
+  </ParamField>
+
+  <ParamField path="configIn.settings" type="object">
+    Global settings for Tamagui behavior.
+
+    <ParamField path="configIn.settings.defaultFont" type="string">
+      Default font family (e.g., `'$body'`).
+    </ParamField>
+
+    <ParamField path="configIn.settings.shouldAddPrefersColorThemes" type="boolean">
+      Auto-generate @media (prefers-color-scheme) CSS.
+    </ParamField>
+
+    <ParamField path="configIn.settings.mediaQueryDefaultActive" type="string[]">
+      Media queries to enable by default (SSR).
+    </ParamField>
+
+    <ParamField path="configIn.settings.allowedStyleValues" type="'strict' | 'somewhat-strict' | 'strict-web'">
+      Type-checking strictness for style values.
+    </ParamField>
+
+    <ParamField path="configIn.settings.autocompleteSpecificTokens" type="'except-special' | 'always'">
+      Token autocomplete behavior in IDEs.
+    </ParamField>
+
+    <ParamField path="configIn.settings.fastSchemeChange" type="boolean">
+      Optimize theme switching on native platforms.
+    </ParamField>
+  </ParamField>
+
+  <ParamField path="configIn.defaultProps" type="Record<string, object>">
+    Default props for built-in components.
+
+    ```typescript
+    defaultProps: {
+      Stack: { flex: 1 },
+      Text: { color: '$color' },
+    }
+    ```
+  </ParamField>
+</ParamField>
+
+## Return Type
+
+<ResponseField name="TamaguiInternalConfig" type="object">
+  Processed configuration object with:
+  
+  <ResponseField name="tokens" type="TokensParsed">
+    Processed token variables ready for runtime use.
+  </ResponseField>
+
+  <ResponseField name="themes" type="ThemeManager">
+    Theme manager with proxied theme access.
+  </ResponseField>
+
+  <ResponseField name="fontsParsed" type="ParsedFonts">
+    Font configurations converted to CSS variables.
+  </ResponseField>
+
+  <ResponseField name="getCSS" type="() => string">
+    Function to retrieve generated CSS for SSR/SSG.
+  </ResponseField>
+
+  <ResponseField name="getNewCSS" type="() => string">
+    Get CSS generated since last call (for incremental builds).
+  </ResponseField>
+</ResponseField>
+
+## Basic Usage
+
+### Minimal Configuration
+
+```tsx
+import { createTamagui } from 'tamagui'
+
+const config = createTamagui({
+  tokens: {
+    color: {
+      white: '#fff',
+      black: '#000',
+    },
+    space: {
+      1: 4,
+      2: 8,
+      3: 12,
+      4: 16,
+    },
+    size: {
+      1: 20,
+      2: 40,
+      3: 60,
+    },
+  },
+  themes: {
+    light: {
+      background: '#fff',
+      color: '#000',
+    },
+  },
+})
+
+export default config
+```
+
+### Complete Configuration
+
+```tsx
+import { createTamagui } from 'tamagui'
+import { createInterFont } from '@tamagui/font-inter'
+import { shorthands } from '@tamagui/shorthands'
+import { tokens } from './tokens'
+import { themes } from './themes'
+import { animations } from './animations'
+
+const headingFont = createInterFont({
+  size: {
+    1: 12,
+    2: 14,
+    3: 16,
+    4: 18,
+    5: 20,
+    6: 24,
+    7: 30,
+    8: 48,
+    9: 60,
+  },
+  weight: {
+    1: '300',
+    2: '400',
+    3: '600',
+    4: '700',
+  },
+})
+
+const bodyFont = createInterFont({
+  size: {
+    1: 11,
+    2: 12,
+    3: 13,
+    4: 14,
+    5: 16,
+    6: 18,
+  },
+  weight: {
+    1: '300',
+    2: '400',
+    3: '600',
+  },
+})
+
+const config = createTamagui({
+  tokens,
+  themes,
+  shorthands,
+  
+  fonts: {
+    heading: headingFont,
+    body: bodyFont,
+  },
+
+  media: {
+    xs: { maxWidth: 660 },
+    sm: { maxWidth: 800 },
+    md: { maxWidth: 1020 },
+    lg: { maxWidth: 1280 },
+    xl: { maxWidth: 1420 },
+    xxl: { maxWidth: 1600 },
+    gtXs: { minWidth: 660 + 1 },
+    gtSm: { minWidth: 800 + 1 },
+    gtMd: { minWidth: 1020 + 1 },
+    gtLg: { minWidth: 1280 + 1 },
+    short: { maxHeight: 820 },
+    tall: { minHeight: 820 },
+    hoverNone: { hover: 'none' },
+    pointerCoarse: { pointer: 'coarse' },
+  },
+
+  animations,
+
+  settings: {
+    defaultFont: 'body',
+    shouldAddPrefersColorThemes: true,
+    mediaQueryDefaultActive: ['sm'],
+    allowedStyleValues: 'somewhat-strict',
+    autocompleteSpecificTokens: 'except-special',
+  },
+
+  defaultProps: {
+    Text: {
+      fontFamily: '$body',
+    },
+    Heading: {
+      fontFamily: '$heading',
+      fontWeight: '600',
+    },
+  },
+})
+
+export type Conf = typeof config
+
+// TypeScript module augmentation for autocomplete
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+
+export default config
+```
+
+## Token Categories
+
+### Built-in Categories
+
+```typescript
+tokens: {
+  // Colors (no units)
+  color: {
+    white: '#fff',
+    black: '#000',
+    blue10: '#0070f3',
+  },
+  
+  // Spacing (gets px units)
+  space: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+  },
+  
+  // Sizes (gets px units)
+  size: {
+    0: 0,
+    1: 20,
+    2: 40,
+    3: 60,
+  },
+  
+  // Border radius (gets px units)
+  radius: {
+    0: 0,
+    1: 4,
+    2: 8,
+    3: 12,
+  },
+  
+  // Z-index (no units)
+  zIndex: {
+    0: 0,
+    1: 100,
+    2: 200,
+  },
+}
+```
+
+### Custom Categories
+
+```typescript
+tokens: {
+  // Custom categories (unitless by default)
+  opacity: {
+    0: 0,
+    50: 0.5,
+    100: 1,
+  },
+  
+  lineHeight: {
+    tight: 1.2,
+    normal: 1.5,
+    loose: 1.8,
+  },
+}
+```
+
+## Theme Configuration
+
+### Basic Themes
+
+```typescript
+themes: {
+  light: {
+    background: '#fff',
+    backgroundHover: '#f5f5f5',
+    backgroundPress: '#e5e5e5',
+    color: '#000',
+    borderColor: '#ddd',
+  },
+  
+  dark: {
+    background: '#000',
+    backgroundHover: '#111',
+    backgroundPress: '#222',
+    color: '#fff',
+    borderColor: '#333',
+  },
+}
+```
+
+### Sub-themes
+
+```typescript
+themes: {
+  light: { /* ... */ },
+  dark: { /* ... */ },
+  
+  // Automatically inherits from parent theme
+  light_blue: {
+    background: '#e3f2fd',
+    color: '#0d47a1',
+  },
+  
+  dark_blue: {
+    background: '#0d47a1',
+    color: '#e3f2fd',
+  },
+  
+  // Component-specific themes
+  light_Button: {
+    background: '$blue10',
+    color: 'white',
+  },
+}
+```
+
+## Multi-Driver Animation Setup
+
+```tsx
+import { createAnimations } from '@tamagui/animations-motion'
+import { createAnimations as createAnimationsCSS } from '@tamagui/animations-css'
+
+const config = createTamagui({
+  // ... other config
+  
+  animations: {
+    default: createAnimations({
+      bouncy: {
+        type: 'spring',
+        damping: 10,
+        mass: 0.9,
+        stiffness: 100,
+      },
+    }),
+    
+    css: createAnimationsCSS({
+      bouncy: '200ms cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+    }),
+  },
+})
+
+// Use with animatedBy prop
+<Stack animatedBy="css" animation="bouncy" />
+```
+
+## Server-Side Rendering
+
+```tsx
+// _document.tsx (Next.js)
+import { AppProps } from 'next/app'
+import Head from 'next/head'
+import React from 'react'
+import { TamaguiProvider } from 'tamagui'
+import config from './tamagui.config'
+
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    <>
+      <Head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: config.getCSS(),
+          }}
+        />
+      </Head>
+      
+      <TamaguiProvider config={config}>
+        <Component {...pageProps} />
+      </TamaguiProvider>
+    </>
+  )
+}
+```
+
+## Configuration Tips
+
+### 1. Token Naming
+
+Use consistent, semantic naming:
+- Numbers for scales: `1, 2, 3, 4`
+- Semantic names for colors: `primary, secondary, success, error`
+- Avoid ambiguous names like `small, medium, large`
+
+### 2. Theme Inheritance
+
+Tamagui auto-dedupes themes with identical values for optimal CSS output.
+
+### 3. Media Query Strategy
+
+Define both min and max width breakpoints for flexibility:
+```typescript
+media: {
+  sm: { maxWidth: 660 },
+  gtSm: { minWidth: 661 },
+}
+```
+
+### 4. Type Safety
+
+Always export your config type and augment the module:
+```typescript
+export type Conf = typeof config
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+```
+
+## See Also
+
+- [createTokens()](/api/create-tokens) - Token creation helper
+- [createTheme()](/api/create-theme) - Theme creation utilities
+- [Configuration Guide](/core/configuration) - Detailed configuration docs
+- [Theme Guide](/core/theme) - Theme system overview

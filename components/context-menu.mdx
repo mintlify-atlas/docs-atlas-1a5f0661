@@ -1,0 +1,225 @@
+---
+title: ContextMenu
+description: Displays a menu at the pointer, typically on right-click.
+---
+
+# ContextMenu
+
+Displays a menu at the pointer, typically on right-click.
+
+## Installation
+
+```bash
+npm install @tamagui/context-menu
+```
+
+## Usage
+
+```tsx
+import { ContextMenu } from '@tamagui/context-menu'
+import { YStack } from '@tamagui/stacks'
+
+export default function ContextMenuExample() {
+  return (
+    <ContextMenu>
+      <ContextMenu.Trigger>
+        <YStack padding="$4" backgroundColor="$background">
+          Right click here
+        </YStack>
+      </ContextMenu.Trigger>
+      <ContextMenu.Content>
+        <ContextMenu.Item onPress={() => console.log('Cut')}>Cut</ContextMenu.Item>
+        <ContextMenu.Item onPress={() => console.log('Copy')}>Copy</ContextMenu.Item>
+        <ContextMenu.Item onPress={() => console.log('Paste')}>Paste</ContextMenu.Item>
+      </ContextMenu.Content>
+    </ContextMenu>
+  )
+}
+```
+
+## Anatomy
+
+```tsx
+import { ContextMenu } from '@tamagui/context-menu'
+
+export default () => (
+  <ContextMenu>
+    <ContextMenu.Trigger />
+    <ContextMenu.Portal>
+      <ContextMenu.Content>
+        <ContextMenu.Item />
+        <ContextMenu.CheckboxItem />
+        <ContextMenu.RadioGroup>
+          <ContextMenu.RadioItem />
+        </ContextMenu.RadioGroup>
+        <ContextMenu.Sub>
+          <ContextMenu.SubTrigger />
+          <ContextMenu.SubContent />
+        </ContextMenu.Sub>
+        <ContextMenu.Separator />
+      </ContextMenu.Content>
+    </ContextMenu.Portal>
+  </ContextMenu>
+)
+```
+
+## API Reference
+
+### ContextMenu
+
+The root component that manages context menu state.
+
+### ContextMenu.Trigger
+
+The area that opens the context menu on right-click or long-press.
+
+### ContextMenu.Portal
+
+Portals the menu content to the body (web only).
+
+### ContextMenu.Content
+
+The component that contains the context menu items.
+
+### ContextMenu.Preview
+
+A preview component shown on native when the context menu is triggered (iOS only).
+
+### ContextMenu.Item
+
+<ParamField path="onPress" type="() => void">
+  Called when the item is selected.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Whether the item is disabled.
+</ParamField>
+
+### ContextMenu.ItemTitle
+
+The title text of a context menu item.
+
+### ContextMenu.ItemSubtitle
+
+The subtitle text of a context menu item.
+
+### ContextMenu.ItemIcon
+
+An icon displayed within a context menu item.
+
+### ContextMenu.ItemImage
+
+An image displayed within a context menu item.
+
+### ContextMenu.CheckboxItem
+
+<ParamField path="checked" type="boolean">
+  The controlled checked state of the item.
+</ParamField>
+
+<ParamField path="onCheckedChange" type="(checked: boolean) => void">
+  Called when the checked state changes.
+</ParamField>
+
+### ContextMenu.RadioGroup
+
+<ParamField path="value" type="string">
+  The controlled value of the radio group.
+</ParamField>
+
+<ParamField path="onValueChange" type="(value: string) => void">
+  Called when the value changes.
+</ParamField>
+
+### ContextMenu.RadioItem
+
+<ParamField path="value" type="string" required>
+  The value of the radio item.
+</ParamField>
+
+### ContextMenu.ItemIndicator
+
+Displays a checkmark when the parent CheckboxItem or RadioItem is checked.
+
+### ContextMenu.Separator
+
+A visual separator between menu items.
+
+### ContextMenu.Sub
+
+A submenu container.
+
+### ContextMenu.SubTrigger
+
+The trigger for a submenu.
+
+### ContextMenu.SubContent
+
+The content of a submenu.
+
+### ContextMenu.Group
+
+Groups multiple context menu items.
+
+### ContextMenu.Label
+
+A label for a group of context menu items.
+
+### ContextMenu.Arrow
+
+An optional arrow pointing to the trigger.
+
+## Examples
+
+### With Actions
+
+```tsx
+import { ContextMenu } from '@tamagui/context-menu'
+import { Image } from '@tamagui/image'
+
+export default function ImageContextMenu() {
+  return (
+    <ContextMenu>
+      <ContextMenu.Trigger>
+        <Image
+          src="/image.jpg"
+          width={200}
+          height={200}
+        />
+      </ContextMenu.Trigger>
+      <ContextMenu.Content>
+        <ContextMenu.Item onPress={() => console.log('Save')}>Save Image</ContextMenu.Item>
+        <ContextMenu.Item onPress={() => console.log('Copy')}>Copy Image</ContextMenu.Item>
+        <ContextMenu.Separator />
+        <ContextMenu.Item onPress={() => console.log('Share')}>Share</ContextMenu.Item>
+      </ContextMenu.Content>
+    </ContextMenu>
+  )
+}
+```
+
+### With Submenu
+
+```tsx
+import { ContextMenu } from '@tamagui/context-menu'
+
+export default function ContextMenuWithSubmenu() {
+  return (
+    <ContextMenu>
+      <ContextMenu.Trigger>
+        <YStack padding="$4">Right click</YStack>
+      </ContextMenu.Trigger>
+      <ContextMenu.Content>
+        <ContextMenu.Item>Edit</ContextMenu.Item>
+        <ContextMenu.Sub>
+          <ContextMenu.SubTrigger>More Options</ContextMenu.SubTrigger>
+          <ContextMenu.SubContent>
+            <ContextMenu.Item>Delete</ContextMenu.Item>
+            <ContextMenu.Item>Archive</ContextMenu.Item>
+          </ContextMenu.SubContent>
+        </ContextMenu.Sub>
+      </ContextMenu.Content>
+    </ContextMenu>
+  )
+}
+```

@@ -1,0 +1,592 @@
+---
+title: Toast
+description: A succinct message that is displayed temporarily.
+---
+
+# Toast
+
+A non-disruptive message that appears temporarily to provide feedback about an action or event. Toasts automatically disappear after a timeout.
+
+## Installation
+
+```bash
+npm install @tamagui/toast
+```
+
+## Anatomy
+
+```tsx
+import { Toast, useToast } from '@tamagui/toast'
+
+export default () => (
+  <>
+    <Toast.Provider>
+      <Toast>
+        <Toast.Title />
+        <Toast.Description />
+        <Toast.Action />
+        <Toast.Close />
+      </Toast>
+      <Toast.Viewport />
+    </Toast.Provider>
+  </>
+)
+```
+
+## Basic Usage
+
+```tsx
+import { Toast, useToast, ToastProvider, ToastViewport } from '@tamagui/toast'
+import { Button, YStack } from 'tamagui'
+
+export default function ToastExample() {
+  const toast = useToast()
+
+  return (
+    <ToastProvider>
+      <YStack padding="$4" gap="$4">
+        <Button
+          onPress={() => {
+            toast.show('Successfully saved!', {
+              message: 'Your changes have been saved.',
+            })
+          }}
+        >
+          Show Toast
+        </Button>
+      </YStack>
+
+      <ToastViewport top="$8" left={0} right={0} />
+    </ToastProvider>
+  )
+}
+```
+
+## Imperative API
+
+The recommended way to show toasts is using the imperative API:
+
+```tsx
+import { useToast } from '@tamagui/toast'
+
+function MyComponent() {
+  const toast = useToast()
+
+  // Simple toast
+  toast.show('Hello world')
+
+  // With description
+  toast.show('Success', {
+    message: 'Your file has been uploaded',
+  })
+
+  // With custom duration
+  toast.show('Quick message', {
+    duration: 2000,
+  })
+
+  // With custom data
+  toast.show('Error', {
+    message: 'Something went wrong',
+    customData: { type: 'error' },
+  })
+}
+```
+
+### useToast
+
+Returns an object with methods to control toasts:
+
+<ParamField path="show" type="(title: string, options?: ToastOptions) => void">
+  Display a toast with the given title and options.
+</ParamField>
+
+<ParamField path="hide" type="() => void">
+  Hide the current toast immediately.
+</ParamField>
+
+### ToastOptions
+
+<ParamField path="message" type="string">
+  The description text for the toast.
+</ParamField>
+
+<ParamField path="duration" type="number" default="3000">
+  How long the toast should be visible (in milliseconds).
+</ParamField>
+
+<ParamField path="customData" type="CustomData">
+  Custom data to pass to the toast. Can be used to customize appearance or behavior.
+</ParamField>
+
+<ParamField path="native" type="boolean">
+  Whether to use the platform's native toast (iOS/Android).
+</ParamField>
+
+## API Reference
+
+### Toast.Provider
+
+Wraps your app and provides toast context. **Required** at the root of your app.
+
+<ParamField path="duration" type="number" default="3000">
+  Default duration for all toasts.
+</ParamField>
+
+<ParamField path="swipeDirection" type="'up' | 'down' | 'left' | 'right'" default="'up'">
+  The direction of the swipe gesture to dismiss toasts.
+</ParamField>
+
+<ParamField path="native" type="boolean | 'mobile'">
+  Use platform native toasts. When 'mobile', only uses native on iOS/Android.
+</ParamField>
+
+### Toast
+
+The toast component that displays the message.
+
+<ParamField path="open" type="boolean">
+  The controlled open state.
+</ParamField>
+
+<ParamField path="defaultOpen" type="boolean">
+  The default open state.
+</ParamField>
+
+<ParamField path="onOpenChange" type="(open: boolean) => void">
+  Event handler called when open state changes.
+</ParamField>
+
+<ParamField path="duration" type="number">
+  Override the default duration for this toast.
+</ParamField>
+
+<ParamField path="onPause" type="() => void">
+  Called when the timer is paused (e.g., on hover).
+</ParamField>
+
+<ParamField path="onResume" type="() => void">
+  Called when the timer resumes.
+</ParamField>
+
+<ParamField path="onSwipeEnd" type="(event: SwipeEvent) => void">
+  Called when a swipe gesture ends.
+</ParamField>
+
+### Toast.Viewport
+
+The container where toasts appear. Place this in your app layout.
+
+<ParamField path="top" type="number | string">
+  Distance from the top of the screen.
+</ParamField>
+
+<ParamField path="right" type="number | string">
+  Distance from the right of the screen.
+</ParamField>
+
+<ParamField path="bottom" type="number | string">
+  Distance from the bottom of the screen.
+</ParamField>
+
+<ParamField path="left" type="number | string">
+  Distance from the left of the screen.
+</ParamField>
+
+<ParamField path="multipleToasts" type="boolean" default="false">
+  Whether to allow multiple toasts to be shown simultaneously.
+</ParamField>
+
+### Toast.Title
+
+The title of the toast.
+
+### Toast.Description
+
+The description text of the toast.
+
+### Toast.Action
+
+An action button within the toast.
+
+<ParamField path="altText" type="string" required>
+  Alternative text for screen readers describing the action.
+</ParamField>
+
+### Toast.Close
+
+A button to manually close the toast.
+
+## Declarative API
+
+You can also use toasts declaratively:
+
+```tsx
+import { Toast, Button } from 'tamagui'
+import { useState } from 'react'
+
+function DeclarativeToast() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <>
+      <Button onPress={() => setOpen(true)}>Show Toast</Button>
+
+      <Toast open={open} onOpenChange={setOpen}>
+        <Toast.Title>Scheduled: Catch up</Toast.Title>
+        <Toast.Description>Friday, February 10, 2023 at 5:57 PM</Toast.Description>
+        <Toast.Action altText="Goto schedule to undo" asChild>
+          <Button size="$2">Undo</Button>
+        </Toast.Action>
+        <Toast.Close />
+      </Toast>
+    </>
+  )
+}
+```
+
+## Toast Types
+
+### Success Toast
+
+```tsx
+const toast = useToast()
+
+toast.show('Success', {
+  message: 'Your changes have been saved',
+  customData: { type: 'success' },
+})
+
+// In your custom Toast component:
+<Toast>
+  {({ type }) => (
+    <YStack
+      backgroundColor={type === 'success' ? '$green4' : '$background'}
+      borderColor={type === 'success' ? '$green8' : '$borderColor'}
+    >
+      <Toast.Title />
+      <Toast.Description />
+    </YStack>
+  )}
+</Toast>
+```
+
+### Error Toast
+
+```tsx
+toast.show('Error', {
+  message: 'Failed to save changes',
+  customData: { type: 'error' },
+})
+```
+
+### With Action
+
+```tsx
+<Toast>
+  <Toast.Title>File uploaded</Toast.Title>
+  <Toast.Description>Your file is now available</Toast.Description>
+  <Toast.Action altText="View file" asChild>
+    <Button onPress={() => navigateToFile()}>View</Button>
+  </Toast.Action>
+</Toast>
+```
+
+## Positioning
+
+### Top Center
+
+```tsx
+<ToastViewport top="$4" left={0} right={0} />
+```
+
+### Bottom Right
+
+```tsx
+<ToastViewport bottom="$4" right="$4" />
+```
+
+### Top Right
+
+```tsx
+<ToastViewport top="$4" right="$4" />
+```
+
+## Animation
+
+```tsx
+<Toast
+  animation="quick"
+  enterStyle={{ opacity: 0, scale: 0.9, y: -25 }}
+  exitStyle={{ opacity: 0, scale: 1, y: -20 }}
+>
+  <Toast.Title>Animated toast</Toast.Title>
+</Toast>
+```
+
+## Swipe to Dismiss
+
+```tsx
+<ToastProvider swipeDirection="right">
+  <Toast>
+    <Toast.Title>Swipe right to dismiss</Toast.Title>
+  </Toast>
+  <ToastViewport />
+</ToastProvider>
+```
+
+Users can swipe in the configured direction to dismiss toasts.
+
+## Accessibility
+
+### ARIA Attributes
+
+- Toasts have `role="status"` or `role="alert"` for announcements
+- `Toast.Title` and `Toast.Description` are properly connected
+- `Toast.Action` requires `altText` for screen readers
+
+### Keyboard Navigation
+
+- <kbd>Escape</kbd> - Closes the toast
+- <kbd>Tab</kbd> - Focuses actionable elements within the toast
+
+### Focus Management
+
+- Toasts don't steal focus when they appear (non-disruptive)
+- Action buttons can be focused via keyboard
+- Focus returns to previous location when toast closes
+
+### Screen Reader Announcements
+
+```tsx
+<Toast>
+  <Toast.Title>3 files uploaded</Toast.Title>
+  <Toast.Description aria-live="polite">
+    Your files are now available in the dashboard
+  </Toast.Description>
+</Toast>
+```
+
+## Native Platform Support
+
+### iOS/Android
+
+```tsx
+<ToastProvider native="mobile">
+  {/* Uses native toast on iOS/Android, custom on web */}
+</ToastProvider>
+```
+
+### Force Native
+
+```tsx
+toast.show('Native toast', {
+  native: true,
+})
+```
+
+## Composition Pattern
+
+```tsx
+import { Toast, styled, YStack } from 'tamagui'
+
+const StyledToast = styled(Toast, {
+  backgroundColor: '$background',
+  borderRadius: '$4',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+  padding: '$3',
+  gap: '$2',
+  shadowColor: '$shadowColor',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 8,
+
+  variants: {
+    type: {
+      success: {
+        borderColor: '$green8',
+        backgroundColor: '$green2',
+      },
+      error: {
+        borderColor: '$red8',
+        backgroundColor: '$red2',
+      },
+      info: {
+        borderColor: '$blue8',
+        backgroundColor: '$blue2',
+      },
+    },
+  } as const,
+})
+
+export function CustomToast() {
+  const toastState = useToastState()
+  const type = toastState?.customData?.type
+
+  return (
+    <StyledToast type={type}>
+      <Toast.Title />
+      <Toast.Description />
+      <Toast.Close />
+    </StyledToast>
+  )
+}
+```
+
+## Advanced Usage
+
+### Multiple Toasts
+
+```tsx
+<ToastViewport multipleToasts />
+
+// Show multiple toasts
+toast.show('First')
+toast.show('Second')
+toast.show('Third')
+```
+
+### Custom Duration Per Toast
+
+```tsx
+// Quick message
+toast.show('Copied!', { duration: 1000 })
+
+// Important message
+toast.show('Action required', { duration: 10000 })
+
+// Persistent (until manually closed)
+toast.show('Stay open', { duration: Infinity })
+```
+
+### Pause on Hover
+
+```tsx
+<Toast
+  onPause={() => console.log('Timer paused')}
+  onResume={() => console.log('Timer resumed')}
+>
+  <YStack
+    onMouseEnter={() => {/* Toast auto-pauses timer */}}
+    onMouseLeave={() => {/* Toast auto-resumes timer */}}
+  >
+    <Toast.Title>Hover to pause</Toast.Title>
+  </YStack>
+</Toast>
+```
+
+### Loading Toast
+
+```tsx
+function LoadingExample() {
+  const toast = useToast()
+
+  const handleUpload = async () => {
+    const toastId = toast.show('Uploading...', {
+      duration: Infinity,
+      customData: { loading: true },
+    })
+
+    try {
+      await uploadFile()
+      toast.hide()
+      toast.show('Upload complete!', {
+        customData: { type: 'success' },
+      })
+    } catch (error) {
+      toast.hide()
+      toast.show('Upload failed', {
+        customData: { type: 'error' },
+      })
+    }
+  }
+
+  return <Button onPress={handleUpload}>Upload</Button>
+}
+```
+
+### Queue Toasts
+
+```tsx
+function ToastQueue() {
+  const toast = useToast()
+  const queue = useRef<string[]>([])
+
+  const showNext = () => {
+    if (queue.current.length > 0) {
+      const message = queue.current.shift()
+      toast.show(message, {
+        onOpenChange: (open) => {
+          if (!open) showNext()
+        },
+      })
+    }
+  }
+
+  const addToQueue = (message: string) => {
+    queue.current.push(message)
+    if (queue.current.length === 1) {
+      showNext()
+    }
+  }
+
+  return (
+    <Button onPress={() => addToQueue('Queued message')}>
+      Add to Queue
+    </Button>
+  )
+}
+```
+
+## Best Practices
+
+### When to Use
+
+**Use Toast for:**
+- Confirmations ("Saved successfully")
+- Brief status updates
+- Non-critical information
+- Background process completion
+
+**Don't use Toast for:**
+- Critical errors (use AlertDialog)
+- Information that requires action (use Dialog)
+- Long messages (use Dialog or Popover)
+- Content that needs to be referenced later
+
+### Content Guidelines
+
+- Keep messages brief (1-2 lines)
+- Use clear, action-oriented language
+- Avoid technical jargon
+- Include an action button if relevant
+
+### Timing
+
+- Success messages: 2-3 seconds
+- Informational: 3-4 seconds
+- Warnings: 4-5 seconds
+- With actions: 5-10 seconds
+
+### Accessibility
+
+- Always provide meaningful `altText` for actions
+- Don't rely on color alone to convey meaning
+- Ensure sufficient contrast for text
+- Test with screen readers
+
+## Platform Differences
+
+### Web
+
+- Fixed positioning in viewport
+- Smooth CSS animations
+- Hover to pause timer
+
+### React Native
+
+- Can use native toast (iOS: presentationController, Android: ToastAndroid)
+- Absolute positioning
+- Reanimated animations
+- No hover interactions

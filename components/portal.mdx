@@ -1,0 +1,207 @@
+---
+title: Portal
+description: Send items to other areas of the tree
+---
+
+Portal is a utility component that renders its children into a different part of the DOM tree, commonly used for overlays, modals, and tooltips. It's included in `tamagui` and powers components like Sheet, Dialog, Popover, Select, and Toast.
+
+## Installation
+
+Portal is already included in `tamagui`, or you can install it independently:
+
+```bash
+npm install @tamagui/portal
+```
+
+## Usage
+
+```tsx
+import { Portal } from 'tamagui'
+
+export default () => (
+  <Portal>
+    <YStack 
+      position="absolute" 
+      top={0} 
+      left={0} 
+      right={0} 
+      backgroundColor="$background"
+      padding="$4"
+    >
+      <Text>This content is rendered at document.body</Text>
+    </YStack>
+  </Portal>
+)
+```
+
+## Native Portal Setup
+
+On web, React's built-in `createPortal` preserves context automatically. On native, the default portal implementation doesn't preserve React context. Tamagui automatically re-propagates its own contexts (theme, configuration), but your custom contexts won't be available inside portaled content.
+
+### Recommended: react-native-teleport
+
+Use [react-native-teleport](https://github.com/kirillzyusko/react-native-teleport) to preserve context automatically on native.
+
+#### Step 1: Install react-native-teleport
+
+```bash
+npm install react-native-teleport
+```
+
+#### Step 2: Import the setup module
+
+In your app's entry file (index.js or App.tsx), before any Tamagui imports:
+
+```tsx
+import '@tamagui/native/setup-teleport'
+```
+
+That's it! All portal-using components will now preserve context automatically on native.
+
+### Alternative: Manual Context Re-propagation
+
+If you can't use react-native-teleport, manually re-propagate contexts:
+
+```tsx
+const theme = useTheme()
+const myValue = useContext(MyContext)
+
+<Portal>
+  <ThemeProvider theme={theme}>
+    <MyContext.Provider value={myValue}>
+      {/* content that needs context */}
+    </MyContext.Provider>
+  </ThemeProvider>
+</Portal>
+```
+
+## Z-Index & Stacking
+
+Portal supports automatic z-index stacking to handle multiple overlays elegantly:
+
+```tsx
+<Portal stackZIndex>
+  <Dialog.Overlay />
+  <Dialog.Content>
+    {/* This popover will automatically stack above the dialog */}
+    <Popover>
+      <Popover.Trigger>
+        <Button>Open Nested</Button>
+      </Popover.Trigger>
+      <Popover.Content>
+        {/* Automatically higher z-index */}
+      </Popover.Content>
+    </Popover>
+  </Dialog.Content>
+</Portal>
+```
+
+## Props
+
+<ParamField path="zIndex" type="number">
+  Fixed z-index value for the portal.
+</ParamField>
+
+<ParamField path="stackZIndex" type="boolean | number | 'global'">
+  Enable automatic z-index stacking. Tamagui intelligently stacks z-index both horizontally (based on mount order) and vertically (nested content is always above parent but below sibling content that comes after). `true` enables stacking, a number adds to the stacked value, `'global'` only stacks horizontally without nesting logic.
+</ParamField>
+
+<ParamField path="passThrough" type="boolean" default="false">
+  When true, renders children directly without portal behavior. Useful for conditional portal usage.
+</ParamField>
+
+<ParamField path="open" type="boolean">
+  Optional property to indicate open state and enable pointer-events.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties">
+  Additional CSS styles to apply to the portal container.
+</ParamField>
+
+## Real-World Examples
+
+### Notification Toast
+
+```tsx
+import { Portal, YStack, Text } from 'tamagui'
+import { useState } from 'react'
+
+export default () => {
+  const [show, setShow] = useState(false)
+
+  return (
+    <>
+      <Button onPress={() => setShow(true)}>
+        Show Notification
+      </Button>
+
+      {show && (
+        <Portal>
+          <YStack
+            position="absolute"
+            top="$4"
+            right="$4"
+            backgroundColor="$green10"
+            padding="$4"
+            borderRadius="$4"
+            animation="quick"
+            enterStyle={{ opacity: 0, y: -20 }}
+          >
+            <Text color="white">Success! Changes saved.</Text>
+          </YStack>
+        </Portal>
+      )}
+    </>
+  )
+}
+```
+
+### Modal Overlay
+
+```tsx
+import { Portal, YStack, XStack, Button } from 'tamagui'
+
+export default () => (
+  <Portal stackZIndex open>
+    {/* Full-screen overlay */}
+    <YStack
+      fullscreen
+      backgroundColor="rgba(0,0,0,0.5)"
+      justifyContent="center"
+      alignItems="center"
+    >
+      {/* Modal content */}
+      <YStack
+        backgroundColor="$background"
+        padding="$6"
+        borderRadius="$6"
+        minWidth={400}
+        space="$4"
+      >
+        <Text fontSize="$6" fontWeight="bold">Confirm Action</Text>
+        <Text>Are you sure you want to proceed?</Text>
+        <XStack space="$2" justifyContent="flex-end">
+          <Button variant="outlined">Cancel</Button>
+          <Button>Confirm</Button>
+        </XStack>
+      </YStack>
+    </YStack>
+  </Portal>
+)
+```
+
+## Accessibility Benefits
+
+- **DOM Structure**: Portal maintains proper React context while moving content to document.body, ensuring overlays appear above other content
+- **Focus Management**: Works seamlessly with FocusScope to trap focus within portaled content
+- **Screen Readers**: Portaled content remains accessible to assistive technologies
+- **Stacking Context**: Automatic z-index management prevents overlapping overlay conflicts
+
+## Technical Details
+
+On web, Portal uses React's `createPortal` API to render content at `document.body`. On native, it can use either:
+
+1. **react-native-teleport** (recommended): Uses `ReactNativeFabricUIManager.createPortal` or `UIManager.createPortal` to create true native portals that preserve the React fiber tree
+2. **Default implementation**: JS-based approach with context providers and reducers to manage portal state
+
+The default implementation breaks React context because it re-renders content in a separate provider tree, which is why react-native-teleport is recommended for native apps.

@@ -1,0 +1,165 @@
+---
+title: Avatar
+description: An image element with a fallback for representing the user.
+---
+
+# Avatar
+
+An image element with a fallback for representing the user.
+
+## Installation
+
+```bash
+npm install @tamagui/avatar
+```
+
+## Usage
+
+```tsx
+import { Avatar } from '@tamagui/avatar'
+
+export default function AvatarExample() {
+  return (
+    <Avatar circular size="$10">
+      <Avatar.Image
+        src="https://images.unsplash.com/photo-1548142813-c348350df52b?&w=150&h=150&dpr=2&q=80"
+      />
+      <Avatar.Fallback backgroundColor="$blue10" />
+    </Avatar>
+  )
+}
+```
+
+## Anatomy
+
+```tsx
+import { Avatar } from '@tamagui/avatar'
+
+export default () => (
+  <Avatar>
+    <Avatar.Image />
+    <Avatar.Fallback />
+  </Avatar>
+)
+```
+
+## API Reference
+
+### Avatar
+
+<ParamField path="size" type="SizeTokens" default="$true">
+  The size of the avatar.
+</ParamField>
+
+<ParamField path="circular" type="boolean">
+  Whether the avatar should be circular.
+</ParamField>
+
+### Avatar.Image
+
+<ParamField path="src" type="string">
+  The source URL of the image (web).
+</ParamField>
+
+<ParamField path="source" type="ImageSource">
+  The source of the image (React Native).
+</ParamField>
+
+<ParamField path="onLoadingStatusChange" type="(status: 'idle' | 'loading' | 'loaded' | 'error') => void">
+  Callback when the loading status changes.
+</ParamField>
+
+The image to display. Supports both web `src` prop and React Native `source` prop.
+
+### Avatar.Fallback
+
+<ParamField path="delayMs" type="number">
+  Delay in milliseconds before showing the fallback.
+</ParamField>
+
+A fallback element displayed when the image is loading or fails to load.
+
+## Examples
+
+### With Initials
+
+```tsx
+import { Avatar } from '@tamagui/avatar'
+import { Text } from '@tamagui/text'
+
+export default function AvatarWithInitials() {
+  return (
+    <Avatar circular size="$6">
+      <Avatar.Image src="https://i.pravatar.cc/150?img=1" />
+      <Avatar.Fallback
+        backgroundColor="$blue10"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Text color="white" fontSize="$5">JD</Text>
+      </Avatar.Fallback>
+    </Avatar>
+  )
+}
+```
+
+### Different Sizes
+
+```tsx
+import { Avatar } from '@tamagui/avatar'
+import { XStack } from '@tamagui/stacks'
+
+export default function AvatarSizes() {
+  const src = "https://i.pravatar.cc/150"
+  
+  return (
+    <XStack gap="$4" alignItems="center">
+      <Avatar circular size="$3">
+        <Avatar.Image src={src} />
+        <Avatar.Fallback backgroundColor="$blue10" />
+      </Avatar>
+      <Avatar circular size="$6">
+        <Avatar.Image src={src} />
+        <Avatar.Fallback backgroundColor="$blue10" />
+      </Avatar>
+      <Avatar circular size="$10">
+        <Avatar.Image src={src} />
+        <Avatar.Fallback backgroundColor="$blue10" />
+      </Avatar>
+    </XStack>
+  )
+}
+```
+
+### Grouped Avatars
+
+```tsx
+import { Avatar } from '@tamagui/avatar'
+import { XStack } from '@tamagui/stacks'
+
+export default function GroupedAvatars() {
+  const users = [
+    'https://i.pravatar.cc/150?img=1',
+    'https://i.pravatar.cc/150?img=2',
+    'https://i.pravatar.cc/150?img=3',
+  ]
+  
+  return (
+    <XStack marginLeft="-$2">
+      {users.map((src, i) => (
+        <Avatar
+          key={i}
+          circular
+          size="$4"
+          borderWidth={2}
+          borderColor="$background"
+          marginLeft="-$2"
+        >
+          <Avatar.Image src={src} />
+          <Avatar.Fallback backgroundColor="$blue10" />
+        </Avatar>
+      ))}
+    </XStack>
+  )
+}
+```

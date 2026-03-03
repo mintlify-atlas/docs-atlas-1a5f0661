@@ -1,0 +1,409 @@
+---
+title: Compiler Installation
+description: Installing and configuring Tamagui compiler plugins for your bundler
+---
+
+# Compiler Installation
+
+The Tamagui compiler is available as plugins for popular bundlers. Choose the installation guide for your build tool.
+
+## Vite
+
+The recommended setup for modern web applications.
+
+<Steps>
+
+### Install the plugin
+
+```bash
+npm install --save-dev @tamagui/vite-plugin
+```
+
+### Configure Vite
+
+Add the plugin to your `vite.config.ts`:
+
+```ts
+import { defineConfig } from 'vite'
+import { tamaguiPlugin } from '@tamagui/vite-plugin'
+
+export default defineConfig({
+  plugins: [
+    tamaguiPlugin({
+      // Optional: point to your tamagui config
+      config: './src/tamagui.config.ts',
+      // Optional: specify which components to compile
+      components: ['tamagui'],
+    }),
+  ],
+})
+```
+
+### Create tamagui.build.ts (Optional)
+
+For advanced configuration, create `tamagui.build.ts` in your project root:
+
+```ts
+export default {
+  components: ['tamagui'],
+  config: './src/tamagui.config.ts',
+  // Disable extraction (useful for debugging)
+  disableExtraction: false,
+  // Disable debug attributes in production
+  disableDebugAttr: process.env.NODE_ENV === 'production',
+}
+```
+
+The plugin will automatically load this file.
+
+</Steps>
+
+### Vite Configuration Options
+
+The `tamaguiPlugin` accepts these options:
+
+```ts
+type TamaguiPluginOptions = {
+  // Path to your tamagui.config.ts file
+  config?: string
+  
+  // Component packages to process (default: ['tamagui'])
+  components?: string[]
+  
+  // Disable all optimizations
+  disable?: boolean
+  
+  // Disable className extraction (keeps runtime)
+  disableExtraction?: boolean
+  
+  // Disable debug data-* attributes
+  disableDebugAttr?: boolean
+  
+  // Use react-native-web-lite for smaller bundles
+  useReactNativeWebLite?: boolean | 'without-animated'
+}
+```
+
+### React Native Web Lite
+
+For smaller bundles, enable the lightweight RNW alternative:
+
+```ts
+tamaguiPlugin({
+  useReactNativeWebLite: true,
+  // Or without animations for even smaller size:
+  // useReactNativeWebLite: 'without-animated',
+})
+```
+
+## Next.js
+
+<Steps>
+
+### Install the plugin
+
+```bash
+npm install --save-dev @tamagui/next-plugin
+```
+
+### Configure Next.js
+
+Update your `next.config.js`:
+
+```js
+const { withTamagui } = require('@tamagui/next-plugin')
+
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  // Enable for App Router
+  appDir: true,
+}, {
+  // Your existing Next.js config
+  reactStrictMode: true,
+  transpilePackages: ['solito'],
+})
+```
+
+### App Router Setup
+
+For Next.js 13+ App Router, set `appDir: true`:
+
+```js
+withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+  appDir: true, // Enable for app directory
+})
+```
+
+</Steps>
+
+### Next.js Configuration Options
+
+```ts
+type WithTamaguiOptions = {
+  config?: string
+  components?: string[]
+  
+  // Enable for Next.js App Router
+  appDir?: boolean
+  
+  // Custom extraction logic
+  shouldExtract?: (path: string, projectRoot: string) => boolean
+  
+  // Exclude files from server bundle
+  shouldExcludeFromServer?: (props: {
+    context: string
+    request: string  
+    fullPath: string
+  }) => boolean
+  
+  // Disable tree-shaking optimization for themes
+  disableThemesBundleOptimize?: boolean
+  
+  // Disable @tamagui/lucide-icons tree-shaking
+  disableOptimizeLucideIcons?: boolean
+}
+```
+
+## Webpack
+
+For standalone Webpack projects.
+
+<Steps>
+
+### Install the loader
+
+```bash
+npm install --save-dev tamagui-loader
+```
+
+### Configure Webpack
+
+```js
+const { TamaguiPlugin } = require('tamagui-loader')
+
+module.exports = {
+  plugins: [
+    new TamaguiPlugin({
+      config: './tamagui.config.ts',
+      components: ['tamagui'],
+    }),
+  ],
+  module: {
+    rules: [
+      {
+        test: /\.(tsx|ts|jsx|js)$/,
+        exclude: /node_modules/,
+        use: [
+          'babel-loader',
+          {
+            loader: 'tamagui-loader',
+            options: {
+              config: './tamagui.config.ts',
+              components: ['tamagui'],
+            },
+          },
+        ],
+      },
+    ],
+  },
+}
+```
+
+</Steps>
+
+## Metro (React Native)
+
+For Expo and React Native projects.
+
+<Steps>
+
+### Install the plugin
+
+```bash
+npm install --save-dev @tamagui/metro-plugin
+```
+
+### Configure Metro
+
+Update your `metro.config.js`:
+
+```js
+const { getDefaultConfig } = require('expo/metro-config')
+
+const config = getDefaultConfig(__dirname)
+
+config.transformer = {
+  ...config.transformer,
+  babelTransformerPath: require.resolve('@tamagui/metro-plugin'),
+}
+
+module.exports = config
+```
+
+### Create tamagui.build.ts
+
+```ts
+export default {
+  components: ['tamagui'],
+  config: './tamagui.config.ts',
+}
+```
+
+</Steps>
+
+## Babel Plugin
+
+Low-level plugin for custom setups.
+
+<Steps>
+
+### Install
+
+```bash
+npm install --save-dev @tamagui/babel-plugin
+```
+
+### Configure Babel
+
+```js
+module.exports = {
+  plugins: [
+    [
+      '@tamagui/babel-plugin',
+      {
+        components: ['tamagui'],
+        config: './tamagui.config.ts',
+      },
+    ],
+  ],
+}
+```
+
+</Steps>
+
+## Configuration File Reference
+
+All plugins support a `tamagui.build.ts` configuration file:
+
+```ts
+import type { TamaguiOptions } from '@tamagui/types'
+
+const config: TamaguiOptions = {
+  // Required: components to compile
+  components: ['tamagui', '@my-org/ui'],
+  
+  // Required: path to tamagui config
+  config: './src/tamagui.config.ts',
+  
+  // Platform target
+  platform: 'web', // or 'native'
+  
+  // Disable all compilation
+  disable: false,
+  
+  // Disable className extraction (keeps runtime)
+  disableExtraction: false,
+  
+  // Disable variable extraction on native
+  disableExtractVariables: 'native',
+  
+  // Disable debug data-* attributes  
+  disableDebugAttr: process.env.NODE_ENV === 'production',
+  
+  // Disable config file watching
+  disableWatchTamaguiConfig: false,
+}
+
+export default config
+```
+
+## Verification
+
+To verify the compiler is working:
+
+### Check Development Output
+
+In development, look for debug attributes:
+
+```tsx
+// Your source
+<YStack bg="red" />
+
+// Inspect in DevTools
+<div 
+  data-at="MyComponent.tsx:10"
+  data-is="YStack" 
+  className="_bg-red"
+/>
+```
+
+### Check Production Build
+
+Inspect your production build:
+
+```bash
+npm run build
+```
+
+Look for:
+- Atomic CSS classes in stylesheets
+- Smaller bundle sizes
+- No runtime style processing code
+
+### Enable Debug Logging
+
+Set environment variables to see compiler activity:
+
+```bash
+# See what files are being processed
+DEBUG=tamagui npm run dev
+
+# See cache hits/misses
+DEBUG_TAMAGUI_CACHE=1 npm run dev
+```
+
+## Troubleshooting
+
+### Styles Not Extracting
+
+If styles aren't being optimized:
+
+1. Check that your components are imported from a package in the `components` array
+2. Verify your `tamagui.config.ts` path is correct
+3. Enable debug mode: add `shouldPrintDebug: true` to options
+4. Check for dynamic props that prevent extraction
+
+### TypeScript Errors
+
+If you see TS errors after installing:
+
+```bash
+# Rebuild TypeScript declarations
+npm run build
+
+# Or restart your TS server
+# In VSCode: Cmd+Shift+P -> "TypeScript: Restart TS Server"
+```
+
+### Cache Issues
+
+Clear the build cache if you see stale output:
+
+```bash
+# Vite
+rm -rf node_modules/.vite
+
+# Next.js  
+rm -rf .next
+
+# Metro
+rm -rf node_modules/.cache
+```
+
+## Next Steps
+
+- [How It Works](/compiler/how-it-works) - Understand the compilation process
+- [Static Extraction](/compiler/static-extraction) - Learn extraction rules and patterns

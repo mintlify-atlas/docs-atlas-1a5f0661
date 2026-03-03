@@ -1,0 +1,375 @@
+---
+title: Dialog
+description: A modal overlay that displays content on top of the main page.
+---
+
+# Dialog
+
+A window overlaid on either the primary window or another dialog window, rendering the content underneath inert. Dialogs can be modal (requiring user interaction before closing) or non-modal.
+
+## Installation
+
+```bash
+npm install @tamagui/dialog
+```
+
+## Anatomy
+
+```tsx
+import { Dialog } from '@tamagui/dialog'
+
+export default () => (
+  <Dialog>
+    <Dialog.Trigger />
+    <Dialog.Portal>
+      <Dialog.Overlay />
+      <Dialog.Content>
+        <Dialog.Title />
+        <Dialog.Description />
+        <Dialog.Close />
+      </Dialog.Content>
+    </Dialog.Portal>
+  </Dialog>
+)
+```
+
+## Basic Usage
+
+```tsx
+import { Button } from '@tamagui/button'
+import { Dialog } from '@tamagui/dialog'
+import { X } from '@tamagui/lucide-icons'
+
+export default function DialogExample() {
+  return (
+    <Dialog>
+      <Dialog.Trigger asChild>
+        <Button>Open Dialog</Button>
+      </Dialog.Trigger>
+
+      <Dialog.Portal>
+        <Dialog.Overlay
+          key="overlay"
+          animation="quick"
+          opacity={0.5}
+          enterStyle={{ opacity: 0 }}
+          exitStyle={{ opacity: 0 }}
+        />
+
+        <Dialog.Content
+          bordered
+          elevate
+          key="content"
+          animateOnly={['transform', 'opacity']}
+          animation={[
+            'quick',
+            {
+              opacity: {
+                overshootClamping: true,
+              },
+            },
+          ]}
+          enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
+          exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
+          gap="$4"
+        >
+          <Dialog.Title>Edit Profile</Dialog.Title>
+          <Dialog.Description>
+            Make changes to your profile here. Click save when you're done.
+          </Dialog.Description>
+
+          {/* Your content */}
+
+          <Dialog.Close asChild>
+            <Button position="absolute" top="$3" right="$3" size="$2" circular icon={X} />
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog>
+  )
+}
+```
+
+## API Reference
+
+### Dialog
+
+Contains all the parts of a dialog.
+
+<ParamField path="open" type="boolean">
+  The controlled open state of the dialog.
+</ParamField>
+
+<ParamField path="defaultOpen" type="boolean" default="false">
+  The open state of the dialog when initially rendered. Use when you do not need to control the open state.
+</ParamField>
+
+<ParamField path="onOpenChange" type="(open: boolean) => void">
+  Event handler called when the open state changes.
+</ParamField>
+
+<ParamField path="modal" type="boolean" default="true">
+  When true, prevents interaction with elements outside the dialog. When false, allows interaction with the rest of the page.
+</ParamField>
+
+<ParamField path="keepChildrenMounted" type="boolean" default="false">
+  When true, children never unmount, otherwise they mount on open. Useful for animation or preserving scroll position.
+</ParamField>
+
+<ParamField path="disableRemoveScroll" type="boolean" default="false">
+  Disables the scroll lock when the dialog is open.
+</ParamField>
+
+### Dialog.Trigger
+
+The button that toggles the dialog.
+
+<ParamField path="asChild" type="boolean">
+  Change the component to a different HTML tag or custom component. Will merge the original component props with the asChild element.
+</ParamField>
+
+### Dialog.Portal
+
+Portals the content into the body.
+
+<ParamField path="forceMount" type="boolean">
+  Used to force mounting when more control is needed. Useful when controlling animation with React animation libraries.
+</ParamField>
+
+### Dialog.Overlay
+
+A layer that covers the inert portion of the view when the dialog is open.
+
+<ParamField path="forceMount" type="boolean">
+  Used to force mounting when more control is needed. Useful when controlling animation with React animation libraries.
+</ParamField>
+
+### Dialog.Content
+
+Contains the content to be rendered in the open dialog.
+
+<ParamField path="forceMount" type="boolean">
+  Used to force mounting when more control is needed.
+</ParamField>
+
+<ParamField path="onOpenAutoFocus" type="(event: Event) => void">
+  Event handler called when auto-focusing on open. Can be prevented by calling `event.preventDefault`.
+</ParamField>
+
+<ParamField path="onCloseAutoFocus" type="(event: Event) => void">
+  Event handler called when auto-focusing on close. Can be prevented by calling `event.preventDefault`.
+</ParamField>
+
+<ParamField path="onEscapeKeyDown" type="(event: KeyboardEvent) => void">
+  Event handler called when the escape key is pressed. Can be prevented by calling `event.preventDefault`.
+</ParamField>
+
+<ParamField path="onPointerDownOutside" type="(event: PointerDownOutsideEvent) => void">
+  Event handler called when a pointer event occurs outside the dialog. Can be prevented by calling `event.preventDefault`.
+</ParamField>
+
+<ParamField path="onInteractOutside" type="(event: Event) => void">
+  Event handler called when an interaction happens outside the dialog. Can be prevented by calling `event.preventDefault`.
+</ParamField>
+
+### Dialog.Title
+
+An accessible title to be announced when the dialog is opened. Required for accessibility.
+
+### Dialog.Description
+
+An optional accessible description to be announced when the dialog is opened.
+
+### Dialog.Close
+
+The button that closes the dialog.
+
+<ParamField path="asChild" type="boolean">
+  Change the component to a different HTML tag or custom component.
+</ParamField>
+
+## Controlled vs Uncontrolled
+
+### Uncontrolled
+
+```tsx
+<Dialog defaultOpen={false}>
+  {/* ... */}
+</Dialog>
+```
+
+### Controlled
+
+```tsx
+const [open, setOpen] = useState(false)
+
+return (
+  <Dialog open={open} onOpenChange={setOpen}>
+    {/* ... */}
+  </Dialog>
+)
+```
+
+## Animation
+
+Dialogs support sophisticated animations using Tamagui's animation system:
+
+```tsx
+<Dialog.Overlay
+  animation="medium"
+  enterStyle={{ opacity: 0 }}
+  exitStyle={{ opacity: 0 }}
+/>
+
+<Dialog.Content
+  animation={[
+    'quick',
+    {
+      opacity: { overshootClamping: true },
+    },
+  ]}
+  enterStyle={{ scale: 0.9, opacity: 0, y: -20 }}
+  exitStyle={{ scale: 0.95, opacity: 0, y: 10 }}
+>
+  {/* content */}
+</Dialog.Content>
+```
+
+## Composition Pattern
+
+Create custom styled dialog components:
+
+```tsx
+import { Dialog, styled } from 'tamagui'
+
+const StyledDialogContent = styled(Dialog.Content, {
+  backgroundColor: '$background',
+  borderRadius: '$4',
+  padding: '$6',
+  maxWidth: 500,
+  gap: '$4',
+})
+
+const StyledDialogOverlay = styled(Dialog.Overlay, {
+  backgroundColor: 'rgba(0,0,0,0.5)',
+})
+
+export function CustomDialog({ children, ...props }) {
+  return (
+    <Dialog {...props}>
+      <Dialog.Portal>
+        <StyledDialogOverlay />
+        <StyledDialogContent>{children}</StyledDialogContent>
+      </Dialog.Portal>
+    </Dialog>
+  )
+}
+```
+
+## Accessibility
+
+### ARIA Attributes
+
+- `Dialog.Trigger` has `aria-haspopup="dialog"` and `aria-expanded` set based on state
+- `Dialog.Content` has `role="dialog"` and `aria-modal` set appropriately
+- `Dialog.Title` is automatically connected via `aria-labelledby`
+- `Dialog.Description` is automatically connected via `aria-describedby`
+
+### Keyboard Navigation
+
+- <kbd>Space</kbd> or <kbd>Enter</kbd> - Opens the dialog when focus is on the trigger
+- <kbd>Escape</kbd> - Closes the dialog
+- <kbd>Tab</kbd> - Moves focus to the next focusable element inside the dialog (trapped when modal)
+- <kbd>Shift + Tab</kbd> - Moves focus to the previous focusable element
+
+### Focus Management
+
+- When opened, focus moves to the first focusable element (or the content if no focusable elements)
+- When closed, focus returns to the trigger
+- Focus is trapped within the dialog when `modal={true}`
+- Supports `onOpenAutoFocus` and `onCloseAutoFocus` for custom focus behavior
+
+## Platform Differences
+
+### Web
+
+- Uses native `<dialog>` element when available
+- Supports backdrop blur and other CSS features
+- RemoveScroll prevents body scrolling when modal
+
+### Native
+
+- Renders as a modal overlay
+- Uses React Native's Modal component internally
+- Animations use Reanimated for smooth performance
+
+## Advanced Usage
+
+### Nested Dialogs
+
+```tsx
+<Dialog>
+  <Dialog.Trigger>Open First</Dialog.Trigger>
+  <Dialog.Portal>
+    <Dialog.Content>
+      <Dialog.Title>First Dialog</Dialog.Title>
+      
+      <Dialog>
+        <Dialog.Trigger>Open Second</Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Content>
+            <Dialog.Title>Nested Dialog</Dialog.Title>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog>
+```
+
+### Adapt to Sheet
+
+```tsx
+import { Dialog, Sheet } from 'tamagui'
+
+<Dialog>
+  <Dialog.Adapt when="sm" platform="touch">
+    <Sheet zIndex={200000}>
+      <Sheet.Frame>
+        <Dialog.Adapt.Contents />
+      </Sheet.Frame>
+      <Sheet.Overlay />
+    </Sheet>
+  </Dialog.Adapt>
+
+  <Dialog.Trigger>Open</Dialog.Trigger>
+
+  <Dialog.Portal>
+    <Dialog.Overlay />
+    <Dialog.Content>
+      {/* content */}
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog>
+```
+
+### Custom Close Behavior
+
+```tsx
+<Dialog>
+  <Dialog.Portal>
+    <Dialog.Content
+      onEscapeKeyDown={(e) => {
+        // Prevent closing on escape
+        e.preventDefault()
+      }}
+      onPointerDownOutside={(e) => {
+        // Prevent closing when clicking outside
+        e.preventDefault()
+      }}
+    >
+      {/* Must use Dialog.Close to close */}
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog>
+```

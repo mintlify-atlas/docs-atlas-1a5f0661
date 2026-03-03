@@ -1,0 +1,393 @@
+---
+title: Switch
+description: A toggle switch component for binary on/off states
+---
+
+## Installation
+
+```bash
+npm install @tamagui/switch
+```
+
+## Import
+
+```tsx
+import { Switch } from '@tamagui/switch'
+```
+
+## Usage
+
+### Basic Example
+
+```tsx
+import { Switch } from '@tamagui/switch'
+
+function Demo() {
+  return (
+    <Switch>
+      <Switch.Thumb />
+    </Switch>
+  )
+}
+```
+
+### Controlled Switch
+
+```tsx
+import { useState } from 'react'
+import { Switch } from '@tamagui/switch'
+import { XStack, Label } from '@tamagui/core'
+
+function Demo() {
+  const [checked, setChecked] = useState(false)
+
+  return (
+    <XStack space alignItems="center">
+      <Switch checked={checked} onCheckedChange={setChecked}>
+        <Switch.Thumb />
+      </Switch>
+      <Label>Enabled: {checked ? 'Yes' : 'No'}</Label>
+    </XStack>
+  )
+}
+```
+
+### Uncontrolled Switch
+
+```tsx
+import { Switch } from '@tamagui/switch'
+
+function Demo() {
+  return (
+    <Switch
+      defaultChecked={true}
+      onCheckedChange={(checked) => console.log('Changed to:', checked)}
+    >
+      <Switch.Thumb />
+    </Switch>
+  )
+}
+```
+
+### With Label
+
+```tsx
+import { Switch } from '@tamagui/switch'
+import { Label, XStack } from '@tamagui/core'
+
+function Demo() {
+  return (
+    <XStack space="$3" alignItems="center">
+      <Switch id="airplane-mode">
+        <Switch.Thumb />
+      </Switch>
+      <Label htmlFor="airplane-mode">Airplane Mode</Label>
+    </XStack>
+  )
+}
+```
+
+### Sizes
+
+```tsx
+import { Switch } from '@tamagui/switch'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <YStack space>
+      <Switch size="$2">
+        <Switch.Thumb />
+      </Switch>
+      <Switch size="$3">
+        <Switch.Thumb />
+      </Switch>
+      <Switch size="$4">
+        <Switch.Thumb />
+      </Switch>
+      <Switch size="$5">
+        <Switch.Thumb />
+      </Switch>
+    </YStack>
+  )
+}
+```
+
+### Disabled State
+
+```tsx
+import { Switch } from '@tamagui/switch'
+import { YStack } from '@tamagui/stacks'
+
+function Demo() {
+  return (
+    <YStack space>
+      <Switch disabled>
+        <Switch.Thumb />
+      </Switch>
+      <Switch disabled defaultChecked>
+        <Switch.Thumb />
+      </Switch>
+    </YStack>
+  )
+}
+```
+
+### Form Integration
+
+```tsx
+import { Switch } from '@tamagui/switch'
+import { Form } from '@tamagui/form'
+import { YStack, Button } from '@tamagui/core'
+
+function Demo() {
+  const handleSubmit = () => {
+    console.log('Form submitted')
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <YStack space>
+        <Switch name="notifications" id="notifications" defaultChecked>
+          <Switch.Thumb />
+        </Switch>
+        
+        <Switch name="marketing" id="marketing">
+          <Switch.Thumb />
+        </Switch>
+        
+        <Button type="submit">Save Preferences</Button>
+      </YStack>
+    </Form>
+  )
+}
+```
+
+### Native Style
+
+```tsx
+import { Switch } from '@tamagui/switch'
+
+function Demo() {
+  return <Switch native />
+}
+```
+
+### Settings Example
+
+```tsx
+import { useState } from 'react'
+import { Switch } from '@tamagui/switch'
+import { YStack, XStack, Label, Separator } from '@tamagui/core'
+
+function Demo() {
+  const [settings, setSettings] = useState({
+    notifications: true,
+    darkMode: false,
+    autoSave: true,
+  })
+
+  return (
+    <YStack space padding="$4">
+      <XStack justifyContent="space-between" alignItems="center">
+        <Label>Push Notifications</Label>
+        <Switch
+          checked={settings.notifications}
+          onCheckedChange={(checked) =>
+            setSettings({ ...settings, notifications: checked })
+          }
+        >
+          <Switch.Thumb />
+        </Switch>
+      </XStack>
+      
+      <Separator />
+      
+      <XStack justifyContent="space-between" alignItems="center">
+        <Label>Dark Mode</Label>
+        <Switch
+          checked={settings.darkMode}
+          onCheckedChange={(checked) =>
+            setSettings({ ...settings, darkMode: checked })
+          }
+        >
+          <Switch.Thumb />
+        </Switch>
+      </XStack>
+      
+      <Separator />
+      
+      <XStack justifyContent="space-between" alignItems="center">
+        <Label>Auto Save</Label>
+        <Switch
+          checked={settings.autoSave}
+          onCheckedChange={(checked) =>
+            setSettings({ ...settings, autoSave: checked })
+          }
+        >
+          <Switch.Thumb />
+        </Switch>
+      </XStack>
+    </YStack>
+  )
+}
+```
+
+## API Reference
+
+### Switch Props
+
+<ParamField path="checked" type="boolean">
+  Controlled checked state.
+</ParamField>
+
+<ParamField path="defaultChecked" type="boolean">
+  Default uncontrolled checked state.
+</ParamField>
+
+<ParamField path="onCheckedChange" type="(checked: boolean) => void">
+  Callback when checked state changes.
+</ParamField>
+
+<ParamField path="size" type="SizeTokens">
+  Size of the switch. Can use size tokens like `$2`, `$3`, `$4`, etc.
+  Switch width is automatically 2x the height.
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disable the switch and prevent interactions.
+</ParamField>
+
+<ParamField path="name" type="string">
+  Name attribute for form submission.
+</ParamField>
+
+<ParamField path="value" type="string">
+  Value attribute for form submission.
+</ParamField>
+
+<ParamField path="id" type="string">
+  ID attribute for label association.
+</ParamField>
+
+<ParamField path="required" type="boolean">
+  Mark the switch as required for form validation.
+</ParamField>
+
+<ParamField path="native" type="boolean">
+  Render as native platform switch.
+</ParamField>
+
+<ParamField path="nativeProps" type="object">
+  Props to pass to the native switch component.
+</ParamField>
+
+<ParamField path="unstyled" type="boolean">
+  Remove all default styling.
+</ParamField>
+
+<ParamField path="activeTheme" type="string">
+  Theme to apply when switch is checked.
+</ParamField>
+
+<ParamField path="activeStyle" type="object">
+  Styles to apply when switch is checked.
+</ParamField>
+
+### Switch.Thumb Props
+
+<ParamField path="size" type="SizeTokens">
+  Override the thumb size. Defaults to 65% of switch height.
+</ParamField>
+
+<ParamField path="unstyled" type="boolean">
+  Remove all default styling from thumb.
+</ParamField>
+
+<ParamField path="activeStyle" type="object">
+  Styles to apply to thumb when switch is checked.
+</ParamField>
+
+## Theming
+
+Switch responds to the following theme tokens:
+
+- `$background` - Switch track background color (unchecked)
+- `$backgroundActive` - Switch track background when checked
+- `$outlineColor` - Focus outline color
+
+Switch.Thumb responds to:
+
+- `$background` - Thumb background color
+
+```tsx
+import { Switch } from '@tamagui/switch'
+
+function Demo() {
+  return (
+    <Switch theme="blue" defaultChecked>
+      <Switch.Thumb />
+    </Switch>
+  )
+}
+```
+
+### Custom Active State
+
+```tsx
+import { Switch } from '@tamagui/switch'
+
+function Demo() {
+  return (
+    <Switch
+      defaultChecked
+      activeStyle={{
+        backgroundColor: '$green10',
+      }}
+    >
+      <Switch.Thumb
+        activeStyle={{
+          backgroundColor: '$white',
+        }}
+      />
+    </Switch>
+  )
+}
+```
+
+## Accessibility
+
+- Renders as a semantic `<button>` element
+- Role set to `"switch"`
+- Sets `aria-checked` attribute reflecting state
+- Supports keyboard interaction (Space to toggle)
+- Focus visible styles with outline
+- Works with Label component for click target expansion
+- Hidden native input for form submission
+- Announces state changes to screen readers
+- `tabIndex={0}` for keyboard navigation
+
+## Animation
+
+The thumb animates smoothly between positions using Tamagui's animation system:
+
+```tsx
+import { Switch } from '@tamagui/switch'
+
+function Demo() {
+  return (
+    <Switch animation="bouncy">
+      <Switch.Thumb animation="bouncy" />
+    </Switch>
+  )
+}
+```
+
+## Notes
+
+- Switch is circular/pill-shaped by default (borderRadius: 1000)
+- Width is automatically 2x the height
+- Thumb is 65% the size of the switch height by default
+- Thumb animates between left and right positions
+- Use Checkbox for multi-select scenarios
+- Use RadioGroup for single-select from multiple options

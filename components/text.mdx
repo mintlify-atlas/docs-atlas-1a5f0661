@@ -1,0 +1,136 @@
+---
+title: Text
+description: Display text with typography variants and sizing.
+---
+
+# Text
+
+Display text with typography variants and sizing.
+
+## Installation
+
+```bash
+npm install @tamagui/text
+```
+
+## Usage
+
+```tsx
+import { SizableText } from '@tamagui/text'
+
+export default function TextExample() {
+  return (
+    <SizableText size="$6">
+      This is sizable text
+    </SizableText>
+  )
+}
+```
+
+## API Reference
+
+### SizableText
+
+<ParamField path="size" type="FontSizeTokens" default="$true">
+  The size of the text. Can be a token like $1-$10 or $true to inherit from parent.
+</ParamField>
+
+<ParamField path="color" type="ColorTokens | string">
+  The color of the text.
+</ParamField>
+
+<ParamField path="fontFamily" type="string">
+  The font family to use. Can be a token or 'inherit'.
+</ParamField>
+
+<ParamField path="fontSize" type="number | string">
+  Explicit font size override.
+</ParamField>
+
+<ParamField path="fontWeight" type="string | number">
+  The weight of the font.
+</ParamField>
+
+<ParamField path="lineHeight" type="number | string">
+  The line height of the text.
+</ParamField>
+
+<ParamField path="textAlign" type="'left' | 'center' | 'right' | 'justify'">
+  Text alignment.
+</ParamField>
+
+## Examples
+
+### Different Sizes
+
+```tsx
+import { SizableText } from '@tamagui/text'
+import { YStack } from '@tamagui/stacks'
+
+export default function TextSizes() {
+  return (
+    <YStack gap="$2">
+      <SizableText size="$2">Small text</SizableText>
+      <SizableText size="$4">Medium text</SizableText>
+      <SizableText size="$6">Large text</SizableText>
+      <SizableText size="$8">Extra large text</SizableText>
+    </YStack>
+  )
+}
+```
+
+### With Custom Styling
+
+```tsx
+import { SizableText } from '@tamagui/text'
+
+export default function StyledText() {
+  return (
+    <SizableText
+      size="$6"
+      color="$blue10"
+      fontWeight="bold"
+      textAlign="center"
+    >
+      Styled text with custom properties
+    </SizableText>
+  )
+}
+```
+
+### Ellipsis Text
+
+```tsx
+import { SizableText } from '@tamagui/text'
+
+export default function EllipsisText() {
+  return (
+    <SizableText
+      size="$4"
+      maxWidth={200}
+      ellipse
+    >
+      This is a very long text that will be truncated with an ellipsis
+    </SizableText>
+  )
+}
+```
+
+### Responsive Text
+
+```tsx
+import { SizableText } from '@tamagui/text'
+
+export default function ResponsiveText() {
+  return (
+    <SizableText
+      size="$4"
+      $sm={{ size: '$6' }}
+      $md={{ size: '$8' }}
+      $lg={{ size: '$10' }}
+    >
+      This text changes size based on screen width
+    </SizableText>
+  )
+}
+```

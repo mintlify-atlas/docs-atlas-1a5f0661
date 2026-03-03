@@ -1,0 +1,398 @@
+---
+title: 'Expo Integration'
+description: 'Configure Tamagui with Expo for cross-platform React Native apps'
+---
+
+<Info>
+  **Prerequisites**:
+  - Expo SDK 49 or higher
+  - Node.js 18 or higher
+  - An Expo project initialized with `npx create-expo-app`
+</Info>
+
+Tamagui works seamlessly with Expo and Expo Router, providing universal components that work across iOS, Android, and web.
+
+## Installation
+
+<Steps>
+<Step title="Install dependencies">
+
+<CodeGroup>
+```bash npm
+npm install tamagui @tamagui/config
+```
+
+```bash yarn
+yarn add tamagui @tamagui/config
+```
+
+```bash pnpm
+pnpm add tamagui @tamagui/config
+```
+</CodeGroup>
+
+</Step>
+
+<Step title="Install peer dependencies">
+
+Expo requires additional React Native dependencies:
+
+```bash
+npx expo install react-native-svg react-native-reanimated
+```
+
+</Step>
+
+<Step title="Configure Metro">
+
+Update `metro.config.js` to enable CSS support:
+
+```js metro.config.js
+const { getDefaultConfig } = require('expo/metro-config')
+
+const config = getDefaultConfig(__dirname, {
+  // Enable CSS support
+  isCSSEnabled: true,
+})
+
+module.exports = config
+```
+
+<Note>
+Expo SDK 50+ has CSS support built-in. For earlier versions, use the Metro plugin.
+</Note>
+
+</Step>
+
+<Step title="Create Tamagui config">
+
+Create `tamagui.config.ts` in your project root:
+
+```ts tamagui.config.ts
+import { config } from '@tamagui/config/v3'
+import { createTamagui } from 'tamagui'
+
+const tamaguiConfig = createTamagui(config)
+
+export default tamaguiConfig
+
+export type Conf = typeof tamaguiConfig
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+```
+
+</Step>
+
+<Step title="Add TamaguiProvider">
+
+Wrap your app with `TamaguiProvider`:
+
+```tsx app/_layout.tsx
+import { TamaguiProvider } from 'tamagui'
+import config from '../tamagui.config'
+import { Stack } from 'expo-router'
+
+export default function RootLayout() {
+  return (
+    <TamaguiProvider config={config}>
+      <Stack />
+    </TamaguiProvider>
+  )
+}
+```
+
+</Step>
+</Steps>
+
+## With Metro Plugin (Optional)
+
+For advanced optimization, use the Metro plugin:
+
+<Steps>
+<Step title="Install Metro plugin">
+
+```bash
+npm install @tamagui/metro-plugin
+```
+
+</Step>
+
+<Step title="Configure Metro with plugin">
+
+```js metro.config.js
+const { getDefaultConfig } = require('expo/metro-config')
+const { withTamagui } = require('@tamagui/metro-plugin')
+
+const config = getDefaultConfig(__dirname, { isCSSEnabled: true })
+
+module.exports = withTamagui(config, {
+  components: ['tamagui'],
+  config: './tamagui.config.ts',
+})
+```
+
+</Step>
+
+<Step title="Create build configuration">
+
+Create `tamagui.build.ts`:
+
+```ts tamagui.build.ts
+import type { TamaguiBuildOptions } from 'tamagui'
+
+export default {
+  components: ['tamagui'],
+  config: './tamagui.config.ts',
+  outputCSS: './tamagui.generated.css',
+} satisfies TamaguiBuildOptions
+```
+
+</Step>
+
+<Step title="Generate CSS">
+
+Run the Tamagui CLI to pre-generate CSS:
+
+```bash
+npx tamagui generate
+```
+
+Import the CSS in your root layout:
+
+```tsx app/_layout.tsx
+import '../tamagui.generated.css'
+```
+
+</Step>
+</Steps>
+
+## Metro Plugin Configuration
+
+The `withTamagui` function accepts these options:
+
+```ts
+type MetroTamaguiOptions = {
+  // Path to your Tamagui config
+  config?: string
+  
+  // Component packages to optimize
+  components?: string[]
+  
+  // Platform target
+  platform?: 'native' | 'web'
+  
+  // Disable style extraction
+  disableExtraction?: boolean
+}
+```
+
+## Project Structure
+
+```
+my-expo-app/
+├── app/
+│   ├── _layout.tsx           # Add TamaguiProvider here
+│   ├── index.tsx             # Home screen
+│   └── (tabs)/
+│       └── ...
+├── tamagui.config.ts         # Tamagui configuration
+├── tamagui.build.ts          # Build options (optional)
+├── tamagui.generated.css     # Generated CSS (if using CLI)
+├── metro.config.js           # Metro configuration
+├── app.json                  # Expo configuration
+└── package.json
+```
+
+## Platform-Specific Code
+
+Tamagui components work universally, but you can use platform-specific code:
+
+```tsx
+import { Platform } from 'react-native'
+import { YStack, Text } from 'tamagui'
+
+export function MyComponent() {
+  return (
+    <YStack>
+      <Text>
+        {Platform.select({
+          ios: 'iOS',
+          android: 'Android',
+          web: 'Web',
+        })}
+      </Text>
+    </YStack>
+  )
+}
+```
+
+## Web Support
+
+Expo web uses Metro for bundling. Tamagui works automatically:
+
+```bash
+# Run on web
+npx expo start --web
+```
+
+## EAS Build Integration
+
+For production builds with EAS Build:
+
+```json eas.json
+{
+  "build": {
+    "production": {
+      "env": {
+        "TAMAGUI_TARGET": "native"
+      }
+    },
+    "preview": {
+      "extends": "production"
+    }
+  }
+}
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Error: Unable to resolve module react-native-svg">
+    Install the required peer dependencies:
+    
+    ```bash
+    npx expo install react-native-svg react-native-reanimated
+    ```
+  </Accordion>
+
+  <Accordion title="CSS not loading on web">
+    Ensure Metro is configured with CSS support:
+    
+    ```js
+    const config = getDefaultConfig(__dirname, {
+      isCSSEnabled: true, // Must be enabled
+    })
+    ```
+  </Accordion>
+
+  <Accordion title="Metro bundler errors">
+    Clear Metro cache and restart:
+    
+    ```bash
+    npx expo start --clear
+    ```
+  </Accordion>
+
+  <Accordion title="Styles not applying on native">
+    The Metro plugin is simplified and delegates to `tamagui generate`. Ensure you:
+    
+    1. Created `tamagui.build.ts`
+    2. Ran `npx tamagui generate`
+    3. Imported the generated CSS
+    
+    ```tsx
+    import './tamagui.generated.css'
+    ```
+  </Accordion>
+
+  <Accordion title="Build fails with cssInterop warning">
+    The `cssInterop` option is deprecated. Remove it from your config:
+    
+    ```js metro.config.js
+    // Remove cssInterop option
+    module.exports = withTamagui(config, {
+      components: ['tamagui'],
+      config: './tamagui.config.ts',
+      // cssInterop: true, // REMOVE THIS
+    })
+    ```
+  </Accordion>
+
+  <Accordion title="TypeScript errors with config">
+    Ensure your `tamagui.config.ts` exports the type properly:
+    
+    ```ts
+    declare module 'tamagui' {
+      interface TamaguiCustomConfig extends Conf {}
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Configuration
+
+### Custom Fonts
+
+Load custom fonts with Expo Font:
+
+```tsx app/_layout.tsx
+import { useFonts } from 'expo-font'
+import { TamaguiProvider } from 'tamagui'
+import config from '../tamagui.config'
+
+export default function RootLayout() {
+  const [loaded] = useFonts({
+    Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
+    InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
+  })
+
+  if (!loaded) {
+    return null
+  }
+
+  return (
+    <TamaguiProvider config={config}>
+      {/* Your app */}
+    </TamaguiProvider>
+  )
+}
+```
+
+### Theme Switching
+
+Implement theme switching with Tamagui:
+
+```tsx
+import { useColorScheme } from 'react-native'
+import { TamaguiProvider, Theme } from 'tamagui'
+
+export default function RootLayout() {
+  const colorScheme = useColorScheme()
+
+  return (
+    <TamaguiProvider config={config}>
+      <Theme name={colorScheme === 'dark' ? 'dark' : 'light'}>
+        {/* Your app */}
+      </Theme>
+    </TamaguiProvider>
+  )
+}
+```
+
+### Reanimated Integration
+
+Tamagui works with Reanimated:
+
+```tsx
+import Animated, { 
+  useAnimatedStyle, 
+  withSpring 
+} from 'react-native-reanimated'
+import { Stack } from 'tamagui'
+
+export function AnimatedComponent() {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: withSpring(1.2) }],
+  }))
+
+  return (
+    <Stack asChild>
+      <Animated.View style={animatedStyle}>
+        {/* Content */}
+      </Animated.View>
+    </Stack>
+  )
+}
+```

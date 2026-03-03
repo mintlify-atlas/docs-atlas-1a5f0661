@@ -1,0 +1,355 @@
+---
+title: 'Spacer'
+description: 'Flexible spacing component for layouts'
+icon: 'arrows-left-right'
+---
+
+## Overview
+
+The Spacer component creates flexible spacing between elements. It's useful for creating consistent gaps in layouts without manually setting margins on each child component.
+
+## Import
+
+```tsx
+import { Spacer } from 'tamagui'
+// or from individual package
+import { Spacer } from '@tamagui/spacer'
+```
+
+## Basic Usage
+
+```tsx
+import { YStack, Text, Spacer } from 'tamagui'
+
+export function BasicSpacer() {
+  return (
+    <YStack>
+      <Text>First item</Text>
+      <Spacer size="$4" />
+      <Text>Second item</Text>
+      <Spacer size="$2" />
+      <Text>Third item</Text>
+    </YStack>
+  )
+}
+```
+
+## Props
+
+<ParamField path="size" type="SizeTokens | number | boolean" default="true">
+  Controls the size of the spacer. When `true`, uses the `$true` token. Accepts size tokens or pixel values.
+  
+  ```tsx
+  <Spacer size="$4" />        {/* Uses $4 size token */}
+  <Spacer size={20} />         {/* 20px spacing */}
+  <Spacer />                   {/* Defaults to $true token */}
+  ```
+</ParamField>
+
+<ParamField path="direction" type="'horizontal' | 'vertical' | 'both'">
+  Controls which dimension(s) the spacer affects:
+  - `horizontal`: Only width (height is 0)
+  - `vertical`: Only height (width is 0)
+  - `both`: Both width and height
+  
+  ```tsx
+  {/* In a horizontal layout */}
+  <XStack>
+    <Button>First</Button>
+    <Spacer direction="horizontal" size="$4" />
+    <Button>Second</Button>
+  </XStack>
+  
+  {/* In a vertical layout */}
+  <YStack>
+    <Button>First</Button>
+    <Spacer direction="vertical" size="$4" />
+    <Button>Second</Button>
+  </YStack>
+  ```
+</ParamField>
+
+## Direction Behavior
+
+### Horizontal Spacer
+Sets `height: 0` and `minHeight: 0`, only `width` applies:
+
+```tsx
+<XStack>
+  <Box />
+  <Spacer direction="horizontal" size="$4" />
+  <Box />
+</XStack>
+```
+
+### Vertical Spacer
+Sets `width: 0` and `minWidth: 0`, only `height` applies:
+
+```tsx
+<YStack>
+  <Box />
+  <Spacer direction="vertical" size="$4" />
+  <Box />
+</YStack>
+```
+
+### Both Directions
+Applies both `width` and `height`:
+
+```tsx
+<Spacer direction="both" size="$4" />
+```
+
+## Examples
+
+### Vertical Spacing
+
+```tsx
+import { YStack, Card, Spacer } from 'tamagui'
+
+export function VerticalSpacing() {
+  return (
+    <YStack padding="$4">
+      <Card padding="$4">
+        <Text>Card 1</Text>
+      </Card>
+      
+      <Spacer size="$4" />
+      
+      <Card padding="$4">
+        <Text>Card 2</Text>
+      </Card>
+      
+      <Spacer size="$4" />
+      
+      <Card padding="$4">
+        <Text>Card 3</Text>
+      </Card>
+    </YStack>
+  )
+}
+```
+
+### Horizontal Spacing
+
+```tsx
+import { XStack, Button, Spacer } from 'tamagui'
+
+export function HorizontalSpacing() {
+  return (
+    <XStack padding="$4">
+      <Button>First</Button>
+      <Spacer direction="horizontal" size="$3" />
+      <Button>Second</Button>
+      <Spacer direction="horizontal" size="$3" />
+      <Button>Third</Button>
+    </XStack>
+  )
+}
+```
+
+### Flexible Spacer
+
+Use `flex={1}` to create a flexible spacer that takes up available space:
+
+```tsx
+import { XStack, Button, Spacer } from 'tamagui'
+
+export function FlexibleSpacer() {
+  return (
+    <XStack width="100%" padding="$4">
+      <Button>Left</Button>
+      <Spacer flex={1} />  {/* Pushes button to the right */}
+      <Button>Right</Button>
+    </XStack>
+  )
+}
+```
+
+### Size Variations
+
+```tsx
+import { YStack, Text, Spacer } from 'tamagui'
+
+export function SizeVariations() {
+  return (
+    <YStack padding="$4">
+      <Text>Size $1</Text>
+      <Spacer size="$1" />
+      <Text>Size $2</Text>
+      <Spacer size="$2" />
+      <Text>Size $4</Text>
+      <Spacer size="$4" />
+      <Text>Size $8</Text>
+      <Spacer size="$8" />
+      <Text>After large spacer</Text>
+    </YStack>
+  )
+}
+```
+
+### Toolbar Layout
+
+```tsx
+import { XStack, Button, Spacer } from 'tamagui'
+
+export function Toolbar() {
+  return (
+    <XStack 
+      padding="$3" 
+      backgroundColor="$background" 
+      borderBottomWidth={1} 
+      borderColor="$borderColor"
+    >
+      <Button size="$3">Save</Button>
+      <Spacer direction="horizontal" size="$2" />
+      <Button size="$3">Cancel</Button>
+      
+      <Spacer flex={1} />  {/* Flexible spacer */}
+      
+      <Button size="$3">Settings</Button>
+    </XStack>
+  )
+}
+```
+
+### Card Layout
+
+```tsx
+import { YStack, XStack, Text, Button, Spacer } from 'tamagui'
+
+export function CardLayout() {
+  return (
+    <YStack 
+      padding="$4" 
+      backgroundColor="$background" 
+      borderRadius="$4"
+      maxWidth={400}
+    >
+      <Text fontSize="$6" fontWeight="bold">Card Title</Text>
+      
+      <Spacer size="$2" />
+      
+      <Text color="$color11">
+        Card description with some content that explains what this card is about.
+      </Text>
+      
+      <Spacer size="$4" />
+      
+      <XStack justifyContent="flex-end">
+        <Button size="$3" variant="outlined">Cancel</Button>
+        <Spacer direction="horizontal" size="$2" />
+        <Button size="$3">Confirm</Button>
+      </XStack>
+    </YStack>
+  )
+}
+```
+
+## When to Use Spacer vs Gap
+
+### Use `gap` property when:
+- You want consistent spacing between all children
+- You're using Stack components (XStack, YStack)
+- You want cleaner, more concise code
+
+```tsx
+// ✅ Recommended
+<YStack gap="$4">
+  <Item />
+  <Item />
+  <Item />
+</YStack>
+```
+
+### Use `Spacer` when:
+- You need variable spacing between different items
+- You want flexible spacing (`flex={1}`)
+- You're working with non-Stack containers
+- You need fine control over individual gaps
+
+```tsx
+// ✅ Good use case
+<YStack>
+  <Item />
+  <Spacer size="$2" />
+  <Item />
+  <Spacer size="$8" />  {/* Different size */}
+  <Item />
+</YStack>
+
+// ✅ Flexible spacer
+<XStack>
+  <Button>Left</Button>
+  <Spacer flex={1} />
+  <Button>Right</Button>
+</XStack>
+```
+
+## Utility: spacedChildren
+
+For adding spacers between all children programmatically:
+
+```tsx
+import { spacedChildren } from '@tamagui/spacer'
+import { YStack } from 'tamagui'
+
+function MyList({ items }) {
+  return (
+    <YStack>
+      {spacedChildren({
+        children: items.map(item => <Item key={item.id} {...item} />),
+        space: '$4',
+      })}
+    </YStack>
+  )
+}
+```
+
+## Utility: Unspaced
+
+Skip spacing for specific children when using automatic spacing:
+
+```tsx
+import { Unspaced } from '@tamagui/spacer'
+import { YStack } from 'tamagui'
+
+<YStack gap="$4">
+  <Item />
+  <Item />
+  <Unspaced>
+    <SpecialItem />  {/* Won't have spacing applied */}
+  </Unspaced>
+  <Item />
+</YStack>
+```
+
+## Rendering
+
+Spacer renders as a `<span>` element on web and `<View>` on native with:
+- `pointerEvents: 'none'` - Doesn't capture clicks
+- `render: 'span'` - Inline rendering on web
+
+## Accessibility
+
+- Spacer is purely visual and doesn't affect accessibility tree
+- It's decorative and ignored by screen readers
+- Use semantic spacing (margins/padding) on meaningful elements when possible
+
+## Type Definitions
+
+```tsx
+import type { SizeTokens } from '@tamagui/core'
+
+interface SpacerProps {
+  size?: SizeTokens | number | boolean
+  direction?: 'horizontal' | 'vertical' | 'both'
+  flex?: number
+}
+```
+
+## See Also
+
+- [Stacks](/components/stacks) - Use `gap` prop for consistent spacing
+- [Separator](/components/separator) - For visual dividers
+- [Theme Tokens](/core/tokens) - Understanding size tokens

@@ -1,0 +1,126 @@
+---
+title: Introduction to Tamagui
+description: A universal React component library and style system that works across web and native, powered by an optimizing compiler
+---
+
+# Introduction to Tamagui
+
+Tamagui is a complete UI solution for building high-performance applications that run on both web and React Native. It combines a powerful style library, a comprehensive component kit, and an optimizing compiler to deliver exceptional performance without compromising on developer experience.
+
+## What is Tamagui?
+
+Tamagui is actually a collection of complementary libraries:
+
+- **@tamagui/core** - Universal style library for React
+- **@tamagui/static** - Optimizing compiler that works with core and tamagui
+- **tamagui** - Complete UI kit that adapts to every platform
+
+These work together to let you share more code between web and native apps without sacrificing performance or code quality.
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Get started by installing Tamagui in your project
+  </Card>
+  <Card title="Quick Start" icon="bolt" href="/quickstart">
+    Build your first cross-platform component in minutes
+  </Card>
+  <Card title="Why Tamagui?" icon="lightbulb" href="/why-tamagui">
+    Learn about the benefits and use cases
+  </Card>
+  <Card title="Configuration" icon="gear" href="/core/configuration">
+    Configure themes, tokens, and design system
+  </Card>
+</CardGroup>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Cross-Platform" icon="mobile">
+    Write once, run everywhere. Your components work on iOS, Android, and web with the same code.
+  </Card>
+  
+  <Card title="Optimizing Compiler" icon="zap">
+    The compiler flattens styled components into optimized platform-specific code - `div` with atomic CSS on web, `View` with hoisted styles on native.
+  </Card>
+  
+  <Card title="Type-Safe Styling" icon="shield">
+    Full TypeScript support with intelligent autocompletion for your design tokens, themes, and variants.
+  </Card>
+  
+  <Card title="Rich Component Library" icon="box">
+    Comprehensive set of accessible, customizable components including Button, Dialog, Sheet, Select, and more.
+  </Card>
+  
+  <Card title="Powerful Animations" icon="sparkles">
+    Built-in animation support with multiple drivers including CSS, React Native Animated, and Reanimated.
+  </Card>
+  
+  <Card title="Theming System" icon="palette">
+    Sophisticated theme system with automatic dark mode, theme nesting, and dynamic theme switching.
+  </Card>
+</CardGroup>
+
+## How It Works
+
+The magic of Tamagui lies in its optimizing compiler. It analyzes your styled components at build time and:
+
+1. **Extracts static styles** into atomic CSS classes on web
+2. **Hoists style objects** on React Native for optimal performance
+3. **Flattens component trees** by removing unnecessary wrapper components
+4. **Optimizes media queries** and responsive styles
+
+For example, in the ~500px² responsive browser section of the Tamagui website, **49 of 55 inline styled components are flattened to a simple `div`**. The homepage gains nearly **15% on Lighthouse** with the compiler enabled.
+
+## Runtime and Compile Time
+
+Tamagui works both at compile time and runtime, and can be adopted gradually:
+
+- Start by using the base views and `styled` function without any build setup
+- Add the compiler later for production optimizations
+- The entire API works the same whether compiled or not
+
+## Getting Started
+
+The fastest way to start is with a starter template:
+
+```bash
+npm create tamagui@latest
+```
+
+This gives you options ranging from a simple learning example to a production-ready monorepo with Next.js, Expo, and Solito.
+
+<Note>
+  The starters come pre-configured with the compiler, design tokens, themes, and example components to help you hit the ground running.
+</Note>
+
+## Example
+
+Here's a taste of what Tamagui code looks like:
+
+```tsx
+import { Button, YStack, H2 } from 'tamagui'
+
+export default function MyComponent() {
+  return (
+    <YStack gap="$4" padding="$4">
+      <H2>Welcome to Tamagui</H2>
+      <Button theme="accent" size="$5">
+        Get Started
+      </Button>
+    </YStack>
+  )
+}
+```
+
+This code works identically on web and native, with the compiler optimizing it to platform-specific code at build time.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Install Tamagui" icon="download" href="/installation">
+    Set up Tamagui in your existing or new project
+  </Card>
+  <Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+    Follow the step-by-step guide to build your first component
+  </Card>
+</CardGroup>

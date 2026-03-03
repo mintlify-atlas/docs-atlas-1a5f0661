@@ -1,0 +1,408 @@
+---
+title: styled()
+description: Create styled Tamagui components with variants and customization
+---
+
+The `styled()` function is Tamagui's primary API for creating styled components. It extends existing components with custom styles, variants, and configuration.
+
+## Function Signature
+
+```typescript
+function styled<
+  ParentComponent extends StylableComponent,
+  StyledConfig extends StaticConfigPublic,
+  Variants extends VariantDefinitions<ParentComponent, StyledConfig>
+>(
+  ComponentIn: ParentComponent,
+  options?: Partial<InferStyledProps<ParentComponent, StyledConfig>> & {
+    name?: string
+    variants?: Variants | undefined
+    defaultVariants?: GetVariantAcceptedValues<Variants>
+    context?: StyledContext
+    render?: string | React.ReactElement
+  },
+  config?: StyledConfig
+): TamaguiComponent
+```
+
+## Parameters
+
+<ParamField path="ComponentIn" type="StylableComponent" required>
+  The component to extend. Can be any Tamagui component, React Native component, or previously styled component.
+</ParamField>
+
+<ParamField path="options" type="object">
+  Configuration object containing styles, variants, and other options.
+
+  <ParamField path="options.name" type="string">
+    Component name for debugging and dev tools.
+  </ParamField>
+
+  <ParamField path="options.variants" type="VariantDefinitions">
+    Variant definitions that create type-safe props for different component states.
+  </ParamField>
+
+  <ParamField path="options.defaultVariants" type="object">
+    Default values for variants when not explicitly provided.
+  </ParamField>
+
+  <ParamField path="options.context" type="StyledContext">
+    React context for sharing variant values with child components.
+  </ParamField>
+
+  <ParamField path="options.render" type="string | React.ReactElement">
+    Custom element type or render prop for advanced rendering.
+  </ParamField>
+
+  All other properties in options are treated as default style props.
+</ParamField>
+
+<ParamField path="config" type="StaticConfigPublic">
+  Advanced static configuration for the component.
+
+  <ParamField path="config.isText" type="boolean">
+    Whether this component should be treated as a text component.
+  </ParamField>
+
+  <ParamField path="config.acceptsClassName" type="boolean">
+    Whether the component accepts className prop.
+  </ParamField>
+
+  <ParamField path="config.isReactNative" type="boolean">
+    Whether this is a React Native component.
+  </ParamField>
+</ParamField>
+
+## Return Type
+
+<ResponseField name="StyledComponent" type="TamaguiComponent">
+  A new Tamagui component that:
+  - Accepts all props from the parent component
+  - Adds new variant props
+  - Supports all Tamagui style props
+  - Supports pseudo-props (hoverStyle, pressStyle, etc.)
+  - Supports media queries ($sm, $md, etc.)
+</ResponseField>
+
+## Basic Usage
+
+### Simple Styled Component
+
+```tsx
+import { styled, Stack } from 'tamagui'
+
+const Container = styled(Stack, {
+  backgroundColor: '$background',
+  padding: '$4',
+  borderRadius: '$4',
+})
+
+// Usage
+<Container>Content</Container>
+```
+
+### With Variants
+
+```tsx
+import { styled, Text } from 'tamagui'
+
+const Button = styled(Text, {
+  name: 'Button',
+  backgroundColor: '$blue10',
+  color: 'white',
+  paddingHorizontal: '$4',
+  paddingVertical: '$2',
+  borderRadius: '$2',
+
+  variants: {
+    variant: {
+      primary: {
+        backgroundColor: '$blue10',
+      },
+      secondary: {
+        backgroundColor: '$gray10',
+      },
+      destructive: {
+        backgroundColor: '$red10',
+      },
+    },
+    size: {
+      small: {
+        paddingHorizontal: '$2',
+        paddingVertical: '$1',
+        fontSize: '$2',
+      },
+      medium: {
+        paddingHorizontal: '$4',
+        paddingVertical: '$2',
+        fontSize: '$4',
+      },
+      large: {
+        paddingHorizontal: '$6',
+        paddingVertical: '$3',
+        fontSize: '$6',
+      },
+    },
+  },
+
+  defaultVariants: {
+    variant: 'primary',
+    size: 'medium',
+  },
+})
+
+// Usage with type-safe variants
+<Button variant="secondary" size="large">
+  Click Me
+</Button>
+```
+
+### Variant Spread Functions
+
+```tsx
+import { styled, Stack } from 'tamagui'
+import { getFontSized } from '@tamagui/get-font-sized'
+
+const Card = styled(Stack, {
+  backgroundColor: '$background',
+  padding: '$4',
+
+  variants: {
+    size: {
+      '...size': (value, { tokens }) => {
+        return {
+          padding: tokens.space[value],
+          gap: tokens.space[value],
+        }
+      },
+    },
+  },
+})
+
+// Uses token values: $1, $2, $3, etc.
+<Card size="$4" />
+```
+
+### Extending Styled Components
+
+```tsx
+import { styled } from 'tamagui'
+
+const BaseButton = styled(Stack, {
+  paddingHorizontal: '$4',
+  paddingVertical: '$2',
+  borderRadius: '$2',
+})
+
+// Extend with additional styles and variants
+const PrimaryButton = styled(BaseButton, {
+  backgroundColor: '$blue10',
+  color: 'white',
+
+  variants: {
+    elevated: {
+      true: {
+        shadowColor: '$shadowColor',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+    },
+  },
+})
+```
+
+## HTML Elements (Web Only)
+
+On web, `styled` provides shorthand methods for HTML elements:
+
+```tsx
+import { styled } from 'tamagui'
+
+// styled.div, styled.button, styled.a, etc.
+const StyledButton = styled.button({
+  backgroundColor: '$blue10',
+  color: 'white',
+  border: 'none',
+  borderRadius: '$2',
+  padding: '$2 $4',
+  cursor: 'pointer',
+
+  hoverStyle: {
+    backgroundColor: '$blue11',
+  },
+})
+
+// Automatically gets proper HTML props
+<StyledButton type="submit" onClick={() => {}}>
+  Submit
+</StyledButton>
+```
+
+Available element shortcuts:
+- `styled.div`, `styled.span`, `styled.section`
+- `styled.button`, `styled.input`, `styled.form`
+- `styled.a`, `styled.label`, `styled.textarea`
+- And all other HTML elements
+
+## Pseudo-Props
+
+Styled components support pseudo-props for interactive states:
+
+```tsx
+const InteractiveBox = styled(Stack, {
+  backgroundColor: '$background',
+  padding: '$4',
+
+  hoverStyle: {
+    backgroundColor: '$backgroundHover',
+  },
+
+  pressStyle: {
+    scale: 0.98,
+  },
+
+  focusStyle: {
+    borderColor: '$blue10',
+    borderWidth: 2,
+  },
+
+  disabledStyle: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+  },
+})
+```
+
+Available pseudo-props:
+- `hoverStyle` - Applied on hover (web) or pressIn (native)
+- `pressStyle` - Applied when pressed
+- `focusStyle` - Applied when focused
+- `focusVisibleStyle` - Applied when focused via keyboard
+- `disabledStyle` - Applied when disabled prop is true
+- `exitStyle` - Style when component exits (with AnimatePresence)
+- `enterStyle` - Style when component enters
+
+## Media Queries
+
+```tsx
+const ResponsiveContainer = styled(Stack, {
+  padding: '$2',
+
+  $sm: {
+    padding: '$4',
+  },
+
+  $md: {
+    padding: '$6',
+    flexDirection: 'row',
+  },
+
+  $lg: {
+    padding: '$8',
+    maxWidth: 1200,
+  },
+})
+```
+
+## Context for Variant Inheritance
+
+```tsx
+import { createStyledContext, styled } from 'tamagui'
+
+const ButtonContext = createStyledContext({
+  size: '$4',
+})
+
+const ButtonFrame = styled(Stack, {
+  context: ButtonContext,
+  // children will inherit size variant
+})
+
+const ButtonText = styled(Text, {
+  context: ButtonContext,
+
+  variants: {
+    size: {
+      '$3': { fontSize: '$3' },
+      '$4': { fontSize: '$4' },
+      '$5': { fontSize: '$5' },
+    },
+  } as const,
+})
+
+// ButtonText inherits size from ButtonFrame
+<ButtonFrame size="$5">
+  <ButtonText>Text gets size $5</ButtonText>
+</ButtonFrame>
+```
+
+## Common Patterns
+
+### Themeable Components
+
+```tsx
+const Card = styled(Stack, {
+  backgroundColor: '$background',
+  borderColor: '$borderColor',
+  borderWidth: 1,
+  borderRadius: '$4',
+  padding: '$4',
+})
+
+// Automatically responds to theme changes
+<Card theme="dark">Dark theme card</Card>
+```
+
+### Animation Support
+
+```tsx
+const AnimatedBox = styled(Stack, {
+  backgroundColor: '$blue10',
+  scale: 1,
+
+  animation: 'quick',
+
+  hoverStyle: {
+    scale: 1.05,
+  },
+
+  pressStyle: {
+    scale: 0.95,
+  },
+})
+```
+
+### Compound Variants
+
+```tsx
+const Button = styled(Stack, {
+  variants: {
+    variant: {
+      primary: { backgroundColor: '$blue10' },
+      secondary: { backgroundColor: '$gray10' },
+    },
+    size: {
+      small: { padding: '$2' },
+      large: { padding: '$4' },
+    },
+  },
+
+  // Note: Tamagui doesn't have built-in compound variants,
+  // but you can use variant spread functions for similar logic
+})
+```
+
+## Performance Tips
+
+1. **Use the name prop** for better debugging and dev tools
+2. **Prefer static styles** over dynamic inline styles
+3. **Use variants** instead of conditional style props
+4. **Leverage the compiler** by keeping styles static when possible
+
+## See Also
+
+- [createComponent()](/api/create-component) - Lower-level component creation
+- [createTamagui()](/api/create-tamagui) - Configuration setup
+- [Variants Guide](/core/variants) - Deep dive into variants
+- [Theme Guide](/core/theme) - Working with themes

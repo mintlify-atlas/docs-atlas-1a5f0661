@@ -1,0 +1,378 @@
+---
+title: Installation
+description: Install Tamagui in your React or React Native project
+---
+
+# Installation
+
+Tamagui can be installed in new or existing React and React Native projects. Choose the installation method that fits your project setup.
+
+## Quick Start with Templates
+
+The fastest way to get started is using the official Tamagui starters:
+
+<CodeGroup>
+```bash npm
+npm create tamagui@latest
+```
+
+```bash yarn
+yarn create tamagui
+```
+
+```bash pnpm
+pnpm create tamagui@latest
+```
+
+```bash bun
+bun create tamagui@latest
+```
+</CodeGroup>
+
+The create command will guide you through selecting a template:
+
+- **Simple starter** - Minimal setup for learning
+- **Expo Router starter** - Cross-platform mobile with Expo
+- **Next.js starter** - Server-side rendered web apps
+- **Monorepo** - Production-ready setup with web + native
+
+<Tip>
+  The starters come pre-configured with the compiler, design tokens, themes, and working examples. This is the recommended approach for new projects.
+</Tip>
+
+## Manual Installation
+
+If you're adding Tamagui to an existing project, follow these steps:
+
+### Core Package
+
+For the minimal style library without UI components:
+
+<CodeGroup>
+```bash npm
+npm install @tamagui/core
+```
+
+```bash yarn
+yarn add @tamagui/core
+```
+
+```bash pnpm
+pnpm add @tamagui/core
+```
+
+```bash bun
+bun add @tamagui/core
+```
+</CodeGroup>
+
+### UI Kit Package
+
+For the complete UI component library (recommended):
+
+<CodeGroup>
+```bash npm
+npm install tamagui
+```
+
+```bash yarn
+yarn add tamagui
+```
+
+```bash pnpm
+pnpm add tamagui
+```
+
+```bash bun
+bun add tamagui
+```
+</CodeGroup>
+
+<Note>
+  The `tamagui` package includes `@tamagui/core` plus a comprehensive set of accessible UI components like Button, Dialog, Select, Sheet, and more.
+</Note>
+
+### Peer Dependencies
+
+Tamagui requires React 19 or later and React Native (for native apps):
+
+<CodeGroup>
+```bash npm
+npm install react@latest react-native
+```
+
+```bash yarn
+yarn add react@latest react-native
+```
+
+```bash pnpm
+pnpm add react@latest react-native
+```
+
+```bash bun
+bun add react@latest react-native
+```
+</CodeGroup>
+
+## Configuration
+
+After installation, you need to create a Tamagui configuration file. Create `tamagui.config.ts` in your project root:
+
+```tsx tamagui.config.ts
+import { defaultConfig } from '@tamagui/config/v5'
+import { createTamagui } from 'tamagui'
+
+export const config = createTamagui(defaultConfig)
+
+export default config
+
+export type Conf = typeof config
+
+declare module 'tamagui' {
+  interface TamaguiCustomConfig extends Conf {}
+}
+```
+
+This uses Tamagui's default configuration which includes:
+
+- Pre-configured design tokens (colors, spacing, sizing, etc.)
+- Light and dark themes
+- Responsive media queries
+- Font configurations
+- Animation presets
+
+<Tip>
+  You can customize any aspect of the configuration. See the [Configuration Guide](/core/configuration) for details.
+</Tip>
+
+## Provider Setup
+
+Wrap your app with `TamaguiProvider` to enable themes and styling:
+
+```tsx Provider.tsx
+import { useColorScheme } from 'react-native'
+import { TamaguiProvider } from 'tamagui'
+import { config } from './tamagui.config'
+
+export function Provider({ children }) {
+  const colorScheme = useColorScheme()
+
+  return (
+    <TamaguiProvider
+      config={config}
+      defaultTheme={colorScheme === 'dark' ? 'dark' : 'light'}
+    >
+      {children}
+    </TamaguiProvider>
+  )
+}
+```
+
+Then wrap your root component:
+
+```tsx App.tsx
+import { Provider } from './Provider'
+import { YStack, Button, H1 } from 'tamagui'
+
+export default function App() {
+  return (
+    <Provider>
+      <YStack flex={1} alignItems="center" justifyContent="center" gap="$4">
+        <H1>Hello Tamagui!</H1>
+        <Button>Click me</Button>
+      </YStack>
+    </Provider>
+  )
+}
+```
+
+## Web-Specific Setup
+
+For web projects, you need to import the CSS file:
+
+```tsx app/_layout.tsx
+import '../tamagui.generated.css'
+```
+
+Or if using the reset styles:
+
+```tsx
+import '@tamagui/core/reset.css'
+```
+
+## Compiler Setup (Optional but Recommended)
+
+The Tamagui compiler provides significant performance improvements. Setup varies by framework:
+
+### Next.js
+
+Install the plugin:
+
+<CodeGroup>
+```bash npm
+npm install @tamagui/babel-plugin
+```
+
+```bash yarn
+yarn add @tamagui/babel-plugin
+```
+
+```bash pnpm
+pnpm add @tamagui/babel-plugin
+```
+
+```bash bun
+bun add @tamagui/babel-plugin
+```
+</CodeGroup>
+
+Configure in `next.config.js`:
+
+```js next.config.js
+const { withTamagui } = require('@tamagui/next-plugin')
+
+module.exports = withTamagui({
+  config: './tamagui.config.ts',
+  components: ['tamagui'],
+})
+```
+
+### Expo / React Native
+
+Install the Babel plugin:
+
+<CodeGroup>
+```bash npm
+npm install @tamagui/babel-plugin
+```
+
+```bash yarn
+yarn add @tamagui/babel-plugin
+```
+
+```bash pnpm
+pnpm add @tamagui/babel-plugin
+```
+
+```bash bun
+bun add @tamagui/babel-plugin
+```
+</CodeGroup>
+
+Configure in `babel.config.js`:
+
+```js babel.config.js
+module.exports = function (api) {
+  api.cache(true)
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: [
+      [
+        '@tamagui/babel-plugin',
+        {
+          components: ['tamagui'],
+          config: './tamagui.config.ts',
+        },
+      ],
+    ],
+  }
+}
+```
+
+<Note>
+  The compiler is optional - Tamagui works at runtime without it. However, the compiler can flatten 80-90% of styled components and significantly improve performance.
+</Note>
+
+## Additional Packages
+
+Depending on your needs, you may want to install additional packages:
+
+### Icons
+
+<CodeGroup>
+```bash npm
+npm install @tamagui/lucide-icons
+```
+
+```bash yarn
+yarn add @tamagui/lucide-icons
+```
+
+```bash pnpm
+pnpm add @tamagui/lucide-icons
+```
+
+```bash bun
+bun add @tamagui/lucide-icons
+```
+</CodeGroup>
+
+### Fonts
+
+<CodeGroup>
+```bash npm
+npm install @tamagui/font-inter
+```
+
+```bash yarn
+yarn add @tamagui/font-inter
+```
+
+```bash pnpm
+pnpm add @tamagui/font-inter
+```
+
+```bash bun
+bun add @tamagui/font-inter
+```
+</CodeGroup>
+
+### Animations
+
+<CodeGroup>
+```bash npm
+npm install @tamagui/animations-react-native
+```
+
+```bash yarn
+yarn add @tamagui/animations-react-native
+```
+
+```bash pnpm
+pnpm add @tamagui/animations-react-native
+```
+
+```bash bun
+bun add @tamagui/animations-react-native
+```
+</CodeGroup>
+
+## Verification
+
+To verify your installation is working, create a simple test component:
+
+```tsx test.tsx
+import { Button, YStack } from 'tamagui'
+
+export function Test() {
+  return (
+    <YStack padding="$4" gap="$4">
+      <Button>Hello Tamagui!</Button>
+      <Button theme="accent">Themed Button</Button>
+    </YStack>
+  )
+}
+```
+
+If you see styled buttons with proper theming, you're all set!
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Build your first component with a step-by-step guide
+  </Card>
+  <Card title="Configuration" icon="gear" href="/core/configuration">
+    Learn how to customize themes, tokens, and design system
+  </Card>
+</CardGroup>
