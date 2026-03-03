@@ -1,0 +1,213 @@
+{
+  "projectType": "framework",
+  "projectName": "Tamagui",
+  "projectDescription": "Universal React styling framework with 100% parity on React Native, UI components, and an optimizing compiler",
+  "theme": "willow",
+  "primaryColor": "#6252F8",
+  "lightColor": "#6BCF1A",
+  "darkColor": "#1a1a1a",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart",
+              "why-tamagui"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "core/styled",
+              "core/view-and-text",
+              "core/configuration",
+              "core/tokens",
+              "core/theme",
+              "core/variants",
+              "core/animations",
+              "core/server-rendering"
+            ]
+          },
+          {
+            "group": "Compiler",
+            "pages": [
+              "compiler/introduction",
+              "compiler/installation",
+              "compiler/how-it-works",
+              "compiler/static-extraction"
+            ]
+          },
+          {
+            "group": "Framework Guides",
+            "pages": [
+              "guides/next-js",
+              "guides/vite",
+              "guides/expo",
+              "guides/metro",
+              "guides/webpack"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/animations",
+              "advanced/design-systems",
+              "advanced/theme-builder",
+              "advanced/cli",
+              "advanced/create-styled-context"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Components",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "components/introduction"
+            ]
+          },
+          {
+            "group": "Layout",
+            "pages": [
+              "components/stacks",
+              "components/group",
+              "components/scroll-view",
+              "components/separator",
+              "components/spacer"
+            ]
+          },
+          {
+            "group": "Forms",
+            "pages": [
+              "components/button",
+              "components/inputs",
+              "components/checkbox",
+              "components/radio-group",
+              "components/switch",
+              "components/slider",
+              "components/label",
+              "components/form"
+            ]
+          },
+          {
+            "group": "Overlays",
+            "pages": [
+              "components/dialog",
+              "components/alert-dialog",
+              "components/popover",
+              "components/sheet",
+              "components/tooltip",
+              "components/toast"
+            ]
+          },
+          {
+            "group": "Navigation",
+            "pages": [
+              "components/tabs",
+              "components/accordion",
+              "components/menu",
+              "components/context-menu"
+            ]
+          },
+          {
+            "group": "Data Display",
+            "pages": [
+              "components/card",
+              "components/avatar",
+              "components/image",
+              "components/text",
+              "components/list-item",
+              "components/progress",
+              "components/spinner"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "components/portal",
+              "components/visually-hidden",
+              "components/focus-scope",
+              "components/linear-gradient"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core API",
+            "pages": [
+              "api/styled",
+              "api/create-tamagui",
+              "api/create-component",
+              "api/create-tokens",
+              "api/create-theme"
+            ]
+          },
+          {
+            "group": "Hooks",
+            "pages": [
+              "api/use-theme",
+              "api/use-media",
+              "api/use-controllable-state",
+              "api/use-debounce"
+            ]
+          },
+          {
+            "group": "Animation Drivers",
+            "pages": [
+              "api/animations-css",
+              "api/animations-react-native",
+              "api/animations-reanimated",
+              "api/animations-motion"
+            ]
+          },
+          {
+            "group": "Compiler Plugins",
+            "pages": [
+              "api/vite-plugin",
+              "api/next-plugin",
+              "api/metro-plugin",
+              "api/babel-plugin",
+              "api/webpack-loader"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Cross-platform styling for React and React Native with 100% parity",
+    "Optimizing compiler that flattens styled components to atomic CSS",
+    "40+ production-ready UI components with full accessibility support",
+    "Powerful theming system with tokens and variants",
+    "Multiple animation drivers (CSS, React Native, Reanimated, Motion)",
+    "Framework integrations for Next.js, Vite, Expo, Metro, and Webpack",
+    "CLI tools for scaffolding and theme generation",
+    "TypeScript-first with full type safety"
+  ],
+  "publicApiSurface": [
+    "styled() - Create styled components",
+    "createTamagui() - Configure Tamagui instance",
+    "createComponent() - Create base components",
+    "createTokens() - Define design tokens",
+    "createTheme() - Create theme objects",
+    "View, Text, Stack, YStack, XStack - Layout primitives",
+    "Button, Input, Select, Dialog, Sheet - UI components",
+    "useTheme() - Access theme values",
+    "useMedia() - Responsive media queries",
+    "Theme - Theme provider component",
+    "@tamagui/vite-plugin - Vite compiler integration",
+    "@tamagui/next-plugin - Next.js compiler integration",
+    "@tamagui/cli - Command-line interface",
+    "TamaguiProvider - Root provider component"
+  ]
+}
